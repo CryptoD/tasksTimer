@@ -11,7 +11,7 @@ To install the extension, clone the repository and run `install_local.sh`:
 mkdir ~/github
 cd ~/github
 git clone https://github.com/CryptoD/tasksTimer
-cd kitchenTimer
+cd tasksTimer
 ./install_local.sh
 ```
 
