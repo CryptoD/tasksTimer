@@ -1123,13 +1123,13 @@ Author: Steeve McCauley
                 </child>
                 <child>
                   <object class="GtkLinkButton">
-                    <property name="label" translatable="yes">https://github.com/blackjackshellac/kitchenTimer</property>
+                    <property name="label" translatable="yes">https://github.com/CryptoD/tasksTimer</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">False</property>
                     <property name="image">img_kitchentimer_symbolic</property>
                     <property name="always-show-image">True</property>
-                    <property name="uri">https://github.com/blackjackshellac/kitchenTimer</property>
+                    <property name="uri">https://github.com/CryptoD/tasksTimer</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>

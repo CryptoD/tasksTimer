@@ -502,7 +502,7 @@ msgstr ""
 #: settings.ui:1131 settings.ui:1203 settings.ui:1204 settings.ui:1207
 #: settings.ui:1217 settings.ui:1218 settings.ui:1228 settings.ui:1234
 #: settings40.ui:1355 settings4x.ui:1102
-msgid "https://github.com/blackjackshellac/kitchenTimer"
+msgid "https://github.com/CryptoD/tasksTimer"
 msgstr ""
 
 #: prefs.ui:545 settings.ui:705 settings.ui:712 settings.ui:714 settings.ui:727
