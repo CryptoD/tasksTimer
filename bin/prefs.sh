@@ -3,4 +3,4 @@
 # run prefs from the command line
 #
 
-gnome-extensions prefs kitchentimer@blackjackshellac.ca
+gnome-extensions prefs tasksTimer@CryptoD

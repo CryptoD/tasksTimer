@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ed=kitchentimer@blackjackshellac.ca
+ed=tasksTimer@CryptoD
 [ ! -d $ed ] && echo "Extension dir $ed not found" && exit 1
 cd $ed
 

@@ -4,7 +4,7 @@ ME=$(basename $0)
 MD=$(cd $(dirname $0); pwd)
 
 echo $MD
-cd $MD/../kitchentimer@blackjackshellac.ca/po
+cd $MD/../tasksTimer@CryptoD/po
 [ $? -ne 0 ] && echo "Failed to change to extension po directory" && exit 1
 
 echo Working in $(pwd)
