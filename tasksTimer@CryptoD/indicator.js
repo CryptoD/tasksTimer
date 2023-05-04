@@ -36,8 +36,8 @@ const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 
-var KitchenTimerIndicator = GObject.registerClass(
-class KitchenTimerIndicator extends PanelMenu.Button {
+var tasksTimerIndicator = GObject.registerClass(
+class tasksTimerIndicator extends PanelMenu.Button {
     _init() {
       // settings now lives in Timers singleton
       this._timers = Timers.attach(this);
@@ -53,7 +53,7 @@ class KitchenTimerIndicator extends PanelMenu.Button {
       icon.set_icon_size(20);
 
       this._box = new St.BoxLayout({ name: 'panelStatusMenu',
-        style_class: 'kitchentimer-panel-box'
+        style_class: 'tasksTimer-panel-box'
       });
       this._box.add_child(icon);
       //this._box.add_child(PopupMenu.arrowIcon(St.Side.BOTTOM));
@@ -62,14 +62,14 @@ class KitchenTimerIndicator extends PanelMenu.Button {
         x_align: Clutter.ActorAlign.END,
         y_align: Clutter.ActorAlign.CENTER,
         y_expand: false,
-        style_class: 'kitchentimer-panel-label'
+        style_class: 'tasksTimer-panel-label'
       });
 
       this._panel_name=new St.Label({ text: "",
         x_align: Clutter.ActorAlign.END,
         y_align: Clutter.ActorAlign.CENTER,
         y_expand: false,
-        style_class: 'kitchentimer-panel-name'
+        style_class: 'tasksTimer-panel-name'
       });
 
       this._box.add(this._panel_name);

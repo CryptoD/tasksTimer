@@ -43,8 +43,8 @@ var KTTypes = {
 
 var logger = new Logger('kt menuitem');
 
-var KitchenTimerCreatePreset = GObject.registerClass(
-class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
+var tasksTimerCreatePreset = GObject.registerClass(
+class tasksTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
   _init(menu, timers) {
     super._init(_("Create Preset"));
     this._timers = timers;
@@ -59,7 +59,7 @@ class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
     });
     this._entry.set_hint_text(_("Name 00:00:00"));
     this._entry.get_clutter_text().set_activatable(true);
-    this._entry.set_primary_icon(KitchenTimerCreatePreset.create_icon(this._timers));
+    this._entry.set_primary_icon(tasksTimerCreatePreset.create_icon(this._timers));
 
     var name_item = new PopupMenu.PopupMenuItem("", { reactive: false } );
     var bin = new St.Bin({ x_expand: true, x_align: St.Align.START });
@@ -69,9 +69,9 @@ class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
 
     this._name = "";
 
-    this._hslider = new KitchenTimerTimeSliderItem(this, "h", 0, 99);
-    this._mslider = new KitchenTimerTimeSliderItem(this, "m", 0, 59);
-    this._sslider = new KitchenTimerTimeSliderItem(this, "s", 0, 59);
+    this._hslider = new tasksTimerTimeSliderItem(this, "h", 0, 99);
+    this._mslider = new tasksTimerTimeSliderItem(this, "m", 0, 59);
+    this._sslider = new tasksTimerTimeSliderItem(this, "s", 0, 59);
 
     this._go = new PopupMenu.PopupImageMenuItem(_("Create"), this._timers.progress_gicon(0));
     this._go.label.set_y_align( Clutter.ActorAlign.CENTER );
@@ -95,7 +95,7 @@ class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
     this._entry.get_clutter_text().connect('key-focus-out', (e) => {
       var entry = e.get_text();
       logger.debug('key out hours: '+entry);
-      var result = KitchenTimerMenuItem.parseTimerEntry(entry, false);
+      var result = tasksTimerMenuItem.parseTimerEntry(entry, false);
       if (result) {
         this._name = result.name;
         if (result.has_time) {
@@ -115,10 +115,10 @@ class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
     var ctext = this._entry.get_clutter_text();
     var entry = ctext.get_text();
     logger.debug('activate: '+entry);
-    var result = KitchenTimerMenuItem.parseTimerEntry(entry, false);
+    var result = tasksTimerMenuItem.parseTimerEntry(entry, false);
     if (result) {
       ctext.set_text("%s %s".format(result.name, result.hms.toString()));
-      var timer = KitchenTimerMenuItem.addTimerStart(result, this._timers);
+      var timer = tasksTimerMenuItem.addTimerStart(result, this._timers);
       if (timer === undefined) {
       } else {
         this.menu.close();
@@ -166,8 +166,8 @@ class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
 
     // item.add(this._hoursSlider);
 
-var KitchenTimerTimeSliderItem = GObject.registerClass(
-class KitchenTimerTimeSliderItem extends PopupMenu.PopupMenuItem {
+var tasksTimerTimeSliderItem = GObject.registerClass(
+class tasksTimerTimeSliderItem extends PopupMenu.PopupMenuItem {
   _init(parent, suffix, min, max) {
     super._init("", { reactive: true });
     parent.menu.addMenuItem(this);
@@ -177,7 +177,7 @@ class KitchenTimerTimeSliderItem extends PopupMenu.PopupMenuItem {
     this._value = min;
     this._min = min;
     this._max = max;
-    this._label = new St.Label({ text: this.format(min), style_class: 'kitchentimer-panel-label' });
+    this._label = new St.Label({ text: this.format(min), style_class: 'tasksTimer-panel-label' });
 
     var bin = new St.Bin({ x_expand: false, x_align: St.Align.START });
     bin.child = this._label;
@@ -210,8 +210,8 @@ class KitchenTimerTimeSliderItem extends PopupMenu.PopupMenuItem {
   }
 });
 
-var KitchenTimerMenuItem = GObject.registerClass(
-class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
+var tasksTimerMenuItem = GObject.registerClass(
+class tasksTimerMenuItem extends PopupMenu.PopupMenuItem {
   _init(timer, menu) {
       super._init("", { reactive: true });
 
@@ -223,19 +223,19 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
         x_expand: true,
         x_align: St.Align.START,
         pack_start: true,
-        style_class: 'kitchentimer-menu-box'
+        style_class: 'tasksTimer-menu-box'
       });
       this.add(box);
 
       var name = new St.Label({
-        style_class: 'kitchentimer-menu-name',
+        style_class: 'tasksTimer-menu-name',
         x_expand: true,
         x_align: St.Align.START
       });
       name.set_text(timer.name);
 
       timer.label = new St.Label({
-        style_class: 'kitchentimer-menu-label',
+        style_class: 'tasksTimer-menu-label',
         x_expand: false,
         x_align: St.Align.END
       });
@@ -245,30 +245,30 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
         x_align: St.Align.END,
         x_expand: false,
         gicon: timer.timers.progress_gicon(key),
-        style_class: 'kitchentimer-menu-icon'
+        style_class: 'tasksTimer-menu-icon'
       });
       timer_icon.set_icon_size(20);
 
       if (timer.running) {
         if (timer.alarm_timer) {
-          box.add_child(new KitchenTimerControlButton(timer, 'forward'));
-          box.add_child(new KitchenTimerControlButton(timer, 'stop'));
-          box.add_child(new KitchenTimerControlButton(timer, 'backward'));
+          box.add_child(new tasksTimerControlButton(timer, 'forward'));
+          box.add_child(new tasksTimerControlButton(timer, 'stop'));
+          box.add_child(new tasksTimerControlButton(timer, 'backward'));
         } else {
-          box.add_child(new KitchenTimerControlButton(timer, 'extend'));
-          box.add_child(new KitchenTimerControlButton(timer, 'stop'));
-          box.add_child(new KitchenTimerControlButton(timer, 'reduce'));
+          box.add_child(new tasksTimerControlButton(timer, 'extend'));
+          box.add_child(new tasksTimerControlButton(timer, 'stop'));
+          box.add_child(new tasksTimerControlButton(timer, 'reduce'));
         }
       } else {
-        box.add_child(new KitchenTimerControlButton(timer, 'delete'));
+        box.add_child(new tasksTimerControlButton(timer, 'delete'));
       }
 
       box.add_child(timer.label);
       if (timer.running) {
         if (timer.persist_alarm) {
-          box.add_child(new KitchenTimerControlButton(timer, 'persist'));
+          box.add_child(new tasksTimerControlButton(timer, 'persist'));
         } else {
-          box.add_child(new KitchenTimerControlButton(timer, 'progress'));
+          box.add_child(new tasksTimerControlButton(timer, 'progress'));
         }
       } else {
         box.add_child(timer_icon);
@@ -465,12 +465,12 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
       alarm_timer: undefined
     }
 
-    if (KitchenTimerMenuItem.re_alarm(parse)) {
+    if (tasksTimerMenuItem.re_alarm(parse)) {
       return parse;
     }
-    if (!KitchenTimerMenuItem.re_hms(parse)) {
-      if (!KitchenTimerMenuItem.re_name_hms(parse)) {
-        if (!KitchenTimerMenuItem.re_wildcard(parse)) {
+    if (!tasksTimerMenuItem.re_hms(parse)) {
+      if (!tasksTimerMenuItem.re_name_hms(parse)) {
+        if (!tasksTimerMenuItem.re_wildcard(parse)) {
           return undefined;
         }
       }
@@ -482,8 +482,8 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
   }
 });
 
-var KitchenTimerEndTime = GObject.registerClass(
-class KitchenTimerEndTime extends PopupMenu.PopupMenuItem {
+var tasksTimerEndTime = GObject.registerClass(
+class tasksTimerEndTime extends PopupMenu.PopupMenuItem {
   _init(menu, timers) {
     super._init(_("Show end time"), { reactive: false });
 
@@ -493,7 +493,7 @@ class KitchenTimerEndTime extends PopupMenu.PopupMenuItem {
     menu.addMenuItem(this);
 
     var layout = new St.BoxLayout({
-      style_class: 'kitchentimer-quick-menu',
+      style_class: 'tasksTimer-quick-menu',
       x_expand: true,
       y_expand: true
     });
@@ -501,7 +501,7 @@ class KitchenTimerEndTime extends PopupMenu.PopupMenuItem {
     this.add(layout);
 
     var label = new St.Label({
-      style_class: 'kitchentimer-menu-name',
+      style_class: 'tasksTimer-menu-name',
       x_expand: true,
       x_align: St.Align.START,
       y_align: Clutter.ActorAlign.CENTER
@@ -527,8 +527,8 @@ class KitchenTimerEndTime extends PopupMenu.PopupMenuItem {
 
 });
 
-var KitchenTimerQuickItem = GObject.registerClass(
-class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
+var tasksTimerQuickItem = GObject.registerClass(
+class tasksTimerQuickItem extends PopupMenu.PopupMenuItem {
   _init(menu, timers) {
     super._init("", { reactive: false, can_focus: false });
 
@@ -540,7 +540,7 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
     logger.settings = timers.settings;
 
     var layout = new St.BoxLayout({
-      style_class: 'kitchentimer-quick-menu',
+      style_class: 'tasksTimer-quick-menu',
       x_expand: true
     });
 
@@ -574,7 +574,7 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
       can_focus: true,
       x_align: St.Align.END,
       y_align: Clutter.ActorAlign.CENTER,
-      style_class: 'kitchentimer-prefs-button',
+      style_class: 'tasksTimer-prefs-button',
       child: this._add_icon
     });
 
@@ -582,13 +582,13 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
       logger.debug("mouse button pressed %d", clicked_button);
       var entry = this._entry.get_clutter_text().get_text().trim();
 
-      var result = KitchenTimerMenuItem.parseTimerEntry(entry, true);
+      var result = tasksTimerMenuItem.parseTimerEntry(entry, true);
       if (!result) {
         logger.error("Invalid timer entry='%s'", entry);
         return;
       }
 
-      var timer = KitchenTimerMenuItem.addTimerStart(result, this._timers);
+      var timer = tasksTimerMenuItem.addTimerStart(result, this._timers);
       if (timer) {
         this._menu.close();
         global.stage.set_key_focus(null);
@@ -618,7 +618,7 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
       can_focus: true,
       x_align: St.Align.END,
       y_align: Clutter.ActorAlign.CENTER,
-      style_class: 'kitchentimer-prefs-button',
+      style_class: 'tasksTimer-prefs-button',
       child: this._prefs_icon
     });
 
@@ -647,10 +647,10 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
     this._entry.get_clutter_text().connect('activate', (e) => {
       var entry = e.get_text();
       logger.debug('activate: '+entry);
-      var result = KitchenTimerMenuItem.parseTimerEntry(entry, true);
+      var result = tasksTimerMenuItem.parseTimerEntry(entry, true);
       if (result) {
         this._entry.get_clutter_text().set_text("%s %s".format(result.name, result.hms.toString()));
-        var timer = KitchenTimerMenuItem.addTimerStart(result, this._timers);
+        var timer = tasksTimerMenuItem.addTimerStart(result, this._timers);
         if (timer === undefined) {
           //this._gogo.set_active(false);
         } else {
@@ -663,7 +663,7 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
       var entry = e.get_text();
       if (entry.length > 0) {
         logger.debug('key out hours: '+entry);
-        var result = KitchenTimerMenuItem.parseTimerEntry(entry, true);
+        var result = tasksTimerMenuItem.parseTimerEntry(entry, true);
         if (result) {
           this._entry.get_clutter_text().set_text("%s %s".format(result.name, result.hms.toString()));
         }
@@ -674,14 +674,14 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
     //   if (go.state) {
     //     var entry = this._entry.get_clutter_text().get_text().trim();
 
-    //     var result = KitchenTimerMenuItem.parseTimerEntry(entry, true);
+    //     var result = tasksTimerMenuItem.parseTimerEntry(entry, true);
     //     if (!result) {
     //       logger.error("Invalid timer entry='%s'", entry);
     //       go.setToggleState(false);
     //       return;
     //     }
 
-    //     var timer = KitchenTimerMenuItem.addTimerStart(result, this._timers);
+    //     var timer = tasksTimerMenuItem.addTimerStart(result, this._timers);
     //     if (timer === undefined) {
     //       go.setToggledState(false);
     //     } else {
@@ -698,8 +698,8 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
   }
 });
 
-var KitchenTimerControlButton = GObject.registerClass(
-class KitchenTimerControlButton extends St.Button {
+var tasksTimerControlButton = GObject.registerClass(
+class tasksTimerControlButton extends St.Button {
     _init(timer, type) {
         super._init();
 
@@ -711,14 +711,14 @@ class KitchenTimerControlButton extends St.Button {
 
         let icon=null;
         let gicon=null;
-        let style='kitchentimer-menu-delete-icon';
+        let style='tasksTimer-menu-delete-icon';
         if (type === 'progress') {
           if (!timer.persist_alarm) {
             gicon = timer.timers.progress_gicon(timer.degree_progress(15 /* 15 degree increments */));
-            style='kitchentimer-menu-icon';
+            style='tasksTimer-menu-icon';
           }
         } else if (type === 'persist') {
-          style='kitchentimer-menu-icon';
+          style='tasksTimer-menu-icon';
         }
         if (gicon) {
           icon = new St.Icon({

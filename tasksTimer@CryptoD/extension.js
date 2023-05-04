@@ -47,7 +47,7 @@ class Extension {
     }
 
     enable() {
-        this._indicator = new Indicator.KitchenTimerIndicator();
+        this._indicator = new Indicator.tasksTimerIndicator();
         Main.panel.addToStatusArea(this._uuid, this._indicator);
     }
 

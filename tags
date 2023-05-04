@@ -4,15 +4,15 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-.kitchentimer-menu-box 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-menu-box {$/;"	c
-.kitchentimer-menu-delete-icon 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-menu-delete-icon {$/;"	c
-.kitchentimer-menu-icon 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-menu-icon {$/;"	c
-.kitchentimer-menu-label 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-menu-label {$/;"	c
-.kitchentimer-menu-name 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-menu-name {$/;"	c
-.kitchentimer-panel-box 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-panel-box {$/;"	c
-.kitchentimer-panel-label 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-panel-label {$/;"	c
-.kitchentimer-panel-name 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-panel-name {$/;"	c
-.kitchentimer-quick-layout 	tasksTimer@CryptoD/stylesheet.css	/^.kitchentimer-quick-layout {$/;"	c
+.tasksTimer-menu-box 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-menu-box {$/;"	c
+.tasksTimer-menu-delete-icon 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-menu-delete-icon {$/;"	c
+.tasksTimer-menu-icon 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-menu-icon {$/;"	c
+.tasksTimer-menu-label 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-menu-label {$/;"	c
+.tasksTimer-menu-name 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-menu-name {$/;"	c
+.tasksTimer-panel-box 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-panel-box {$/;"	c
+.tasksTimer-panel-label 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-panel-label {$/;"	c
+.tasksTimer-panel-name 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-panel-name {$/;"	c
+.tasksTimer-quick-layout 	tasksTimer@CryptoD/stylesheet.css	/^.tasksTimer-quick-layout {$/;"	c
 0	tasksTimer@CryptoD/timers.js	/^    0$/;"	V
 AM	tasksTimer@CryptoD/alarm_timer.js	/^  AM: 1,$/;"	P
 AlarmTimer	tasksTimer@CryptoD/alarm_timer.js	/^class AlarmTimer {$/;"	C
@@ -51,13 +51,13 @@ HMS	tasksTimer@CryptoD/hms.js	/^class HMS {$/;"	C
 ID	tasksTimer@CryptoD/prefs.js	/^  ID: 1,$/;"	P
 INIT	tasksTimer@CryptoD/timers.js	/^  INIT: 0,$/;"	P
 KTTypes	tasksTimer@CryptoD/menuitem.js	/^var KTTypes = {$/;"	O
-KitchenTimerControlButton	tasksTimer@CryptoD/menuitem.js	/^class KitchenTimerControlButton extends St.Button {$/;"	C
-KitchenTimerCreatePreset	tasksTimer@CryptoD/menuitem.js	/^class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {$/;"	C
-KitchenTimerIndicator	tasksTimer@CryptoD/indicator.js	/^class KitchenTimerIndicator extends PanelMenu.Button {$/;"	C
-KitchenTimerMenuItem	tasksTimer@CryptoD/menuitem.js	/^class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {$/;"	C
-KitchenTimerNotifier	tasksTimer@CryptoD/notifier.js	/^class KitchenTimerNotifier extends MessageTray.Notification {$/;"	C
-KitchenTimerQuickItem	tasksTimer@CryptoD/menuitem.js	/^class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {$/;"	C
-KitchenTimerTimeSliderItem	tasksTimer@CryptoD/menuitem.js	/^class KitchenTimerTimeSliderItem extends PopupMenu.PopupMenuItem {$/;"	C
+tasksTimerControlButton	tasksTimer@CryptoD/menuitem.js	/^class tasksTimerControlButton extends St.Button {$/;"	C
+tasksTimerCreatePreset	tasksTimer@CryptoD/menuitem.js	/^class tasksTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {$/;"	C
+tasksTimerIndicator	tasksTimer@CryptoD/indicator.js	/^class tasksTimerIndicator extends PanelMenu.Button {$/;"	C
+tasksTimerMenuItem	tasksTimer@CryptoD/menuitem.js	/^class tasksTimerMenuItem extends PopupMenu.PopupMenuItem {$/;"	C
+tasksTimerNotifier	tasksTimer@CryptoD/notifier.js	/^class tasksTimerNotifier extends MessageTray.Notification {$/;"	C
+tasksTimerQuickItem	tasksTimer@CryptoD/menuitem.js	/^class tasksTimerQuickItem extends PopupMenu.PopupMenuItem {$/;"	C
+tasksTimerTimeSliderItem	tasksTimer@CryptoD/menuitem.js	/^class tasksTimerTimeSliderItem extends PopupMenu.PopupMenuItem {$/;"	C
 LOGID	tasksTimer@CryptoD/logger.js	/^const LOGID = 'logger';$/;"	V
 Logger	tasksTimer@CryptoD/logger.js	/^class Logger {$/;"	C
 Model	tasksTimer@CryptoD/prefs.js	/^const Model = {$/;"	O
@@ -280,7 +280,7 @@ name_item	tasksTimer@CryptoD/menuitem.js	/^    var name_item = new PopupMenu.Pop
 notification	tasksTimer@CryptoD/notifier.js	/^  get notification() {$/;"	M
 notification	tasksTimer@CryptoD/settings.js	/^    get notification() {$/;"	M
 notification	tasksTimer@CryptoD/settings.js	/^    set notification(bool) {$/;"	M
-notifier	tasksTimer@CryptoD/notifier.js	/^    var notifier = new KitchenTimerNotifier(timer,$/;"	V
+notifier	tasksTimer@CryptoD/notifier.js	/^    var notifier = new tasksTimerNotifier(timer,$/;"	V
 notifier	tasksTimer@CryptoD/timers.js	/^  get notifier() {$/;"	M
 notify	tasksTimer@CryptoD/notifier.js	/^  notify(timer, text, fmt=undefined, ...args) {$/;"	M
 notify	tasksTimer@CryptoD/timers.js	/^  notify(msg, ...args) {$/;"	M
@@ -413,7 +413,7 @@ timer	tasksTimer@CryptoD/timers.js	/^    var timer = new Timer(settings_timer.na
 timer_by_id	tasksTimer@CryptoD/timers.js	/^  timer_by_id(id) {$/;"	M
 timer_callback	tasksTimer@CryptoD/timers.js	/^  timer_callback(timer) {$/;"	M
 timer_icon	tasksTimer@CryptoD/menuitem.js	/^      var timer_icon = new St.Icon({$/;"	V
-timer_item	tasksTimer@CryptoD/menus.js	/^      var timer_item = new Mitem.KitchenTimerMenuItem(timer, this._menu);$/;"	V
+timer_item	tasksTimer@CryptoD/menus.js	/^      var timer_item = new Mitem.tasksTimerMenuItem(timer, this._menu);$/;"	V
 timers	tasksTimer@CryptoD/indicator.js	/^	  get timers() {$/;"	M
 timers	tasksTimer@CryptoD/menus.js	/^  get timers() {$/;"	M
 timers	tasksTimer@CryptoD/prefs.js	/^      var timers = [];$/;"	A

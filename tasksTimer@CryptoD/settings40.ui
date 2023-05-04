@@ -65,7 +65,7 @@ Author: Steeve McCauley
   </object>
   -->
   <!--
-  <object class="GtkImage" id="img_kitchentimer_symbolic">
+  <object class="GtkImage" id="img_tasksTimer_symbolic">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="file">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
@@ -121,7 +121,7 @@ Author: Steeve McCauley
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
-  <object class="GtkBox" id="kitchenTimer_settings">
+  <object class="GtkBox" id="tasksTimer_settings">
     <property name="visible">True</property>
     <property name="can-focus">True</property>
     <property name="orientation">vertical</property>
@@ -1356,7 +1356,7 @@ Author: Steeve McCauley
                           <property name="visible">True</property>
                           <property name="can-focus">True</property>
                           <property name="receives-default">False</property>
-                          <!--<property name="icon-name">img_kitchentimer_symbolic</property>-->
+                          <!--<property name="icon-name">img_tasksTimer_symbolic</property>-->
                           <!--<property name="always-show-image">True</property>-->
                           <property name="uri">https://github.com/CryptoD/tasksTimer</property>
                           <property name="hexpand">0</property>
@@ -1375,7 +1375,7 @@ Author: Steeve McCauley
                           </child>
                           <!--
                           <child>
-                            <object class="GtkPicture" id="img_kitchentimer_symbolic">
+                            <object class="GtkPicture" id="img_tasksTimer_symbolic">
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
                               <property name="file">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>

@@ -74,7 +74,7 @@ var Annoyer = class Annoyer {
 
     let details = fmt === undefined ? "" : fmt.format(...args);
 
-    var notifier = new KitchenTimerNotifier(timer,
+    var notifier = new tasksTimerNotifier(timer,
                                               source,
                                               "Timer Warning: "+text,
                                               details,
@@ -89,7 +89,7 @@ var Annoyer = class Annoyer {
 
     let details = fmt===undefined ? "" : fmt.format(...args);
 
-    var notifier = new KitchenTimerNotifier(timer,
+    var notifier = new tasksTimerNotifier(timer,
                                               this.source,
                                               text,
                                               details,
@@ -209,8 +209,8 @@ var Annoyer = class Annoyer {
 
 
 
-var KitchenTimerNotifier = GObject.registerClass(
-class KitchenTimerNotifier extends MessageTray.Notification {
+var tasksTimerNotifier = GObject.registerClass(
+class tasksTimerNotifier extends MessageTray.Notification {
   _init(timer, source, title, banner, play_sound, params) {
     super._init(source, title, banner, params);
 
@@ -226,7 +226,7 @@ class KitchenTimerNotifier extends MessageTray.Notification {
       this._sound_loops = 2;
     }
 
-    this._banner = new KitchenTimerNotifierBanner(this);
+    this._banner = new tasksTimerNotifierBanner(this);
 
     this.logger.debug('timer is %s', timer.expired ? "expired" : "not expired");
     if (timer.expired) {
@@ -438,8 +438,8 @@ class KitchenTimerNotifier extends MessageTray.Notification {
   }
 });
 
-var KitchenTimerNotifierBanner = GObject.registerClass(
-class KitchenTimerNotifierBanner extends MessageTray.NotificationBanner {
+var tasksTimerNotifierBanner = GObject.registerClass(
+class tasksTimerNotifierBanner extends MessageTray.NotificationBanner {
   _init(notifier) {
     this.logger = new Logger('kt notifierbanner', notifier.timer.timers.settings);
     this.logger.debug("constructor");

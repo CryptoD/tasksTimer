@@ -69,7 +69,7 @@ HELP
 	exit 0
 }
 
-declare -i DEBUG=${KITCHENTIMER_DEBUG:=0}
+declare -i DEBUG=${tasksTimer_DEBUG:=0}
 
 while getopts ":iusdh" opt; do
 	case $opt in
