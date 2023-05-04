@@ -28,7 +28,7 @@ There are currently two global keyboard shortcuts, which can be enabled in Prefe
 
 You can also edit the shortcuts in dconf-editor or with the following script:
 ```
-$ kitchentimer@yourdomain.com/bin/dconf-editor.sh
+$ tasksTimer@yourdomain.com/bin/dconf-editor.sh
 ```
 
 ## Alarm Timers
@@ -62,7 +62,7 @@ Click the regular timer icon for a running timer to make the alarm persistent. T
 
 If you find this extension useful, feel free to support the original author:
 
-[<img src="https://raw.githubusercontent.com/blackjackshellac/kitchenTimer/main/img/bmc_logo_wordmark_25.png" alt="Buy Me A Coffee" width="150"/>](https://www.buymeacoffee.com/blckjackshellac)
+[<img src="https://raw.githubusercontent.com/blackjackshellac/tasksTimer/main/img/bmc_logo_wordmark_25.png" alt="Buy Me A Coffee" width="150"/>](https://www.buymeacoffee.com/blckjackshellac)
 
 ## References
 
