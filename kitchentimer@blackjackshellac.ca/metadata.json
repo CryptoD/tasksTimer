@@ -5,10 +5,12 @@
   "shell-version": [
     "3.36",
     "3.38",
-	"40"
+	"40",
+  "41",
+  "42"
   ],
   "gettext-domain": "kitchen-timer-blackjackshellac",
   "settings-schema": "org.gnome.shell.extensions.kitchen-timer-blackjackshellac",
-  "url": "https://github.com/blackjackshellac/kitchenTimer",
-  "version": 29
+  "url": "https://github.com/CryptoD/kitchenTimer",
+  "version": 30
 }
