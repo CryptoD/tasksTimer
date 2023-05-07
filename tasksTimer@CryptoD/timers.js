@@ -40,6 +40,12 @@ const date_options = { weekday: 'short', year: 'numeric', month: 'short', day: '
 const mixerControl = imports.ui.status.volume.getMixerControl();
 
 var Timers = class Timers extends Array {
+  _removeTimeout() {
+    if (this._timeout_id) {
+      GLib.source_remove(this._timeout_id);
+      this._timeout_id = undefined;
+    }
+  }
   constructor(...args) {
     super(...args);
 
@@ -60,6 +66,7 @@ var Timers = class Timers extends Array {
       this._progressIconsDegrees[deg] = gicon;
       this.logger.debug(`Loaded progress icon ${icon_name} for ${deg} degrees`);
     }
+
 
     // requires this._settings
     this._notifier = new Notifier.Annoyer(this);
@@ -684,7 +691,15 @@ var Timer = class Timer {
       }
     }
   }
-
+  destroy() {
+    this.logger.debug("Destroying timer %s", this.name);
+    this.stop();
+    this.uninhibit();
+    this._state = TimerState.DESTROYED;
+    this._timer = undefined;
+    this._alarm_timer = undefined;
+    this._removeTimeout(); // add this line
+  }
   get running() {
     return (this._state === TimerState.RUNNING);
   }

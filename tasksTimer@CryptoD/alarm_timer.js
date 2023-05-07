@@ -23,24 +23,16 @@ const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
 const HMS = Me.imports.hms.HMS;
 
-var AmPm = {
+const AmPm = {
   H24: 0,
   AM: 1,
   PM: 2,
   RE: /(p\.?m\.?)|(a\.?m\.?)/i
-}
+};
 
-var logger = new Logger('kt alarm timer');
+const logger = new Logger('kt alarm timer');
 
-// var alarm_time={
-//   hour: Number(g.h),
-//   minute: 0,
-//   second: 0,
-//   ms: 0,
-//   ampm: undefined|am|pm
-// }
-
-var AlarmTimer = class AlarmTimer {
+class AlarmTimer {
   constructor() {
     this._name = "";
     this._hour = 0;
@@ -126,177 +118,50 @@ var AlarmTimer = class AlarmTimer {
 
   set name(val) {
     if (val === undefined) { return; }
-    this._name = val.trim();
+    this._name = val.trim
+    .replace(/[^a-zA-Z0-9]/g, '_') // Replace non-alphanumeric characters with underscores
+    .toLowerCase(); // Convert to lowercase
   }
 
-  static matchRegex(entry) {
-    //var named_re = /^(?<name>[^@]+)?@\s*(?<h>\d+):?(?<m>\d+)?:?(?<s>\d+)?[.]?(?<ms>\d+)?\s*(?<ampm>a\.?m\.?|p\.?m\.?)?$/i;
-    // name g1
-    // hour g2
-    // minute g3
-    // second g4
-    // ms g5
-    // ampm g6
-    //         name?  @    HH  :? MM?  :? SS?  .?  ms?       (a.?m.?|p.?m.?)?
-    var re= /^([^@]+)?@\s*(\d+)[:h]?(\d+)?[m:]?(\d+)?[.]?(\d+)?\s*(a\.?m\.?|p\.?m\.?)?$/i;
-    let m=re.exec(entry);
-    if (!m) {
-      return undefined;
-    }
-
-    var alarm_timer = new AlarmTimer();
-
-    try {
-      //alarm_timer.fromRegexNamedGroups(m.groups);
-      alarm_timer.fromRegexMatches(m);
-      alarm_timer.alarm_date;
-    } catch (e) {
-      logger.error("%s: %s", e, entry);
-      return undefined;
-    }
-    return alarm_timer;
+  /**
+   * Check if the alarm is due to go off soon (within the given duration)
+   *
+   * @param {number} duration Duration in milliseconds
+   * @returns {boolean} True if the alarm is due within the given duration
+   */
+  isDueSoon(duration) {
+    let now = new Date();
+    let timeDiff = this.alarm_date - now;
+    return (timeDiff > 0 && timeDiff <= duration);
   }
+}
 
-  matchAmPm(ampm) {
-    let m = AmPm.RE.exec(ampm);
-    if (m) {
-      if (m[1]) {
-        return AmPm.PM;
+var init = () => {
+  logger.debug("Initializing...");
+  Utils.getSettings().then(settings => {
+    // Set log level
+    logger.settings = settings;
+    // Initialize timers
+    let stored_timers = Utils.getStoredTimers();
+    stored_timers.forEach(t => {
+      let timer = AlarmTimer.restore(t);
+      if (timer) {
+        Utils.addTimer(timer);
       }
-      if (m[2]) {
-        return AmPm.AM;
-      }
-    }
-    throw 'Invalid AM PM spec: '+ampm;
-  }
-
-  fromRegexMatches(m) {
-    logger.debug("match = %s", JSON.stringify(m));
-    if (m[6]) {
-      this.ampm = this.matchAmPm(m[6]);
-    }
-    this.name = m[1] === null ? m[0] : m[1];
-    this.hour = m[2];
-    this.minute = m[3];
-    this.second = m[4];
-    this.ms = m[5];
-  }
-
-  fromRegexNamedGroups(g) {
-    if (g.ampm) {
-      this.ampm = this.matchAmPm(g.ampm);
-    }
-    this.name = g.name;
-    this.hour = g.h;
-    this.minute = g.m;
-    this.second = g.s;
-    this.ms = g.ms;
-  }
-
-  toString() {
-    return "%02d:%02d:%02d.%03d".format(this.hour, this.minute, this.second, this.ms);
-  }
-
-  toCompact() {
-    if (this.second == 0) {
-      return "%d:%02d".format(this.hour, this.minute);
-    }
-    return "%d:%02d:%02d".format(this.hour, this.minute, this.second);
-  }
-
-  name_at_hms() {
-    return "%s@%s".format(this.name, this.toCompact());
-  }
-
-  get alarm_date() {
-    if (this._alarm_date === undefined) {
-      let now=new Date();
-      this._alarm_date=new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        this.hour,
-        this.minute,
-        this.second,
-        this.ms
-      );
-      let duration_ms = this._alarm_date.getTime() - now.getTime();
-      if (duration_ms < 0) {
-        // must be for tomorrow
-        this._alarm_date.setDate(this._alarm_date.getDate()+1);
-      }
-    }
-    return this._alarm_date;
-  }
-
-  hms() {
-    let now=new Date();
-    let duration_ms = this.end() - now.getTime();
-    return new HMS(duration_ms/1000);
-  }
-
-  snooze(secs) {
-    this._snooze_ms += secs * 1000;
-  }
-
-  end() {
-    //logger.debug("end time=%d snooze=%d", this.alarm_date.getTime(), this._snooze_ms);
-    return this.alarm_date.getTime() + this._snooze_ms;
-  }
-
-  reset() {
-    this._alarm_date = undefined;
-    this._snooze_ms = 0;
-  }
-
-  // this._name = "";
-  // this._hour = 0;
-  // this._minute = 0;
-  // this._second = 0;
-  // this._ms = 0;
-  // this._ampm = AmPm.H24;
-  // this._snooze_ms = 0;
-  // this._alarm_date = undefined;
-  save() {
-    return {
-      name: this._name,
-      alarm_date: this.alarm_date.getTime(),
-      ampm: this._ampm,
-      snooze_ms: this._snooze_ms
-    }
-  }
-
-  static restore(state) {
-    if (state === undefined) {
-      return undefined;
-    }
-    let at = new AlarmTimer();
-
-    at._name = state.name;
-
-    at._alarm_date = new Date(state.alarm_date);
-    at._hour = at._alarm_date.getHours();
-    at._minute = at._alarm_date.getMinutes();
-    at._second = at._alarm_date.getSeconds();
-    at._ms = at._alarm_date.getMilliseconds();
-
-    at._ampm = state.ampm;
-    at._snooze_ms = state.snooze_ms;
-
-    return at;
-  }
-
-  forward(end, delta) {
-    logger.debug("alarm timer end=%d (delta=%d)", end, delta);
-    this.alarm_date.setTime(this.alarm_date.getTime()+delta*1000);
-    this._hour = this.alarm_date.getHours();
-    this._minute = this.alarm_date.getMinutes();
-    this._second = this.alarm_date.getSeconds();
-    return this.end();
-  }
-
-  backward(end, delta) {
-    return this.forward(end, -delta);
-  }
+    });
+    // Connect to settings changes
+    settings.connect('changed::timers', () => {
+      logger.debug("Timers setting changed");
+      Utils.updateTimersFromSettings();
+    });
+    // Connect to system clock changes
+    Utils.connectToClockSignal('notify::clock', () => {
+      logger.debug("System clock signal received");
+      Utils.checkTimers();
+    });
+  }).catch(error => {
+    logger.error(`Failed to get settings: ${error}`);
+  });
 };
 
+init();

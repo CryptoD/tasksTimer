@@ -34,7 +34,7 @@ const PopupMenu = imports.ui.popupMenu;
 imports.gi.versions.Gst = '1.0';
 const Gst = imports.gi.Gst;
 //const GstAudio = imports.gi.GstAudio;
-
+let player = global.display.get_sound_player();
 // for setInterval()
 const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
@@ -83,6 +83,12 @@ var Annoyer = class Annoyer {
                                               secondaryGIcon: this._gicon });
 
     source.showNotification(notifier);
+    _removeTimeout() {
+      if (this._long_timeout) {
+        GLib.source_remove(this._long_timeout);
+        this._long_timeout = undefined;
+      }
+    }
   }
 
   notify(timer, text, fmt=undefined, ...args) {
@@ -431,9 +437,9 @@ class tasksTimerNotifier extends MessageTray.Notification {
       this._destroyed = true;
       this.stop_player();
       super.destroy(reason);
-
+  
       this.timer.uninhibit();
-
+      this._removeTimeout(); // add this line
     }
   }
 });

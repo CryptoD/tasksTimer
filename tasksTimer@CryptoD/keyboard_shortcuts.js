@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const Lang = imports.lang
 const Meta = imports.gi.Meta
 const Shell = imports.gi.Shell
 const Main = imports.ui.main
