@@ -24,7 +24,7 @@ const { GObject, St, Clutter } = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
-const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
+const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 

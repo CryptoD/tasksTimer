@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
+const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -57,7 +57,7 @@ var Timers = class Timers extends Array {
     this.accel = new KeyboardShortcuts(this.settings);
     this.logger = new Logger('kt timers', this.settings);
 
-    this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
+    this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/tasksTimer-CryptoD-full.svg');
     this._progressIconsDegrees = {};
     for (let deg = 0; deg <= 345; deg += 15) {
       // load icon as a gicon and store in the hash

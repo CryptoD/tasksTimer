@@ -21,7 +21,7 @@ along with Kitchen Timer.  If not, see <http://www.gnu.org/licenses/>.
 Author: Steeve McCauley
 
 -->
-<interface domain="kitchen-timer-blackjackshellac">
+<interface domain="tasksTimer-CryptoD">
   <requires lib="gtk+" version="4.0"/>
   <!-- interface-license-type gplv3 -->
   <!-- interface-name Kitchen Timer -->
@@ -68,7 +68,7 @@ Author: Steeve McCauley
   <object class="GtkImage" id="img_tasksTimer_symbolic">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="file">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
+    <property name="file">icons/tasksTimer-CryptoD-symbolic.svg</property>
   </object>
   -->
   <!--
@@ -252,7 +252,7 @@ Author: Steeve McCauley
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
                               <property name="margin-end">5</property>
-                              <property name="file">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                              <property name="file">icons/tasksTimer-CryptoD-full.svg</property>
                             </object>
                           </child>
                           -->
@@ -549,7 +549,7 @@ Author: Steeve McCauley
                             <object class="GtkImage" id="img_timer2">
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
-                              <property name="file">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                              <property name="file">icons/tasksTimer-CryptoD-full.svg</property>
                             </object>
                             <!--<packing>
                               <property name="expand">False</property>
@@ -1306,7 +1306,7 @@ Author: Steeve McCauley
                               <property name="can-focus">False</property>
                               <property name="margin-top">0</property>
                               <property name="margin-bottom">0</property>
-                              <property name="icon-name">kitchen-timer-blackjackshellac-full</property>
+                              <property name="icon-name">tasksTimer-CryptoD-full</property>
                               <property name="icon-size">2</property>
                             </object>
                           </child>
@@ -1369,7 +1369,7 @@ Author: Steeve McCauley
                               <property name="can-focus">False</property>
                               <property name="margin-top">0</property>
                               <property name="margin-bottom">0</property>
-                              <property name="icon-name">kitchen-timer-blackjackshellac-full</property>
+                              <property name="icon-name">tasksTimer-CryptoD-full</property>
                               <property name="icon-size">1</property>
                             </object>
                           </child>
@@ -1378,7 +1378,7 @@ Author: Steeve McCauley
                             <object class="GtkPicture" id="img_tasksTimer_symbolic">
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
-                              <property name="file">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
+                              <property name="file">icons/tasksTimer-CryptoD-symbolic.svg</property>
                             </object>
                           </child>
                           -->

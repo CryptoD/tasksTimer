@@ -1,7 +1,7 @@
 {
   "name": "Tasks Timer",
   "description": "General purpose timer extension for Gnome Shell\n\nPlease report issues on github\nIf updating the extension reports an ERROR, it should work after the next reboot or if you logout and login again.",
-  "uuid": "tasksTimer@cryptod.xyz",
+  "uuid": "tasksTimer@CryptoD",
     "shell-version": [
     "3.36",
     "3.38",
@@ -9,7 +9,7 @@
   "41",
   "42"
   ],
-  "gettext-domain": "tasks-timer-cryptod",
+  "gettext-domain": "tasksTimer-CryptoD",
   "settings-schema": "org.gnome.shell.extensions.tasks-timer-cryptod",
   "url": "https://github.com/CryptoD/tasksTimer",
   "version": 1.0

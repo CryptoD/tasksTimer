@@ -27,14 +27,14 @@ DURATION	tasksTimer@CryptoD/prefs.js	/^  DURATION: 2,$/;"	P
 ENABLED	tasksTimer@CryptoD/prefs.js	/^  ENABLED: 3,$/;"	P
 EXPIRED	tasksTimer@CryptoD/timers.js	/^  EXPIRED: 3$/;"	P
 Extension	tasksTimer@CryptoD/extension.js	/^class Extension {$/;"	C
-GETTEXT_DOMAIN	tasksTimer@CryptoD/extension.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/indicator.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/menus.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/notifier.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/prefs.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/settings.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/timers.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
-GETTEXT_DOMAIN	tasksTimer@CryptoD/utils.js	/^const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/extension.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/indicator.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/menus.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/notifier.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/prefs.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/settings.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/timers.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
+GETTEXT_DOMAIN	tasksTimer@CryptoD/utils.js	/^const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';$/;"	V
 GLib	tasksTimer@CryptoD/notifier.js	/^const { GLib, GObject } = imports.gi;$/;"	V
 GLib	tasksTimer@CryptoD/prefs.js	/^const { Gio, Gtk, GLib } = imports.gi;$/;"	V
 GLib	tasksTimer@CryptoD/timers.js	/^const {GLib, St, Clutter} = imports.gi;$/;"	V

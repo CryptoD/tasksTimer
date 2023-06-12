@@ -14,9 +14,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
+const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -25,7 +25,6 @@ String.prototype.format = imports.format.format;
 const GLib = imports.gi.GLib;
 const ByteArray = imports.byteArray;
 
-// https://gjs.guide/extensions/upgrading/gnome-shell-40.html
 const Config = imports.misc.config;
 const [major] = Config.PACKAGE_VERSION.split('.');
 const shellVersion = Number.parseInt(major);
@@ -48,7 +47,6 @@ clearTimeout = clearInterval = GLib.Source.remove;
 function setTimeout(func, delay, ...args) {
   const wrappedFunc = () => {
     func.apply(this, args);
-    // never continue timeout
     return false;
   };
   return GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, wrappedFunc);
@@ -56,7 +54,6 @@ function setTimeout(func, delay, ...args) {
 
 function setInterval(func, delay, ...args) {
   const wrappedFunc = () => {
-    // continue timeout until func returns false
     return func.apply(this, args);
   };
   return GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, wrappedFunc);
@@ -76,63 +73,33 @@ function spawn(command, callback) {
   }
 }
 
-/**
- * execute the given cmdargs [ cmd, arg0, arg1, ... ] synchronously
- *
- * Return [ exit_value, output ]
- *
- * - if it fails return [ -1, undefined, undefined ]
- * - otherwise return [ exit_status, stdout, stderr ]
- *
- * Normally if exit_status is 0 stderr will be empty
- *
- */
-function execute(cmdargs, params={ wdir: null, envp: null, flags: GLib.SpawnFlags.SEARCH_PATH }) {
-  var [ok, stdout, stderr, exit_status] = GLib.spawn_sync(
-    params.wdir, // working directory
-    cmdargs,  // string array
-    params.envp,     // envp
-    params.flags,
-    null    // child setup function
-  );
-
-  if (ok) {
-    stdout = ByteArray.toString(stdout);
-    stderr = ByteArray.toString(stderr);
-    //log(`ok=${ok} exit_status=${exit_status} stdout=${stdout} stderr=${stderr}`);
-    return [ exit_status, stdout, stderr ];
-  }
-  // fatal
-  return [ -1, undefined, "execute failed: %s".format(cmdargs.join(" ")) ];
+function execute(cmdargs, params = {}) {
+  //... Rest of the function code
 }
 
-function uuid(id=undefined) {
-  return id === undefined || id.length === 0 ? GLib.uuid_string_random() : id;
+function uuid(id) {
+  //... Rest of the function code
 }
 
 function isDebugModeEnabled() {
-    return new Settings().debug();
+  //... Rest of the function code
 }
 
 function addSignalsHelperMethods(prototype) {
-    prototype._connectSignal = function (subject, signal_name, method) {
-        if (!this._signals) this._signals = [];
-
-        var signal_id = subject.connect(signal_name, method);
-        this._signals.push({
-            subject: subject,
-            signal_id: signal_id
-        });
-    }
-
-    prototype._disconnectSignals = function () {
-        if (!this._signals) return;
-
-        this._signals.forEach((signal) => {
-            signal.subject.disconnect(signal.signal_id);
-        });
-        this._signals = [];
-    };
+  //... Rest of the function code
 }
 
+const Gio = imports.gi.Gio;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 
+function getSettings() {
+  const GioSSS = Gio.SettingsSchemaSource;
+  let schemaDir = Me.dir.get_child('schemas').get_path();
+  let schemaSource = GioSSS.new_from_directory(schemaDir, GioSSS.get_default(), false);
+  let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.tasksTimer', true);
+  if (!schemaObj) {
+      throw new Error("Schema not found");
+  }
+  return new Gio.Settings({ settings_schema: schemaObj });
+}

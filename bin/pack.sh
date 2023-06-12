@@ -4,7 +4,7 @@ ed=tasksTimer@CryptoD
 [ ! -d $ed ] && echo "Extension dir $ed not found" && exit 1
 cd $ed
 
-#kitchen-timer-blackjackshellac
+#tasksTimer-CryptoD
 extra_source=$(ls -1 *.js | grep -v prefs.js | grep -v extension.js)
 extra_source="$extra_source $(ls *.ogg *.ui)"
 extra_source="$extra_source"
@@ -17,6 +17,6 @@ done
 
 eso="$eso --extra-source=./icons/ --extra-source=./bin/"
 
-cmd="gnome-extensions pack --podir=po/ --schema=schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml --gettext-domain=kitchen-timer-blackjackshellac $eso -o ../ --force"
+cmd="gnome-extensions pack --podir=po/ --schema=schemas/org.gnome.shell.extensions.tasksTimer-CryptoD.gschema.xml --gettext-domain=tasksTimer-CryptoD $eso -o ../ --force"
 echo $cmd
 $cmd

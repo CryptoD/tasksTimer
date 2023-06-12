@@ -21,7 +21,7 @@ along with Kitchen Timer.  If not, see <http://www.gnu.org/licenses/>.
 Author: Steeve McCauley
 
 -->
-<interface domain="kitchen-timer-blackjackshellac">
+<interface domain="tasksTimer-CryptoD">
   <requires lib="gtk+" version="3.24"/>
   <!-- interface-license-type gplv3 -->
   <!-- interface-name Kitchen Timer -->
@@ -64,7 +64,7 @@ Author: Steeve McCauley
   <object class="GtkImage" id="img_tasksTimer_symbolic">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="pixbuf">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
+    <property name="pixbuf">icons/tasksTimer-CryptoD-symbolic.svg</property>
   </object>
   <object class="GtkImage" id="img_remove">
     <property name="visible">True</property>
@@ -226,7 +226,7 @@ Author: Steeve McCauley
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="margin-end">5</property>
-                        <property name="pixbuf">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                        <property name="pixbuf">icons/tasksTimer-CryptoD-full.svg</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -457,7 +457,7 @@ Author: Steeve McCauley
                       <object class="GtkImage" id="img_timer2">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                        <property name="pixbuf">icons/tasksTimer-CryptoD-full.svg</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1079,7 +1079,7 @@ Author: Steeve McCauley
                         <property name="can-focus">False</property>
                         <property name="margin-top">5</property>
                         <property name="margin-bottom">5</property>
-                        <property name="pixbuf">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                        <property name="pixbuf">icons/tasksTimer-CryptoD-full.svg</property>
                       </object>
                     </child>
                   </object>
