@@ -83,7 +83,7 @@ var Annoyer = class Annoyer {
                                               secondaryGIcon: this._gicon });
 
     source.showNotification(notifier);
-    _removeTimeout() {
+    _removeTimeout()
       if (this._long_timeout) {
         GLib.source_remove(this._long_timeout);
         this._long_timeout = undefined;
