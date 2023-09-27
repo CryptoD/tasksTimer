@@ -89,6 +89,14 @@ function addSignalsHelperMethods(prototype) {
   //... Rest of the function code
 }
 
+var Utils = {
+  getStoredTimers: function() {
+    // Your implementation here
+  },
+  // other utility functions
+};
+
+
 const Gio = imports.gi.Gio;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
