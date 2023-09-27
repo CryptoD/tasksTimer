@@ -91,7 +91,7 @@ var Annoyer = class Annoyer {
     }
   }
 
-  notify(timer, text, fmt=undefined, ...args) {
+  notify(timer, text, fmt=undefined, ...args) 
 
     let details = fmt===undefined ? "" : fmt.format(...args);
 
@@ -111,16 +111,16 @@ var Annoyer = class Annoyer {
     notifier.connect('destroy', (notifier) => {
       notifier.stop_player();
     });
-  }
+  
 
   // MessageTray notification source
-  get source() {
+   get source() {
     return this._source;
   }
 
   get notification() {
-    return this._settings.notification;
-  }
+    return this._notification;
+  
 }
 
 // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/master/js/ui/messageTray.js
