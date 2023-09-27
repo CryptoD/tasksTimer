@@ -83,7 +83,9 @@ var Annoyer = class Annoyer {
                                               secondaryGIcon: this._gicon });
 
     source.showNotification(notifier);
-    _removeTimeout()
+  
+                                              
+    _removeTimeout(); {
       if (this._long_timeout) {
         GLib.source_remove(this._long_timeout);
         this._long_timeout = undefined;
@@ -91,7 +93,7 @@ var Annoyer = class Annoyer {
     }
   }
 
-  notify(timer, text, fmt=undefined, ...args) 
+  notify(timer, text, fmt=undefined, ...args) {
 
     let details = fmt===undefined ? "" : fmt.format(...args);
 
@@ -111,16 +113,16 @@ var Annoyer = class Annoyer {
     notifier.connect('destroy', (notifier) => {
       notifier.stop_player();
     });
-  
+  }
 
   // MessageTray notification source
-   get source() {
+  get source() {
     return this._source;
   }
 
   get notification() {
-    return this._notification;
-  
+    return this._settings.notification;
+  }
 }
 
 // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/master/js/ui/messageTray.js
