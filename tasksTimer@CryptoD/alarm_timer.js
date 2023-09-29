@@ -44,7 +44,7 @@ var init = () => {
   logger.settings = settings;
 
   // Initialize timers
-  let stored_timers = Utils.getStoredTimers();
+  let stored_timers = Utils.tasksTimer();
   stored_timers.forEach(t => {
     let timer = AlarmTimer.restore(t);
     if (timer) {
