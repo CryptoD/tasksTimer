@@ -7,8 +7,8 @@
       "3.38",
       "40",
       "41",
-      "42",
-      "42.9"
+        "42",
+        "42.9"
   ],
   "gettext-domain": "tasksTimer-CryptoD",
   "settings-schema": "org.gnome.shell.extensions.tasksTimer",

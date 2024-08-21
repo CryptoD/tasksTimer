@@ -9,60 +9,62 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-
 const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
 const HMS = Me.imports.hms.HMS;
 
 const AmPm = {
-  H24: 0,
-  AM: 1,
-  PM: 2,
-  RE: /(p\.?m\.?)|(a\.?m\.?)/i
+    H24: 0,
+    AM: 1,
+    PM: 2,
+    RE: /(p\.?m\.?)|(a\.?m\.?)/i
 };
 
 const logger = new Logger('kt alarm timer');
 
 class AlarmTimer {
-  // ... same as your provided code...
+    // ... same as your provided code...
 }
 
-var init = () => {
-  logger.debug("Initializing...");
-  let settings = Utils.getSettings();
+function init() {
+    logger.debug("Initializing...");
+    let settings = Utils.getSettings();
+    // Set log level
+    logger.settings = settings;
 
-  // Set log level
-  logger.settings = settings;
+    // Initialize timers
+    let stored_timers = Utils.tasksTimer();
+    stored_timers.forEach(t => {
+        let timer = AlarmTimer.restore(t);
+        if (timer) {
+            Utils.addTimer(timer);
+        }
+    });
 
-  // Initialize timers
-  let stored_timers = Utils.tasksTimer();
-  stored_timers.forEach(t => {
-    let timer = AlarmTimer.restore(t);
-    if (timer) {
-      Utils.addTimer(timer);
-    }
-  });
+    // Connect to settings changes
+    settings.connect('changed::timers', () => {
+        logger.debug("Timers setting changed");
+        Utils.updateTimersFromSettings();
+    });
 
-  // Connect to settings changes
-  settings.connect('changed::timers', () => {
-    logger.debug("Timers setting changed");
-    Utils.updateTimersFromSettings();
-  });
+    // Connect to system clock changes
+    Utils.connectToClockSignal('notify::clock', () => {
+        logger.debug("System clock signal received");
+        Utils.checkTimers();
+    });
+}
 
-  // Connect to system clock changes
-  Utils.connectToClockSignal('notify::clock', () => {
-    logger.debug("System clock signal received");
-    Utils.checkTimers();
-  });
+// Export the init function and AlarmTimer class
+var AlarmTimerModule = {
+    init: init,
+    AlarmTimer: AlarmTimer
 };
-
-init();
