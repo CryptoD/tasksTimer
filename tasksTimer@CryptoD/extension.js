@@ -12,17 +12,21 @@ function log(msg) {
 class Extension {
     constructor(uuid) {
         this._uuid = uuid;
+        this._indicator = null;
         ExtensionUtils.initTranslations('tasksTimer-CryptoD');
     }
 
     enable() {
         log('Enabling extension');
         try {
-            this._indicator = new Indicator.tasksTimerIndicator();
-            Main.panel.addToStatusArea(this._uuid, this._indicator);
+            if (!this._indicator) {
+                this._indicator = new Indicator.TasksTimerIndicator();
+                Main.panel.addToStatusArea(this._uuid, this._indicator);
+            }
             log('Extension enabled successfully');
         } catch (e) {
-            log(`Error enabling extension: ${e.message}\n${e.stack}`);
+            logError(`Error enabling extension: ${e.message}\n${e.stack}`);
+            this.disable(); // Clean up if there's an error
         }
     }
 

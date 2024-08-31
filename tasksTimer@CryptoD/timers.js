@@ -23,33 +23,30 @@ const KeyboardShortcuts = Me.imports.keyboard_shortcuts.KeyboardShortcuts;
 const date_options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
 const mixerControl = imports.ui.status.volume.getMixerControl();
 
-var Timers = function() {
-    // Constructor code here
-    // ...
+var Timers = class Timers extends Array {
+    constructor() {
+        super();
+        this._indicator = null;
+        this._settings = ExtensionUtils.getSettings();
+        // Add any other initialization code
+    }
+
+    _removeTimeout() {
+        // Method implementation
+    }
+
+    // Add other Timers methods here
+
+    attach(indicator) {
+        this._indicator = indicator;
+        // Perform any necessary setup with the indicator
+    }
+
+    detach() {
+        this._indicator = null;
+        // Perform any necessary cleanup
+    }
 };
-
-Timers.prototype = Object.create(Array.prototype);
-Timers.prototype.constructor = Timers;
-
-Timers.prototype._removeTimeout = function() {
-    // Method implementation
-};
-
-// Add other Timers prototype methods here
-// ...
-
-Timers.attach = function(indicator) {
-    // Static method implementation
-};
-
-Timers.detach = function() {
-    // Static method implementation
-};
-
-// Add other Timers static methods here
-// ...
-
-var timersInstance = new Timers();
 
 var TimerState = {
     INIT: 0,
@@ -58,25 +55,28 @@ var TimerState = {
     EXPIRED: 3
 };
 
-var Timer = function(name, duration_secs, id) {
-    // Constructor code here
-    // ...
+var Timer = class Timer {
+    constructor(name, duration_secs, id) {
+        // Constructor code here
+    }
+
+    check_volume() {
+        // Method implementation
+    }
+
+    // Add other Timer methods here
+
+    static fromResult(result) {
+        // Static method implementation
+    }
+
+    static fromSettingsTimer(settings_timer) {
+        // Static method implementation
+    }
 };
 
-Timer.prototype.check_volume = function() {
-    // Method implementation
-};
-
-// Add other Timer prototype methods here
-// ...
-
-Timer.fromResult = function(result) {
-    // Static method implementation
-};
-
-Timer.fromSettingsTimer = function(settings_timer) {
-    // Static method implementation
-};
+// Create a single instance of Timers
+var timersInstance = new Timers();
 
 // Export the necessary objects and functions
 var exports = {
