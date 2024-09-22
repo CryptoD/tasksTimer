@@ -1,13 +1,9 @@
 'use strict';
 
-const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';
-const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
-const _ = Gettext.gettext;
-
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
-const {GLib, St, Clutter, Gio} = imports.gi;
+const { GLib, St, Clutter, Gio } = imports.gi;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
 
@@ -21,62 +17,59 @@ const SessionManagerInhibitor = Me.imports.inhibitor.SessionManagerInhibitor;
 const KeyboardShortcuts = Me.imports.keyboard_shortcuts.KeyboardShortcuts;
 
 const date_options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+
 const mixerControl = imports.ui.status.volume.getMixerControl();
 
-var Timers = class Timers extends Array {
+class Timers extends Array {
     constructor() {
         super();
         this._indicator = null;
-        this._settings = ExtensionUtils.getSettings();
-        // Add any other initialization code
+        this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.tasksTimer');
+        // Initialize other properties as needed
+        this.logger = new Logger('Timers', this._settings);
+        this.logger.info('Timers instance created');
     }
-
-    _removeTimeout() {
-        // Method implementation
-    }
-
-    // Add other Timers methods here
 
     attach(indicator) {
         this._indicator = indicator;
-        // Perform any necessary setup with the indicator
+        this.logger.info('Timers attached to indicator');
+        // Initialize timers or perform necessary setup
     }
 
     detach() {
         this._indicator = null;
-        // Perform any necessary cleanup
+        this.logger.info('Timers detached from indicator');
+        // Clean up timers or perform necessary cleanup
     }
-};
 
-var TimerState = {
+    // Add other Timers methods here
+}
+
+class Timer {
+    constructor(name, duration_secs, id) {
+        this.name = name;
+        this.duration_secs = duration_secs;
+        this.id = id;
+        this.state = TimerState.INIT;
+        // Initialize other properties
+    }
+
+    check_volume() {
+        // Implement volume check logic
+    }
+
+    // Add other Timer methods here
+}
+
+const TimerState = {
     INIT: 0,
     RESET: 1,
     RUNNING: 2,
     EXPIRED: 3
 };
 
-var Timer = class Timer {
-    constructor(name, duration_secs, id) {
-        // Constructor code here
-    }
-
-    check_volume() {
-        // Method implementation
-    }
-
-    // Add other Timer methods here
-
-    static fromResult(result) {
-        // Static method implementation
-    }
-
-    static fromSettingsTimer(settings_timer) {
-        // Static method implementation
-    }
-};
-
 // Create a single instance of Timers
-var timersInstance = new Timers();
+const timersInstance = new Timers();
 
 // Export the necessary objects and functions
 var exports = {

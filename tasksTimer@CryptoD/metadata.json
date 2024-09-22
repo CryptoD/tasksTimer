@@ -14,5 +14,5 @@
   "settings-schema": "org.gnome.shell.extensions.tasksTimer",
   "url": "https://github.com/CryptoD/tasksTimer",
   "version": 1.0,
-  "icon": "kitchen-timer-blackjackshellac-full.svg"
+  "icon": "icons/kitchen-timer-blackjackshellac-full.svg"
 }
