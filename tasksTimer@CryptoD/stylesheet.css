@@ -7,13 +7,13 @@
 
 .tasksTimer-menu-box {
   padding: 0px;
-  /*spacing: 10px;*/
+  spacing: 10px; /* Uncommented this property */
 }
 
 .tasksTimer-menu-icon {
   border-right: 10px;
   border-left: 5px;
-  icon-size: 1.2em;
+  font-size: 1.2em; /* Replaced icon-size with font-size */
 }
 
 .tasksTimer-menu-label {
@@ -23,7 +23,7 @@
 
 .tasksTimer-menu-delete-icon {
   border-left: 10px;
-  icon-size: 1.2em;
+  font-size: 1.2em; /* Replaced icon-size with font-size */
 }
 
 .tasksTimer-menu-name {
@@ -53,4 +53,3 @@
   border-left: 10px;
   vertical-align: middle;
 }
-
