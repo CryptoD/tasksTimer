@@ -46,20 +46,20 @@ class Timer {
     // Add timer-specific methods here
 }
 
-const TimerState = {
-    INIT: 0,
+const TimerState = Object.freeze({
     RESET: 1,
     RUNNING: 2,
     EXPIRED: 3
-};
+});
 
 // Create a single instance of Timers
-const timersInstance = new Timers();
+const timersInstance = Object.freeze(new Timers());
 
-// Export the necessary objects and functions
-var exports = {
-    Timers: Timers,
-    Timer: Timer,
-    TimerState: TimerState,
-    timersInstance: timersInstance
-};
+/** 
+ * @exports {Object} Module exports
+ * @property {Class} Timers - Timers collection class
+ * @property {Class} Timer - Individual timer class
+ * @property {Object} TimerState - Timer state constants
+ * @property {Timers} timersInstance - Singleton timers instance
+ */
+export { Timers, Timer, TimerState, timersInstance }export { Timers, Timer, TimerState, timersInstance }});};

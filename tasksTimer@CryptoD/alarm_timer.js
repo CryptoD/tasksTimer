@@ -22,6 +22,13 @@ const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
 const HMS = Me.imports.hms.HMS;
 
+/**
+ * @typedef {Object} AmPm
+ * @property {number} H24 - 24-hour format identifier (0)
+ * @property {number} AM - AM format identifier (1)
+ * @property {number} PM - PM format identifier (2)
+ * @property {RegExp} RE - Regular expression to match AM/PM patterns
+ */
 const AmPm = {
     H24: 0,
     AM: 1,
@@ -29,8 +36,11 @@ const AmPm = {
     RE: /(p\.?m\.?)|(a\.?m\.?)/i
 };
 
+/**
+ * @type {Logger}
+ * @description Logger instance for kitchen timer alarm functionality
+ */
 const logger = new Logger('kt alarm timer');
-
 class AlarmTimer {
     // ... same as your provided code...
 }

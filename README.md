@@ -1,6 +1,13 @@
 # Tasks Timer Extension
 
-This is a fork of the [Gnome shell kitchen timer extension](https://extensions.gnome.org/extension/3955/kitchen-timer/) that allows running multiple simultaneous timers, but has not been updated for 2 years.
+## Table of Contents
+- [Installation](#installation)
+- [Compatibility](#compatibility)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Alarm Timers](#alarm-timers)
+- [Configuration](#configuration)
+- [Support](#support)
+- [Development](#development)
 
 ## Installation
 
@@ -31,22 +38,20 @@ You can also edit the shortcuts in dconf-editor or with the following script:
 $ tasksTimer@yourdomain.com/bin/dconf-editor.sh
 ```
 
-## Alarm Timers
+## Alarm Timer Syntax
 
-You can specify alarms as timers with the following syntax:
-```
-name @ HH[:MM[:SS[.ms]]] [am|pm]
-```
+Format: `name @ HH[:MM[:SS[.ms]]] [am|pm]`
 
-The `time_spec` can include am/pm or use 24-hour time.
+Validation Rules:
+- Hours: 1-12 (am/pm format) or 0-23 (24hr format)
+- Minutes: 0-59
+- Seconds: 0-59
+- Milliseconds: 0-999
 
-Examples:
-```
-alarm @ 5am
-alarm @ 11:30pm
-alarm @ 23:30
-alarm @ 8:45:00.444am
-```
+Examples with explanations:
+- `meeting @ 14:30` - Sets alarm for 2:30 PM
+- `lunch @ 12pm` - Sets alarm for noon
+- `wakeup @ 5:30am` - Sets alarm for early morning
 
 To create an alarm timer that goes off at 5am tomorrow:
 ```
@@ -64,6 +69,34 @@ If you find this extension useful, feel free to support the original author:
 
 [<img src="https://raw.githubusercontent.com/blackjackshellac/tasksTimer/main/img/bmc_logo_wordmark_25.png" alt="Buy Me A Coffee" width="150"/>](https://www.buymeacoffee.com/blckjackshellac)
 
-## References
+## Development
+
+## Development
+
+### Setup Development Environment
+
+git clone https://github.com/CryptoD/tasksTimer
+cd tasksTimer
+./install_local.sh --dev
+
 
 This fork is based on the original extension by [blackjackshellac](https://github.com/blackjackshellac/kitchenTimer). The functionality of this extension has also been updated with code from [olebowle's fork](https://github.com/olebowle/gnome-shell-timer) and techniques from [gnome-bluetooth-quick-connect](https://github.com/bjarosze/gnome-bluetooth-quick-connect).
+
+## Compatibility
+
+- GNOME Shell: 40.0 - 44.x
+- Required packages: gjs, gnome-shell-extensions
+
+### System Requirements
+- Linux distribution running GNOME Shell
+- git (for installation)
+
+## Configuration
+
+### Available Options
+- Sound notifications: Enable/disable and customize alarm sounds
+- Panel display: Show/hide timer in panel
+- Persistent alarms: Configure which timers should persist
+- Custom keyboard shortcuts
+
+![Configuration Screenshot](img/preferences.png)

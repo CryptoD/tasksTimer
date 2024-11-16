@@ -8,11 +8,17 @@
     "40",
     "41",
     "42",
-    "42.9"
+    "42.9",
+    "43",
+    "44",
+    "45"
   ],
   "gettext-domain": "tasksTimer-CryptoD",
   "settings-schema": "org.gnome.shell.extensions.tasksTimer",
   "url": "https://github.com/CryptoD/tasksTimer",
   "version": 1.0,
-  "icon": "icons/kitchen-timer-blackjackshellac-symbolic.svg"
+  "icon": "icons/kitchen-timer-blackjackshellac-symbolic.svg",
+  "donations": {
+    "paypal": "https://paypal.me/TGCNet",
+  }
 }

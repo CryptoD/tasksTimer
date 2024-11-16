@@ -25,6 +25,11 @@ class Extension {
             }
             log('Extension enabled successfully');
         } catch (e) {
+            if (e instanceof TypeError) {
+                // handle type errors
+            } else if (e instanceof ReferenceError) {
+                // handle reference errors
+            }
             logError(`Error enabling extension: ${e.message}\n${e.stack}`);
             this.disable(); // Clean up if there's an error
         }
