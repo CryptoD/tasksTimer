@@ -62,4 +62,4 @@ const timersInstance = Object.freeze(new Timers());
  * @property {Object} TimerState - Timer state constants
  * @property {Timers} timersInstance - Singleton timers instance
  */
-export { Timers, Timer, TimerState, timersInstance }export { Timers, Timer, TimerState, timersInstance }});};
+export { Timers, Timer, TimerState, timersInstance };
