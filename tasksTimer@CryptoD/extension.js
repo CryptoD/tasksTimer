@@ -1,19 +1,27 @@
 const ExtensionUtils = imports.misc.extensionUtils;
-const Main = imports.ui.main;
-const Indicator = ExtensionUtils.getCurrentExtension().imports.indicator;
+const Me = ExtensionUtils.getCurrentExtension();
+const TimersModule = Me.imports.timers;
+const Indicator = Me.imports.indicator;
+
+let _indicator = null;
 
 function init() {
-    ExtensionUtils.initTranslations('tasksTimer-CryptoD');
+    return new Extension();
 }
 
 function enable() {
-    this._indicator = new Indicator.TasksTimerIndicator();
-    Main.panel.addToStatusArea('tasksTimer', this._indicator);
+    _indicator = new Indicator.Indicator();
 }
 
 function disable() {
-    if (this._indicator) {
-        this._indicator.destroy();
-        this._indicator = null;
+    if (_indicator) {
+        _indicator.destroy();
+        _indicator = null;
+    }
+}
+
+class Extension {
+    constructor() {
+        this._timers = new TimersModule.Timers();
     }
 }

@@ -1,0 +1,402 @@
+# Kitchen Timer
+# Copyright (C) 2021, Steeve McCauley
+# This file is distributed under the same license as the tasksTimer-CryptoD package.
+# Steeve McCauley <steeve.mccauley@gmail.com>, 2001
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: tasksTimer-CryptoD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-25 17:19+0400\n"
+"PO-Revision-Date: 2024-11-25 17:19+0400\n"
+"Last-Translator: Steeve McCauley <steeve.mccauley@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hms.js:113
+msgid "seconds"
+msgstr ""
+
+#: hms.js:116
+msgid "minutes"
+msgstr ""
+
+#: hms.js:121
+msgid "hours"
+msgstr ""
+
+#: menuitem.js:33
+msgid "Create Preset"
+msgstr ""
+
+#: menuitem.js:44 menuitem.js:519
+msgid "Name 00:00:00"
+msgstr ""
+
+#: menuitem.js:60
+msgid "Create"
+msgstr ""
+
+#: menus.js:107
+msgid "Running timers"
+msgstr ""
+
+#: menus.js:120
+msgid "Quick timers"
+msgstr ""
+
+#: menus.js:144
+msgid "Preset timers"
+msgstr ""
+
+#: notifier.js:271
+#, javascript-format
+msgid "Restart timer %s"
+msgstr ""
+
+#: prefs.js:170
+msgid "New timer"
+msgstr ""
+
+#: prefs.js:564
+msgid "Sound file"
+msgstr ""
+
+#: prefs.js:594 prefs.js:608
+msgid "Export"
+msgstr ""
+
+#: prefs.js:644
+#, javascript-format
+msgid "Exported settings to %s"
+msgstr ""
+
+#: prefs.js:677
+msgid "Import"
+msgstr ""
+
+#: prefs.js:706
+#, javascript-format
+msgid "Imported settings from %s"
+msgstr ""
+
+#: schemas/org-gnome-shell-extensions-tasksTimer.gschema.xml:7
+msgid "Example summary"
+msgstr ""
+
+#: schemas/org-gnome-shell-extensions-tasksTimer.gschema.xml:8
+msgid "Example description"
+msgstr ""
+
+#: settings.ui:55 settings.ui:267 settings40.ui:299 settings40.ui:306
+msgctxt "add-timer"
+msgid "Add new timer"
+msgstr ""
+
+#: settings.ui:72 settings.ui:282 settings40.ui:324 settings40.ui:330
+msgctxt "remove-timer"
+msgid "Remove selected timer"
+msgstr ""
+
+#: settings.ui:169 settings40.ui:187
+msgctxt "preset_radio"
+msgid "Preset timers"
+msgstr ""
+
+#: settings.ui:185 settings40.ui:204
+msgctxt "quick_radio"
+msgid "Quick timers"
+msgstr ""
+
+#: settings.ui:207
+msgid "Timer types"
+msgstr ""
+
+#: settings.ui:241 settings40.ui:268
+msgctxt "select-timer"
+msgid "Select the timer to be modified"
+msgstr ""
+
+#: settings.ui:251 settings40.ui:280
+msgctxt "timers-combo-entry"
+msgid "Timer name"
+msgstr ""
+
+#: settings.ui:295 settings40.ui:345
+msgctxt "timer-enabled-text"
+msgid "Enabled"
+msgstr ""
+
+#: settings.ui:299 settings40.ui:349
+msgctxt "timer-enabled"
+msgid "Enable timer if checked"
+msgstr ""
+
+#: settings.ui:330 settings40.ui:382
+msgctxt "label-hour"
+msgid "Hours"
+msgstr ""
+
+#: settings.ui:342
+msgctxt "label-minutes"
+msgid "Minutes\t"
+msgstr ""
+
+#: settings.ui:354 settings40.ui:416
+msgctxt "label-seconds"
+msgid "Seconds"
+msgstr ""
+
+#: settings.ui:421 settings40.ui:505
+msgid "1"
+msgstr ""
+
+#: settings.ui:434 settings40.ui:522
+msgid "0"
+msgstr ""
+
+#: settings.ui:543 settings40.ui:635
+msgctxt "tvcr-name"
+msgid "Name"
+msgstr ""
+
+#: settings.ui:558 settings40.ui:650
+msgctxt "tvcr-hms"
+msgid "HH:MM:SS"
+msgstr ""
+
+#: settings.ui:573 settings40.ui:665
+msgctxt "tvcr-duration"
+msgid "Duration"
+msgstr ""
+
+#: settings.ui:588 settings40.ui:680
+msgctxt "tvcr-enabled"
+msgid "Enabled"
+msgstr ""
+
+#: settings.ui:599 settings40.ui:691
+msgid "Delete"
+msgstr ""
+
+#: settings.ui:627 settings40.ui:159
+msgid "Timers"
+msgstr ""
+
+#: settings.ui:641 settings40.ui:739
+msgctxt "notification"
+msgid "Notification"
+msgstr ""
+
+#: settings.ui:645 settings40.ui:743
+msgctxt "notification"
+msgid "Show a notification when the timer is done"
+msgstr ""
+
+#: settings.ui:655 settings40.ui:757
+msgctxt "sort_by_duration_text"
+msgid "Sort by duration"
+msgstr ""
+
+#: settings.ui:659 settings40.ui:761
+msgctxt "sort-by-duration"
+msgid "Sort timers by duration"
+msgstr ""
+
+#: settings.ui:669 settings40.ui:775
+msgctxt "sort_descending_text"
+msgid "Sort descending"
+msgstr ""
+
+#: settings.ui:673 settings40.ui:779
+msgctxt "sort-descending"
+msgid "Sort timers by duration from longest to shortest"
+msgstr ""
+
+#: settings.ui:683 settings40.ui:793
+msgctxt "save-quick-timers"
+msgid "Save quick timers"
+msgstr ""
+
+#: settings.ui:687 settings40.ui:797
+msgctxt "save-quick-timers-tooltip"
+msgid "If selected, quick timers are also saved"
+msgstr ""
+
+#: settings.ui:697 settings40.ui:811
+msgctxt "show_label"
+msgid "Show name"
+msgstr ""
+
+#: settings.ui:701 settings40.ui:815
+msgctxt "show_timer_name"
+msgid "Show timer name in the panel menu"
+msgstr ""
+
+#: settings.ui:711 settings40.ui:829
+msgctxt "detect-dupes"
+msgid "Detect dupes"
+msgstr ""
+
+#: settings.ui:715 settings40.ui:833
+msgctxt "detect-dupes-tooltip"
+msgid "Prevent timers with the same duration, name and type"
+msgstr ""
+
+#: settings.ui:725 settings40.ui:847
+msgctxt "show_time"
+msgid "Show time"
+msgstr ""
+
+#: settings.ui:729 settings40.ui:851
+msgctxt "show-time"
+msgid "Show remaining time for running timers in the panel"
+msgstr ""
+
+#: settings.ui:739 settings40.ui:865
+msgctxt "notification_sticky"
+msgid "Sticky notification"
+msgstr ""
+
+#: settings.ui:743 settings40.ui:869
+msgctxt "notification-sticky-tooltip"
+msgid "Notification waits for input"
+msgstr ""
+
+#: settings.ui:753 settings40.ui:883
+msgctxt "animate_progress_icon"
+msgid "Animate progress icon"
+msgstr ""
+
+#: settings.ui:757 settings40.ui:887
+msgctxt "show-progress-tooltip"
+msgid "Animate progress icon in the panel menu"
+msgstr ""
+
+#: settings.ui:767 settings.ui:971 settings40.ui:901 settings40.ui:1177
+msgctxt "play-sound"
+msgid "Play sound"
+msgstr ""
+
+#: settings.ui:771 settings40.ui:905
+msgctxt "play-sound"
+msgid "Play the sound when the timer is done"
+msgstr ""
+
+#: settings.ui:788
+msgctxt "json_file_chooser_button"
+msgid "Settings…"
+msgstr ""
+
+#: settings.ui:792
+msgctxt "json_file_chooser_tooltip"
+msgid "Export timer settings, or import them into the program"
+msgstr ""
+
+#: settings.ui:805 settings40.ui:949
+msgctxt "export-settings-radio"
+msgid "Export"
+msgstr ""
+
+#: settings.ui:820 settings40.ui:963
+msgctxt "import-settings-radio"
+msgid "Import"
+msgstr ""
+
+#: settings.ui:865 settings40.ui:1019
+msgctxt "inhibit"
+msgid "Inhibit screen lock"
+msgstr ""
+
+#: settings.ui:869 settings40.ui:1023
+msgctxt "inhibit-tooltip"
+msgid "Inhibit screen lock when timers are running"
+msgstr ""
+
+#: settings.ui:879 settings40.ui:1037
+msgctxt "accel-enable"
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: settings.ui:883 settings40.ui:1041
+msgctxt "accel-enable-tooltip"
+msgid "Click to enable global keyboard shortcuts"
+msgstr ""
+
+#: settings.ui:894 settings40.ui:727
+msgid "Options"
+msgstr ""
+
+#: settings.ui:910 settings40.ui:1077
+msgctxt "sound_file_tooltip"
+msgid "Timer notification sound file"
+msgstr ""
+
+#: settings.ui:913 settings40.ui:1076
+msgctxt "sound_file"
+msgid "Sound file"
+msgstr ""
+
+#: settings.ui:927
+msgctxt "path_to_sound_file"
+msgid "Sound file"
+msgstr ""
+
+#: settings.ui:941 settings40.ui:1139
+msgctxt "warn-volume-level"
+msgid "Warn low volume"
+msgstr ""
+
+#: settings.ui:957 settings40.ui:1159
+msgctxt "low-volume-threshold-percent"
+msgid "Low volume threshold percent"
+msgstr ""
+
+#: settings.ui:987 settings40.ui:1197
+msgctxt "sound_loops_tooltip"
+msgid ""
+"Loops to play timer notification sound, 0 plays for the duration of the "
+"notification dialog"
+msgstr ""
+
+#: settings.ui:1015 settings40.ui:1065
+msgid "Sound"
+msgstr ""
+
+#: settings.ui:1040
+msgid "Kitchen Timer"
+msgstr ""
+
+#: settings.ui:1112
+msgid "Copyright © 2021, Steeve McCauley"
+msgstr ""
+
+#: settings.ui:1126 settings40.ui:1355
+msgid "https://github.com/CryptoD/tasksTimer"
+msgstr ""
+
+#: settings.ui:1144
+msgid ""
+"<span size='smaller' style='italic'>This program comes with absolutely no "
+"warranty.\n"
+"See the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL 3 "
+"License</a> for details.</span>"
+msgstr ""
+
+#: settings.ui:1182
+msgctxt "about"
+msgid "About"
+msgstr ""
+
+#: settings40.ui:400
+msgctxt "label-minutes"
+msgid "Minutes"
+msgstr ""
+
+#: settings40.ui:1242
+msgid "About"
+msgstr ""
