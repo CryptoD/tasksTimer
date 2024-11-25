@@ -11,18 +11,26 @@
 
 ## Installation
 
+### Prerequisites
+- GNOME Shell 40.0 - 44.x
+- git
+- gjs
+- gnome-shell-extensions
+
+Verify GNOME version:
+
+gnome-shell --version
+
+
 To install the extension, clone the repository and run `install_local.sh`:
 
 
-```
 mkdir ~/github
 cd ~/github
 git clone https://github.com/CryptoD/tasksTimer
 cd tasksTimer
 ./install_local.sh
-```
 
-and then restart gnome shell to enable (Alt-F2 'r') or logout/login.
 
 After installation, restart gnome shell to enable the extension (use Alt-F2 'r' or logout/login).
 
@@ -100,3 +108,18 @@ This fork is based on the original extension by [blackjackshellac](https://githu
 - Custom keyboard shortcuts
 
 ![Configuration Screenshot](img/preferences.png)
+
+### Troubleshooting
+
+If installation fails:
+1. Check extension logs: `journalctl -f -o cat /usr/bin/gnome-shell`
+2. Verify permissions: `ls -l ~/.local/share/gnome-shell/extensions/`
+3. Clear extension cache: `rm -rf ~/.cache/gnome-shell`
+4. Restart GNOME Shell: Alt+F2, type 'r', press Enter
+
+### Uninstallation
+
+To remove the extension:
+```bash
+gnome-extensions disable tasksTimer@yourdomain.com
+rm -rf ~/.local/share/gnome-shell/extensions/tasksTimer@yourdomain.com
