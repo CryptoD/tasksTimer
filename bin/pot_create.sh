@@ -4,17 +4,17 @@ ME=$(basename $0)
 MD=$(cd $(dirname $0); pwd)
 
 echo $MD
-cd $MD/../tasksTimer@CryptoD
+cd $MD/../kitchentimer@blackjackshellac.ca
 [ $? -ne 0 ] && echo "Failed to change to extension directory" && exit 1
 
 echo Working in $(pwd)
 
-pot='po/tasksTimer-CryptoD.pot'
+pot='po/kitchen-timer-blackjackshellac.pot'
 opts="--from-code=UTF-8 -F -j --output=$pot"
 #opts="$opts --copyright-holder=SteeveMcCauley"
 #--foreign-user
 #omit FSF copyright in output for foreign user
-opts="$opts --package-name=tasksTimer-CryptoD"
+opts="$opts --package-name=kitchen-timer-blackjackshellac"
 #opts="$opts --package-version='5'"
 files="*.js *.ui schemas/*.xml"
 
@@ -25,12 +25,12 @@ $cmd
 # # SOME DESCRIPTIVE TITLE.
 #-# Copyright (C) YEAR Copyright (C) 2021, Steeve McCauley
 #+# Copyright (C) 2021, Steeve McCauley
-# # This file is distributed under the same license as the tasksTimer-CryptoD package.
+# # This file is distributed under the same license as the kitchen-timer-blackjackshellac package.
 # # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # #
 #@@ -8,7 +8,7 @@ msgid ""
 # msgstr ""
-# "Project-Id-Version: tasksTimer-CryptoD\n"
+# "Project-Id-Version: kitchen-timer-blackjackshellac\n"
 # "Report-Msgid-Bugs-To: \n"
 #-"POT-Creation-Date: 2021-01-03 10:34-0500\n"
 #+"POT-Creation-Date: 2021-01-03 11:22-0500\n"

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';
+const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -98,7 +98,7 @@ var PanelMenuBuilder = class PanelMenuBuilder {
     this._menu.removeAll();
     this.timers.refresh();
 
-    this._quick = new Mitem.tasksTimerQuickItem(this._menu, this.timers);
+    this._quick = new Mitem.KitchenTimerQuickItem(this._menu, this.timers);
 
     var running_item;
 
@@ -107,7 +107,7 @@ var PanelMenuBuilder = class PanelMenuBuilder {
         running_item = new PopupMenu.PopupMenuItem(_("Running timers"), { reactive: false } );
         this._menu.addMenuItem(running_item);
       }
-      var timer_item = new Mitem.tasksTimerMenuItem(timer, this._menu);
+      var timer_item = new Mitem.KitchenTimerMenuItem(timer, this._menu);
     });
 
     if (running_item !== undefined) {
@@ -131,7 +131,7 @@ var PanelMenuBuilder = class PanelMenuBuilder {
             this._quick_timer_menu = this._addSubMenu(quick_timers_label, this._menu).menu;
           }
         }
-        new Mitem.tasksTimerMenuItem(timer, this._quick_timer_menu);
+        new Mitem.KitchenTimerMenuItem(timer, this._quick_timer_menu);
       }
     });
 
@@ -154,13 +154,13 @@ var PanelMenuBuilder = class PanelMenuBuilder {
             this._presets_timer_menu = this._addSubMenu(preset_timers_label, this._menu).menu;
           }
         }
-        new Mitem.tasksTimerMenuItem(timer, this._presets_timer_menu);
+        new Mitem.KitchenTimerMenuItem(timer, this._presets_timer_menu);
       }
     });
 
     this._addSeparator();
 
-    new Mitem.tasksTimerCreatePreset(this._menu, this.timers);
+    new Mitem.KitchenTimerCreatePreset(this._menu, this.timers);
   }
 
   _getMenu(menu) {

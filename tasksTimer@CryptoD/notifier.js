@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const GETTEXT_DOMAIN = 'tasksTimer-CryptoD';
+const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -34,7 +34,7 @@ const PopupMenu = imports.ui.popupMenu;
 imports.gi.versions.Gst = '1.0';
 const Gst = imports.gi.Gst;
 //const GstAudio = imports.gi.GstAudio;
-let player = global.display.get_sound_player();
+
 // for setInterval()
 const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
@@ -74,7 +74,7 @@ var Annoyer = class Annoyer {
 
     let details = fmt === undefined ? "" : fmt.format(...args);
 
-    var notifier = new tasksTimerNotifier(timer,
+    var notifier = new KitchenTimerNotifier(timer,
                                               source,
                                               "Timer Warning: "+text,
                                               details,
@@ -83,21 +83,13 @@ var Annoyer = class Annoyer {
                                               secondaryGIcon: this._gicon });
 
     source.showNotification(notifier);
-  
-                                              
-    _removeTimeout(); {
-      if (this._long_timeout) {
-        GLib.source_remove(this._long_timeout);
-        this._long_timeout = undefined;
-      }
-    }
   }
 
   notify(timer, text, fmt=undefined, ...args) {
 
     let details = fmt===undefined ? "" : fmt.format(...args);
 
-    var notifier = new tasksTimerNotifier(timer,
+    var notifier = new KitchenTimerNotifier(timer,
                                               this.source,
                                               text,
                                               details,
@@ -217,8 +209,8 @@ var Annoyer = class Annoyer {
 
 
 
-var tasksTimerNotifier = GObject.registerClass(
-class tasksTimerNotifier extends MessageTray.Notification {
+var KitchenTimerNotifier = GObject.registerClass(
+class KitchenTimerNotifier extends MessageTray.Notification {
   _init(timer, source, title, banner, play_sound, params) {
     super._init(source, title, banner, params);
 
@@ -234,7 +226,7 @@ class tasksTimerNotifier extends MessageTray.Notification {
       this._sound_loops = 2;
     }
 
-    this._banner = new tasksTimerNotifierBanner(this);
+    this._banner = new KitchenTimerNotifierBanner(this);
 
     this.logger.debug('timer is %s', timer.expired ? "expired" : "not expired");
     if (timer.expired) {
@@ -439,15 +431,15 @@ class tasksTimerNotifier extends MessageTray.Notification {
       this._destroyed = true;
       this.stop_player();
       super.destroy(reason);
-  
+
       this.timer.uninhibit();
-      this._removeTimeout(); // add this line
+
     }
   }
 });
 
-var tasksTimerNotifierBanner = GObject.registerClass(
-class tasksTimerNotifierBanner extends MessageTray.NotificationBanner {
+var KitchenTimerNotifierBanner = GObject.registerClass(
+class KitchenTimerNotifierBanner extends MessageTray.NotificationBanner {
   _init(notifier) {
     this.logger = new Logger('kt notifierbanner', notifier.timer.timers.settings);
     this.logger.debug("constructor");

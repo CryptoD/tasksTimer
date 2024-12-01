@@ -21,7 +21,7 @@ along with Kitchen Timer.  If not, see <http://www.gnu.org/licenses/>.
 Author: Steeve McCauley
 
 -->
-<interface domain="tasksTimer-CryptoD">
+<interface domain="kitchen-timer-blackjackshellac">
   <requires lib="gtk+" version="3.24"/>
   <!-- interface-license-type gplv3 -->
   <!-- interface-name Kitchen Timer -->
@@ -61,10 +61,10 @@ Author: Steeve McCauley
     <property name="margin-top">10</property>
     <property name="pixbuf">icons/bmc_logo_wordmark.svg</property>
   </object>
-  <object class="GtkImage" id="img_tasksTimer_symbolic">
+  <object class="GtkImage" id="img_kitchentimer_symbolic">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="pixbuf">icons/tasksTimer-CryptoD-symbolic.svg</property>
+    <property name="pixbuf">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
   </object>
   <object class="GtkImage" id="img_remove">
     <property name="visible">True</property>
@@ -114,7 +114,7 @@ Author: Steeve McCauley
     <property name="step-increment">1</property>
     <property name="page-increment">10</property>
   </object>
-  <object class="GtkBox" id="tasksTimer_settings">
+  <object class="GtkBox" id="kitchenTimer_settings">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="orientation">vertical</property>
@@ -226,7 +226,7 @@ Author: Steeve McCauley
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="margin-end">5</property>
-                        <property name="pixbuf">icons/tasksTimer-CryptoD-full.svg</property>
+                        <property name="pixbuf">icons/kitchen-timer-blackjackshellac-full.svg</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -457,7 +457,7 @@ Author: Steeve McCauley
                       <object class="GtkImage" id="img_timer2">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">icons/tasksTimer-CryptoD-full.svg</property>
+                        <property name="pixbuf">icons/kitchen-timer-blackjackshellac-full.svg</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1079,7 +1079,7 @@ Author: Steeve McCauley
                         <property name="can-focus">False</property>
                         <property name="margin-top">5</property>
                         <property name="margin-bottom">5</property>
-                        <property name="pixbuf">icons/tasksTimer-CryptoD-full.svg</property>
+                        <property name="pixbuf">icons/kitchen-timer-blackjackshellac-full.svg</property>
                       </object>
                     </child>
                   </object>
@@ -1123,13 +1123,13 @@ Author: Steeve McCauley
                 </child>
                 <child>
                   <object class="GtkLinkButton">
-                    <property name="label" translatable="yes">https://github.com/CryptoD/tasksTimer</property>
+                    <property name="label" translatable="yes">https://github.com/blackjackshellac/kitchenTimer</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">False</property>
-                    <property name="image">img_tasksTimer_symbolic</property>
+                    <property name="image">img_kitchentimer_symbolic</property>
                     <property name="always-show-image">True</property>
-                    <property name="uri">https://github.com/CryptoD/tasksTimer</property>
+                    <property name="uri">https://github.com/blackjackshellac/kitchenTimer</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>

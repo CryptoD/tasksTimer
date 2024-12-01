@@ -21,44 +21,44 @@ const LOGID = 'logger';
 String.prototype.format = imports.format.format;
 
 var Logger = class Logger {
-  constructor(logid = undefined, settings = undefined) {
-    this._logid = logid === undefined ? LOGID : logid;
-    this._settings = settings;
-  }
+    constructor(logid=undefined, settings=undefined) {
+        this._logid = logid === undefined ? LOGID : logid;
+        this._settings = settings;
+    }
 
-  _log(level, format, ...args) {
-    var msg = (Array.isArray(args) && args.length > 0) ? format.format(...args) : format;
-    log(`${level}: [${this._logid}] ${msg}`);
-    return msg;
-  }
+    _log(level, format, ...args) {
+      var msg = (Array.isArray(args) && args.length > 0) ? format.format(...args) : format;
+      log(`${level}: [${this._logid}] ${msg}`);
+      return msg;
+    }
 
-  get settings() {
-    return this._settings;
-  }
+    get settings() {
+      return this._settings;
+    }
 
-  set settings(settings) {
-    this._settings = settings;
-  }
+    set settings(settings) {
+      this._settings = settings;
+    }
 
-  get debugging() {
-    return this.settings === undefined ? false : this.settings.debug;
-  }
+    get debugging() {
+      return this.settings === undefined ? false : this.settings.debug;
+    }
 
-  debug(format, ...args) {
-    if (!this.debugging) return;
-    return this._log("DEBUG", format, ...args);
-  }
+    debug(format, ...args) {
+      if (!this.debugging) return;
+      return this._log("DEBUG", format, ...args);
+    }
 
-  warn(format, ...args) {
-    return this._log("WARNING", format, ...args);
-  }
+    warn(format, ...args) {
+      return this._log("WARNING", format, ...args);
+    }
 
-  info(format, ...args) {
-    return this._log("INFO", format, ...args);
-  }
+    info(format, ...args) {
+      return this._log("INFO", format, ...args);
+    }
 
-  error(format, ...args) {
-    return this._log("ERROR", format, ...args);
-  }
+    error(format, ...args) {
+      return this._log("ERROR", format, ...args);
+    }
 };
 

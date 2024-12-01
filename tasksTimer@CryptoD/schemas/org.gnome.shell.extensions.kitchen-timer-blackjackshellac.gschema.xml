@@ -1,0 +1,168 @@
+<!--
+ /*
+ * Kitchen Timer: Gnome Shell Kitchen Timer Extension
+ * Copyright (C) 2021 Steeve McCauley
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+aa{sv}
+[
+  {
+    'name': <'alarm'>,
+    'id': <'844d9bc6138c2e532d3306925fe0dd0d'>,
+    'active': <true>,
+    'hour': <12>,
+    'minute': <34>,
+    'days': <[1]>,
+    'snooze_minutes': <10>,
+    'ring_minutes': <1>
+  }
+]
+
+https://developer.gnome.org/glib/stable/gvariant-text.html
+-->
+<schemalist gettext-domain="kitchen-timer-blackjackshellac">
+  <schema id="org.gnome.shell.extensions.kitchen-timer-blackjackshellac"
+          path="/org/gnome/shell/extensions/kitchen-timer-blackjackshellac/">
+    <key name="notification" type="b">
+      <default>true</default>
+      <summary>Show a notification when a timer ends</summary>
+    </key>
+    <key name="inhibit" type="i">
+      <default>0</default>
+      <range min="0" max="15"/>
+      <summary>Inhibit screen lock</summary>
+      <description>
+        0 - off
+        1 - Inhibit logging out
+        2 - Inhibit user switching
+        4 - Inhibit suspending the session or computer
+        8 - Inhibit the session being marked as idle
+     </description>
+    </key>
+    <key name="inhibit-max" type="i">
+      <default>1800</default>
+      <summary>Maximum amount of time to inhibit screen lock, in seconds</summary>
+      <description>0 is no maximum, positive integer specifies the number of seconds</description>
+      <range min="0" max="86400"/>
+    </key>
+    <key name="notification-sticky" type="b">
+      <default>false</default>
+      <summary>Make the notification wait for input</summary>
+    </key>
+    <key name="notification-longtimeout" type="i">
+      <default>30000</default>
+      <range min="1000" max="3600000"/>
+      <summary>Long timeout for sticky notifications, default is 30 seconds</summary>
+    </key>
+    <key name="show-endtime" type="b">
+      <default>false</default>
+      <summary>Show the time when the timer will expire rather than the countdown</summary>
+    </key>
+    <key name="show-time" type="b">
+      <default>true</default>
+      <summary>Show time remaining in panel menu</summary>
+    </key>
+    <key name="show-progress" type="b">
+      <default>true</default>
+      <summary>Show timer progress in panel menu</summary>
+    </key>
+    <key name="show-label" type="b">
+      <default>false</default>
+      <summary>Show timer name in panel menu</summary>
+    </key>
+    <key name="play-sound" type="b">
+      <default>true</default>
+      <summary>Play sound notifications</summary>
+    </key>
+    <key name="sound-loops" type="i">
+      <default>2</default>
+      <range min="0" max="100"/>
+      <summary>Number of times to ring alarm sound, 0 is the duration of notification</summary>
+    </key>
+    <key name="sound-file" type="s">
+      <default>"kitchen_timer.ogg"</default>
+      <summary>Path to sound file</summary>
+    </key>
+    <key name="default-timer" type="i">
+      <default>300</default>
+      <range min="1" max="3600"/>
+      <summary>Default length of timer in seconds</summary>
+    </key>
+   <key name="timers" type="aa{sv}">
+      <default>[ {'name': &lt;'5 minutes'&gt;, 'duration': &lt;300&gt;, 'enabled': &lt;true&gt;} ]</default>
+      <summary>Array of Timer descriptions</summary>
+    </key>
+    <key name="quick-timers" type="aa{sv}">
+      <default>[ ]</default>
+      <summary>Array of Quick Timer descriptions</summary>
+    </key>
+    <key name="timers-json" type="s">
+      <default>'[{"name":"5 minutes","duration":300,"enabled":true}]'</default>
+      <summary>timers configuration stored as json</summary>
+      <description>Experimental feature for storing timer data</description>
+    </key>
+    <key name="sort-by-duration" type="b">
+      <default>true</default>
+      <summary>Sort list of timers by duration</summary>
+    </key>
+    <key name="sort-descending" type="b">
+      <default>false</default>
+      <summary>Sort from longest to shortest</summary>
+    </key>
+    <key name="save-quick-timers" type="b">
+      <default>false</default>
+      <summary>Save quick timers between sessions if enabled</summary>
+    </key>
+    <key name="detect-dupes" type="b">
+      <default>true</default>
+      <summary>Prevent creation of duplicate timers of the same type</summary>
+    </key>
+    <key name="running" type="s">
+      <default>'[]'</default>
+      <summary>State of running timers as json string</summary>
+    </key>
+    <key name="volume-threshold" type="i">
+      <default>25</default>
+      <range min="1" max="100"/>
+      <summary>Low volume threshold in percent</summary>
+    </key>
+    <key name="prefer-presets" type="i">
+      <default>0</default>
+      <range min="-10" max="10"/>
+      <summary>Heuristic counter to prefer displaying the quick or preset menus expanded</summary>
+    </key>
+    <key name='volume-level-warn' type='b'>
+      <default>true</default>
+      <summary>Warn if volume levels are below threshold</summary>
+    </key>
+    <key name="debug" type="b">
+      <default>false</default>
+      <summary>Turn on debugging</summary>
+    </key>
+    <key name="accel-enable" type="b">
+      <default>false</default>
+      <summary>Enable keyboard shortcuts</summary>
+    </key>
+    <key name="accel-show-endtime" type="s">
+      <default><![CDATA['<ctrl><super>T']]></default>
+      <summary>Keyboard shortcut for toggling show-end-time setting</summary>
+    </key>
+    <key name="accel-stop-next" type="s">
+      <default><![CDATA['<ctrl><super>K']]></default>
+      <summary>Keyboard shortcut to stop the next timer to expire</summary>
+    </key>
+  </schema>
+</schemalist>

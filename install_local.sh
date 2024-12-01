@@ -19,7 +19,7 @@
 
 ME=$(basename $0)
 MD=$(dirname $0)
-ED=tasksTimer@CryptoD
+ED=kitchentimer@blackjackshellac.ca
 USR_SHARE=~/.local/share
 ICONS=$USR_SHARE/icons/hicolor
 EXTENSIONS=$USR_SHARE/gnome-shell/extensions
@@ -69,7 +69,7 @@ HELP
 	exit 0
 }
 
-declare -i DEBUG=${tasksTimer_DEBUG:=0}
+declare -i DEBUG=${KITCHENTIMER_DEBUG:=0}
 
 while getopts ":iusdh" opt; do
 	case $opt in
