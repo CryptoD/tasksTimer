@@ -1,6 +1,7 @@
 /*
  * Kitchen Timer: Gnome Shell Kitchen Timer Extension
  * Copyright (C) 2021 Steeve McCauley
+ * Copyright (C) 2025 Danny Lucas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -76,13 +76,13 @@ class PreferencesBuilder {
 
     if (Utils.isGnome3x()) {
       this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings.ui']) );
-      this._kitchenTimer_settings = this._builder.get_object('kitchenTimer_settings');
-      this._viewport.add(this._kitchenTimer_settings);
+      this._tasksTimer_settings = this._builder.get_object('kitchenTimer_settings');
+      this._viewport.add(this._tasksTimer_settings);
       this._widget.add(this._viewport);
     } else {
       this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings40.ui']) );
-      this._kitchenTimer_settings = this._builder.get_object('kitchenTimer_settings');
-      this._viewport.set_child(this._kitchenTimer_settings);
+      this._tasksTimer_settings = this._builder.get_object('kitchenTimer_settings');
+      this._viewport.set_child(this._tasksTimer_settings);
       this._widget.set_child(this._viewport);
     }
 

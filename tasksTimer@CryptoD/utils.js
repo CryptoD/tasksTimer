@@ -136,3 +136,14 @@ function addSignalsHelperMethods(prototype) {
 }
 
 
+const Utils = {
+    getIconPath: function(iconName) {
+        let iconPath = GLib.build_filenamev([
+            Me.path,
+            'icons',
+            `${iconName}.svg`
+        ]);
+        return iconPath;
+    },
+    // other existing utility functions...
+};
