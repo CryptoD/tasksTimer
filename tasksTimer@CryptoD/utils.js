@@ -136,14 +136,32 @@ function addSignalsHelperMethods(prototype) {
 }
 
 
-const Utils = {
-    getIconPath: function(iconName) {
-        let iconPath = GLib.build_filenamev([
-            Me.path,
-            'icons',
-            `${iconName}.svg`
-        ]);
-        return iconPath;
-    },
-    // other existing utility functions...
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+
+const Gio = imports.gi.Gio;
+
+function getIconPath(iconName) {
+    let iconPath = GLib.build_filenamev([
+        Me.path,
+        'icons',
+        `${iconName}.svg`
+    ]);
+    return Gio.icon_new_for_string(iconPath);
+}
+
+var Utils = {
+    getIconPath,
+    isGnome3x,
+    isGnome40,
+    logObjectPretty,
+    setTimeout,
+    setInterval,
+    clearTimeout,
+    clearInterval,
+    spawn,
+    execute,
+    uuid,
+    isDebugModeEnabled,
+    addSignalsHelperMethods
 };

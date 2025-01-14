@@ -45,7 +45,7 @@ class Indicator extends PanelMenu.Button {
         this._createIcon();
         this._createMenu();
 
-        this._timers.attach(this);
+        TimersModule.Timers.attach(this);
         this._refresh();
     }
 
@@ -78,7 +78,7 @@ class Indicator extends PanelMenu.Button {
     }
 
     destroy() {
-        this._timers.detach();
+        TimersModule.Timers.detach();
         super.destroy();
     }
 });
