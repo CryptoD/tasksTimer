@@ -9,7 +9,7 @@ taskTimer is a forked version of the original kitchenTimer project, which is no 
 
 ## Installation
 To get started with taskTimer, follow these steps:
-1. Clone the repository: `git clone https://github.com/yourusername/taskTimer.git`
+1. Clone the repository: `git clone https://github.com/CryptoD/taskTimer.git`
 2. Install dependencies: `npm install`
 3. Run the application: `npm start`
 

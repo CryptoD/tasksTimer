@@ -1,5 +1,5 @@
 /*
- * Kitchen Timer: Gnome Shell Kitchen Timer Extension
+ * taskTimer: Gnome Shell taskTimer Extension
  * Copyright (C) 2021 Steeve McCauley
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ class KitchenTimerIndicator extends PanelMenu.Button {
       this.logger = new Logger('kt indicator', this.settings);
       this.logger.info('Initializing extension');
 
-      super._init(0.0, _('Kitchen Timer'));
+      super._init(0.0, _('taskTimer'));
 
       var icon = new St.Icon({
         gicon: this.timers.progress_gicon(0),
