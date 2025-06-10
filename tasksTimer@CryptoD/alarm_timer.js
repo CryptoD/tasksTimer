@@ -1,5 +1,5 @@
 /*
- * Kitchen Timer: Gnome Shell Kitchen Timer Extension
+ * taskTimer: Gnome Shell taskTimer Extension
  * Copyright (C) 2021 Steeve McCauley
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ var AmPm = {
   RE: /(p\.?m\.?)|(a\.?m\.?)/i
 }
 
-var logger = new Logger('kt alarm timer');
+var logger = new Logger('tt alarm timer');
 
 // var alarm_time={
 //   hour: Number(g.h),
