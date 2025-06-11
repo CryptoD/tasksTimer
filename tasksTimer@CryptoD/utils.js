@@ -1,5 +1,5 @@
 /*
- * Kitchen Timer: Gnome Shell Kitchen Timer Extension
+ * taskTimer: Gnome Shell taskTimer Extension
  * Copyright (C) 2021 Steeve McCauley
  *
  * This program is free software: you can redistribute it and/or modify
