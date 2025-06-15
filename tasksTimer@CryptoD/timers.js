@@ -50,14 +50,36 @@ var Timers = class Timers extends Array {
     this.accel = new KeyboardShortcuts(this.settings);
     this.logger = new Logger('kt timers', this.settings);
 
-    this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
+    try {
+      this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
+    } catch (e) {
+      this.logger.warning('Failed to load full icon: ' + e.message);
+      this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
+    }
+
     this._progressIconsDegrees = {};
+    let zeroDegIcon = null;
+    try {
+      zeroDegIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-0.svg');
+    } catch (e) {
+      this.logger.warning('Failed to load 0 degree icon: ' + e.message);
+      zeroDegIcon = Gio.icon_new_for_string('image-missing-symbolic');
+    }
+
     for (let deg = 0; deg <= 345; deg += 15) {
-      // load icon as a gicon and store in the hash
-      var icon_name="/icons/kitchen-timer-"+deg+".svg";
-      var gicon = Gio.icon_new_for_string(Me.path+icon_name);
-      this._progressIconsDegrees[deg] = gicon;
-      this.logger.debug(`Loaded progress icon ${icon_name} for ${deg} degrees`);
+      try {
+        var icon_name = "/icons/kitchen-timer-" + deg + ".svg";
+        var gicon = Gio.icon_new_for_string(Me.path + icon_name);
+        if (!gicon) {
+          this.logger.warning(`Icon not found for ${icon_name}, using 0 degree icon as fallback.`);
+          gicon = zeroDegIcon;
+        }
+        this._progressIconsDegrees[deg] = gicon;
+        this.logger.debug(`Loaded progress icon ${icon_name} for ${deg} degrees`);
+      } catch (e) {
+        this.logger.warning(`Failed to load icon ${icon_name}: ${e.message}, using 0 degree icon as fallback.`);
+        this._progressIconsDegrees[deg] = zeroDegIcon;
+      }
     }
 
     // requires this._settings
@@ -291,7 +313,7 @@ var Timers = class Timers extends Array {
   }
 
   isEmpty() {
-    this.length === 0;
+    return this.length === 0;
   }
 
   get sort_by_duration() {
@@ -372,11 +394,9 @@ var Timers = class Timers extends Array {
     var tdupe = this.get_dupe(timer);
     if (tdupe !== undefined) {
       if (tdupe.running) {
-        // original timer is running, notify user
         tdupe.notify(_("Duplicate timer is already running"));
         return undefined;
       }
-      // found a duplicate, just return the dupe
       return tdupe;
     }
     return this.add(timer) ? timer : undefined;
@@ -528,7 +548,7 @@ var Timer = class Timer {
   }
 
   set enabled(bool) {
-    this._enabled = false;
+    this._enabled = bool;
   }
 
   disable() {
@@ -712,19 +732,15 @@ var Timer = class Timer {
     var now = Date.now();
     var end = timer._end;
 
-    //timer.logger.debug(`test end=${end} at ${now}`);
     if (now > end) {
       timer.expired = true;
     }
     if (timer.expired || timer.reset) {
-      //if (timer.expired) timer.logger.debug("timer expired stop_callback now=%d end=%d expired=%s", now, end);
-      //if (timer.reset) timer.logger.debug("timer reset stop_callback")
       return timer.stop_callback(now);
     }
 
     timersInstance.inhibitor.inhibit_timer(timer);
 
-    //var delta = Math.ceil((end-now) / 1000);
     let hms = timer.remaining_hms(now);
 
     timer.label_progress(hms);
@@ -736,7 +752,7 @@ var Timer = class Timer {
       timersInstance.set_panel_name(timer.name, timer.has_name);
       var panel_label;
       if (timersInstance.settings.show_endtime) {
-        panel_label=new Date(timer._end+1000).toLocaleTimeString();
+        panel_label = new Date(timer._end + 1000).toLocaleTimeString();
       } else {
         panel_label = hms.toString(true);
       }
@@ -981,4 +997,9 @@ var Timer = class Timer {
     timersInstance.inhibitor.uninhibit(this.id);
   }
 }
+
+var exports = {
+  Timers: Timers,
+  Timer: Timer
+};
 
