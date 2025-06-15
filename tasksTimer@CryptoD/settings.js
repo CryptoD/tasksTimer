@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
