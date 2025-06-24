@@ -88,6 +88,9 @@ var Timers = class Timers extends Array {
   }
 
   static attach(indicator) {
+    if (!timersInstance) {
+        timersInstance = new Timers();
+    }
     // reload settings
     timersInstance._settings = new Settings();
     timersInstance._inhibitor.settings = timersInstance._settings;
@@ -100,8 +103,23 @@ var Timers = class Timers extends Array {
 
     timersInstance.refresh();
 
-    timersInstance.restoreRunningTimers();
-
+    restoreRunningTimers() {
+      var json = this.settings.running;
+      var running = JSON.parse(json);
+      running.forEach((run_state) => {
+          var timer = this.lookup(run_state.id);
+          if (!timer) {
+              this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
+              return;
+          }
+          timer.persist_alarm = run_state.persist;
+          if (!timer.running) {
+              timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
+              this.logger.debug("restore %s", timer.toString());
+              timer.go(run_state.start);
+          }
+      });
+  }
     timersInstance.settings.settings.connect('changed::accel-enable', () => {
       timersInstance.logger.debug('accel-enable has changed');
       timersInstance.toggle_keyboard_shortcuts();
@@ -119,6 +137,9 @@ var Timers = class Timers extends Array {
   }
 
   static detach() {
+    if (!timersInstance) {
+        return;
+    }
     timersInstance.logger.info("Detaching indicator from timers");
     timersInstance.attached = false;
     timersInstance.indicator = undefined;
@@ -456,6 +477,11 @@ var TimerState = {
 var Timer = class Timer {
 
   constructor(name, duration_secs, id=undefined) {
+    // Ensure timersInstance is defined
+    if (typeof timersInstance === 'undefined' || timersInstance === null) {
+      timersInstance = new Timers();
+    }
+
     var debug = timersInstance.settings.debug;
     this._enabled = true;
     this._quick = false;
@@ -536,6 +562,9 @@ var Timer = class Timer {
   }
 
   get timers() {
+    if (typeof timersInstance === 'undefined' || timersInstance === null) {
+      timersInstance = new Timers();
+    }
     return timersInstance;
   }
 
