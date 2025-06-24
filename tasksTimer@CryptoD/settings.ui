@@ -1,24 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 
+<!-- Generated with glade 3.38.2
 
-Copyright (C) 2021, Steeve McCauley
+Copyright (C) 2025, taskTimer Project
 
-This file is part of Kitchen Timer.
+This file is part of taskTimer.
 
-Kitchen Timer is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Kitchen Timer is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Kitchen Timer.  If not, see <http://www.gnu.org/licenses/>.
-
-Author: Steeve McCauley
+Author: taskTimer Project Contributors
 
 -->
 <interface domain="kitchen-timer-blackjackshellac">
@@ -26,8 +13,8 @@ Author: Steeve McCauley
   <!-- interface-license-type gplv3 -->
   <!-- interface-name Kitchen Timer -->
   <!-- interface-description Gnome Shell Kitchen Timer Extension -->
-  <!-- interface-copyright 2021, Steeve McCauley -->
-  <!-- interface-authors Steeve McCauley -->
+  <!-- interface-copyright 2025, taskTimer Project -->
+  <!-- interface-authors taskTimer Project Contributors -->
   <object class="GtkAdjustment" id="adjust_hours">
     <property name="upper">24</property>
     <property name="step-increment">1</property>
@@ -1109,7 +1096,7 @@ Author: Steeve McCauley
                   <object class="GtkLabel" id="copyright">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Copyright © 2021, Steeve McCauley</property>
+                    <property name="label" translatable="yes">Copyright © 2021, taskTimer Project</property>
                     <attributes>
                       <attribute name="weight" value="normal"/>
                       <attribute name="scale" value="0.90000000000000002"/>

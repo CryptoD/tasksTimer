@@ -1,3 +1,7 @@
+/*
+ * This CSS file defines the styling for the taskTimer GNOME extension. It includes style rules for various elements like the quick layout, menu box, icons, labels, and panel elements. The styles control padding, spacing, font properties (family, weight, size, stretch), and icon sizes to create a visually appealing and functional user interface for the timer. It uses classes like `kitchentimer-quick-layout`, `kitchentimer-menu-box`, `kitchentimer-menu-icon`, `kitchentimer-menu-label`, `kitchentimer-panel-box`, etc. to target specific UI components.
+ */
+
 /* Add your custom extension styling here */
 
 .kitchentimer-quick-layout {

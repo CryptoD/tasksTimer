@@ -1,33 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-Copyright (C) 2021, Steeve McCauley
+Copyright (C) 2025
 
-This file is part of Kitchen Timer.
+This file is part of taskTimer.
 
-Kitchen Timer is free software: you can redistribute it and/or modify
+taskTimer is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Kitchen Timer is distributed in the hope that it will be useful,
+taskTimer is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Kitchen Timer.  If not, see <http://www.gnu.org/licenses/>.
-
-Author: Steeve McCauley
+along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<interface domain="kitchen-timer-blackjackshellac">
+<interface domain="tasktimer">
   <requires lib="gtk+" version="4.0"/>
   <!-- interface-license-type gplv3 -->
-  <!-- interface-name Kitchen Timer -->
-  <!-- interface-description Gnome Shell Kitchen Timer Extension -->
-  <!-- interface-copyright 2021, Steeve McCauley -->
-  <!-- interface-authors Steeve McCauley -->
+  <!-- interface-name taskTimer -->
+  <!-- interface-description Gnome Shell taskTimer Extension -->
+  <!-- interface-copyright 2025 -->
+  <!-- interface-authors -->
   <object class="GtkAdjustment" id="adjust_hours">
     <property name="upper">24</property>
     <property name="step-increment">1</property>

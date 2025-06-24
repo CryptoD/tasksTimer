@@ -1,7 +1,7 @@
 # taskTimer
 
 ## Description
-taskTimer is a forked version of the original kitchenTimer project, which is no longer actively developed. This fork introduces updates and improvements while adhering to the same core principles. It is designed for non-commercial use, allowing modifications, personal use, and educational purposes as outlined in our license.
+taskTimer is a forked version of the original Kitchen Timer project, which is no longer actively developed. This fork introduces updates and improvements while adhering to the same core principles. It is designed for non-commercial use, allowing modifications, personal use, and educational purposes as outlined in our license.
 
 ## Features
 - Timer functionality for tasks

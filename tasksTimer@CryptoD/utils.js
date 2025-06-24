@@ -1,5 +1,9 @@
 /*
- * taskTimer: Gnome Shell taskTimer Extension
+ * taskTimer: A GNOME Shell Extension for Task Timing
+ *
+ * Utility functions and constants for the taskTimer GNOME Shell extension.
+ * Provides helpers for internationalization, GNOME version detection,
+ * logging, timeouts, intervals, command execution, and more.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
