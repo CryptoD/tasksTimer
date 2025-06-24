@@ -171,7 +171,7 @@ Author: Steeve McCauley
                             <property name="can-focus">True</property>
                             <property name="receives-default">False</property>
                             <property name="margin-start">5</property>
-                            <property name="active">True</property>
+                            <property name="active">False</property>
                             <property name="draw-indicator">True</property>
                           </object>
                           <packing>

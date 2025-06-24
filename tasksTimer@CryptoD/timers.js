@@ -102,24 +102,6 @@ var Timers = class Timers extends Array {
     timersInstance.indicator = indicator;
 
     timersInstance.refresh();
-
-    restoreRunningTimers() {
-      var json = this.settings.running;
-      var running = JSON.parse(json);
-      running.forEach((run_state) => {
-          var timer = this.lookup(run_state.id);
-          if (!timer) {
-              this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
-              return;
-          }
-          timer.persist_alarm = run_state.persist;
-          if (!timer.running) {
-              timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
-              this.logger.debug("restore %s", timer.toString());
-              timer.go(run_state.start);
-          }
-      });
-  }
     timersInstance.settings.settings.connect('changed::accel-enable', () => {
       timersInstance.logger.debug('accel-enable has changed');
       timersInstance.toggle_keyboard_shortcuts();
@@ -293,16 +275,28 @@ var Timers = class Timers extends Array {
 
   restoreRunningTimers() {
     var json = this.settings.running;
-    var running = JSON.parse(json);
-    running.forEach( (run_state) => {
-      var timer = this.lookup(run_state.id);
-      timer.persist_alarm = run_state.persist;
-      if (timer && !timer.running) {
-        timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
-        this.logger.debug("restore %s", timer.toString());
-        timer.go(run_state.start);
-      }
-    });
+    if (!json) {
+      this.logger.debug("No running timers to restore");
+      return;
+    }
+    try {
+      var running = JSON.parse(json);
+      running.forEach((run_state) => {
+        var timer = this.lookup(run_state.id);
+        if (!timer) {
+          this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
+          return;
+        }
+        timer.persist_alarm = run_state.persist;
+        if (!timer.running) {
+          timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
+          this.logger.debug(`restore ${timer.toString()}`);
+          timer.go(run_state.start);
+        }
+      });
+    } catch (e) {
+      this.logger.warning(`Failed to parse running timers JSON: ${e.message}`);
+    }
   }
 
   lookup(id) {
@@ -494,6 +488,7 @@ var Timer = class Timer {
     this._start = 0;
     this._end = 0;
     this._persist_alarm = false;
+    this._interval_id = undefined;
 
     // will be undefined if it's not an alarm timer
     this._alarm_timer = AlarmTimer.matchRegex(name);
@@ -544,14 +539,7 @@ var Timer = class Timer {
   }
 
   toString() {
-    return "[%s:%s] state=%d start=%d end=%d dur=%d iid=%d".format(
-      this._name, this._id,
-      this._state,
-      this._start,
-      this._end,
-      this._duration_secs,
-      this._interval_id
-    );
+    return `[${this._name}:${this._id}] state=${this._state} start=${this._start} end=${this._end} dur=${this._duration_secs} iid=${this._interval_id}`;
   }
 
   static fromResult(result) {
