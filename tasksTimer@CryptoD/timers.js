@@ -290,28 +290,36 @@ var Timers = class Timers extends Array {
   }
 
   restoreRunningTimers() {
-    var json = this.settings.running;
-    if (!json) {
+    let run_states = this.settings.run_states;
+    if (!run_states || run_states.length === 0) {
       this.logger.debug("No running timers to restore");
       return;
     }
-    try {
-      var running = JSON.parse(json);
-      running.forEach((run_state) => {
-        var timer = this.lookup(run_state.id);
-        if (!timer) {
-          this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
-          return;
-        }
-        timer.persist_alarm = run_state.persist;
-        if (!timer.running) {
-          timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
-          this.logger.debug(`restore ${timer.toString()}`);
-          timer.go(run_state.start);
-        }
-      });
-    } catch (e) {
-      this.logger.warning(`Failed to parse running timers JSON: ${e.message}`);
+
+    for (let run_state of run_states) {
+      let timer = this.find_by_id(run_state.id);
+      if (!timer) {
+        this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
+        continue;
+      }
+
+      timer.persist_alarm = run_state.persist;
+      if (timer.alarm_timer) {
+        timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
+      }
+
+      // Key change: Use saved _end time to determine if timer is still active
+      const now = Date.now();
+      if (timer._end > now) {
+        // Directly restart the interval with the existing _end time
+        timer._start = run_state.start;  // Restore original start time
+        timer._interval_id = Utils.setInterval(timer.timer_callback, timer._interval_ms, timer);
+        this.logger.debug(`Restored timer: ${timer.toString()}`);
+      } else {
+        // Timer has expired during downtime
+        timer.expired = true;
+        this.logger.debug(`Timer expired during downtime: ${timer.toString()}`);
+      }
     }
   }
 
