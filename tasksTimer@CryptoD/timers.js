@@ -35,6 +35,22 @@ const AlarmTimer = Me.imports.alarm_timer.AlarmTimer;
 const SessionManagerInhibitor = Me.imports.inhibitor.SessionManagerInhibitor;
 const KeyboardShortcuts = Me.imports.keyboard_shortcuts.KeyboardShortcuts;
 
+const Storage = Me.imports.storage.Storage;
+const TIMERS_SAVE_PATH = GLib.get_user_data_dir() + '/tasksTimer@CryptoD/timers.json';
+
+// Utility to save all timers
+function saveAllTimers(timersInstance) {
+    // Save all timers (active, expired, etc.)
+    const timersData = timersInstance.map(timer => (typeof timer.toJSON === 'function' ? timer.toJSON() : timer));
+    Storage.saveJSON(TIMERS_SAVE_PATH, timersData);
+}
+
+// Utility to load all timers
+function loadAllTimers() {
+    const timersData = Storage.loadJSON(TIMERS_SAVE_PATH);
+    return timersData || [];
+}
+
 const date_options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
 const mixerControl = imports.ui.status.volume.getMixerControl();
 

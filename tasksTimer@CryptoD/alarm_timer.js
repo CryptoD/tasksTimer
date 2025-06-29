@@ -259,29 +259,29 @@ var AlarmTimer = class AlarmTimer {
   save() {
     return {
       name: this._name,
-      alarm_date: this.alarm_date.getTime(),
+      hour: this._hour,
+      minute: this._minute,
+      second: this._second,
+      ms: this._ms,
       ampm: this._ampm,
-      snooze_ms: this._snooze_ms
-    }
+      snooze_ms: this._snooze_ms,
+      alarm_date: this._alarm_date ? this._alarm_date.getTime() : null,
+      // Add more properties here if needed (e.g., expired, active, etc.)
+    };
   }
 
   static restore(state) {
-    if (state === undefined) {
-      return undefined;
-    }
+    if (!state) return undefined;
     let at = new AlarmTimer();
-
     at._name = state.name;
-
-    at._alarm_date = new Date(state.alarm_date);
-    at._hour = at._alarm_date.getHours();
-    at._minute = at._alarm_date.getMinutes();
-    at._second = at._alarm_date.getSeconds();
-    at._ms = at._alarm_date.getMilliseconds();
-
+    at._hour = state.hour;
+    at._minute = state.minute;
+    at._second = state.second;
+    at._ms = state.ms;
     at._ampm = state.ampm;
     at._snooze_ms = state.snooze_ms;
-
+    at._alarm_date = state.alarm_date ? new Date(state.alarm_date) : undefined;
+    // Restore more properties here if needed
     return at;
   }
 
