@@ -56,12 +56,12 @@ var Annoyer = class Annoyer {
   }
 
   _createSource() {
-    var source = new MessageTray.Source("Kitchen Timer", null /* icon name */);
+    var source = new MessageTray.Source("Task Timer", null /* icon name */);
     Main.messageTray.add(source);
     Main.messageTray._useLongerNotificationLeftTimeout = true;
 
     source.connect('destroy', (source) => {
-      this.logger.debug("Kitchen Timer messageTray source destroyed, recreating");
+      this.logger.debug("Task Timer messageTray source destroyed, recreating");
       this._source = this._createSource();
     });
 

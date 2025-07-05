@@ -484,7 +484,7 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
 var KitchenTimerEndTime = GObject.registerClass(
 class KitchenTimerEndTime extends PopupMenu.PopupMenuItem {
   _init(menu, timers) {
-    super._init(_("Show end time"), { reactive: false });
+    super._init(_("Show End Time"), { reactive: false });
 
     this._menu = menu;
     this._timers = timers;
@@ -510,7 +510,7 @@ class KitchenTimerEndTime extends PopupMenu.PopupMenuItem {
     var show_endtime = this._timers.settings.show_endtime;
 
     //log("show_endtime=%s - %s".format(show_endtime, this._timers.settings));
-    this._gogo = new PopupMenu.PopupSwitchMenuItem("", show_endtime, {
+    this._gogo = new PopupMenu.PopupSwitchMenuItem(_("Enable"), show_endtime, {
       hover: false,
       style_class: null
     });
@@ -573,7 +573,7 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
       can_focus: true,
       x_align: St.Align.END,
       y_align: Clutter.ActorAlign.CENTER,
-      style_class: 'kitchentimer-prefs-button',
+      style_class: 'tasktimer-prefs-button',
       child: this._add_icon
     });
 
@@ -617,7 +617,7 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
       can_focus: true,
       x_align: St.Align.END,
       y_align: Clutter.ActorAlign.CENTER,
-      style_class: 'kitchentimer-prefs-button',
+      style_class: 'tasktimer-prefs-button',
       child: this._prefs_icon
     });
 
