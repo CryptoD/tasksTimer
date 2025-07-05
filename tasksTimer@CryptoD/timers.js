@@ -329,7 +329,7 @@ var Timers = class Timers extends Array {
     }
 
     for (let run_state of run_states) {
-      let timer = this.find_by_id(run_state.id);
+      let timer = this.lookup(run_state.id);
       if (!timer) {
         this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
         continue;
@@ -354,14 +354,45 @@ var Timers = class Timers extends Array {
       }
 
       if (timer._end > now) {
+        // Set up volume monitoring if enabled (similar to go() method)
+        if (this.settings.play_sound && this.settings.volume_level_warn) {
+          let stream = mixerControl.get_default_sink();
+          if (stream) {
+            if (timer.notify_volume === undefined) {
+              timer.notify_volume = stream.connect('notify::volume', timer.check_volume.bind(timer));
+            }
+            if (timer.notify_muted === undefined) {
+              timer.notify_muted = stream.connect('notify::is-muted', timer.check_volume.bind(timer));
+            }
+          }
+        }
+
+        // Set up volume warning state
+        this.warn_volume = true;
+        timer.check_volume();
+
         // Directly restart the interval with the existing _end time
         timer._interval_id = Utils.setInterval(timer.timer_callback, timer._interval_ms, timer);
         timer._state = TimerState.RUNNING;
+
+        // Set up session inhibitor for restored running timer
+        timersInstance.inhibitor.inhibit_timer(timer);
+
         this.logger.debug(`Restored timer: ${timer.toString()}, remaining: ${Math.round((timer._end - now)/1000)} seconds`);
       } else {
-        // Timer has expired during downtime
+        // Timer has expired during downtime - trigger the completion notification
+        const tdiff = now - timer._end;
         timer.expired = true;
-        this.logger.debug(`Timer expired during downtime: ${timer.toString()}`);
+        timer._state = TimerState.EXPIRED;
+
+        // Show notification for expired timer
+        const reason = _("Timer completed %s late at").format(new HMS(tdiff/1000).toString(true));
+        const time = new Date(now).toLocaleTimeString();
+        const text = "%s due at %s".format(timer.name, timer.end_time());
+
+        timersInstance.notifier.notify(timer, text, "%s %s", reason, time);
+
+        this.logger.debug(`Timer expired during downtime: ${timer.toString()}, was late by ${Math.round(tdiff/1000)} seconds`);
       }
     }
   }
@@ -1023,19 +1054,6 @@ var Timer = class Timer {
       timer._alarm_timer = AlarmTimer.restore(timerData.alarm_timer);
     }
 
-    return timer;
-  }
-    timersInstance.inc_prefer_presets(this._quick ? -1 : 1);
-
-    this._interval_id = Utils.setInterval(this.timer_callback, this._interval_ms, this);
-
-    return true;
-  }
-
-  static fromSettingsTimer(settings_timer) {
-    var timer = new Timer(settings_timer.name, settings_timer.duration, settings_timer.id);
-    timer.quick = settings_timer.quick;
-    settings_timer.id = timer.id;
     return timer;
   }
 

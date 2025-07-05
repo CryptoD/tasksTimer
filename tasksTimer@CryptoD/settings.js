@@ -410,6 +410,19 @@ var Settings = class Settings {
     this.settings.set_string('running', json);
   }
 
+  get run_states() {
+    try {
+      const runningJson = this.settings.get_string('running');
+      if (!runningJson || runningJson === '[]') {
+        return [];
+      }
+      return JSON.parse(runningJson);
+    } catch (e) {
+      this.logger.warning('Failed to parse running timers JSON: %s', e.message);
+      return [];
+    }
+  }
+
   get volume_level_warn() {
     return this.settings.get_boolean('volume-level-warn');
   }

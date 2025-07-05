@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Test script to verify timer persistence functionality
+# This script helps test if timers continue running after system restart
+
+echo "Timer Persistence Test Script"
+echo "============================="
+echo ""
+echo "This script helps you test if the timer persistence fix is working."
+echo ""
+echo "Instructions:"
+echo "1. Start a timer (e.g., 5 minutes) using the extension"
+echo "2. Wait a minute or two"
+echo "3. Run: gnome-extensions disable tasksTimer@CryptoD"
+echo "4. Run: gnome-extensions enable tasksTimer@CryptoD"
+echo "5. Check if the timer continues from where it left off"
+echo ""
+echo "Alternative test (simulates system restart):"
+echo "1. Start a timer"
+echo "2. Log out and log back in"
+echo "3. Check if the timer continues"
+echo ""
+echo "To check timer state manually:"
+echo "- Settings file: ~/.local/share/tasksTimer@CryptoD/timers.json"
+echo "- Running timers: gsettings get org.gnome.shell.extensions.kitchen-timer-blackjackshellac running"
+echo ""
+echo "If the fix works, you should see:"
+echo "- Timer continues counting down from where it left off"
+echo "- Proper notifications if timer expired during downtime"
+echo "- Session inhibitor working (prevents idle/suspend)"
