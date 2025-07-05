@@ -48,7 +48,15 @@ function saveAllTimers(timersInstance) {
 // Utility to load all timers
 function loadAllTimers() {
     const timersData = Storage.loadJSON(TIMERS_SAVE_PATH);
-    return timersData || [];
+    if (!timersData) return [];
+
+    // Convert the loaded data back to Timer objects
+    return timersData.map(timerData => {
+        if (typeof timerData === 'object' && timerData !== null) {
+            return Timer.fromJSON(timerData);
+        }
+        return timerData;
+    });
 }
 
 const date_options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
@@ -141,6 +149,10 @@ var Timers = class Timers extends Array {
     timersInstance.logger.info("Detaching indicator from timers");
     timersInstance.attached = false;
     timersInstance.indicator = undefined;
+  }
+
+  static getInstance() {
+    return timersInstance;
   }
 
   toggle_keyboard_shortcuts() {
@@ -242,6 +254,20 @@ var Timers = class Timers extends Array {
 
   refresh() {
     this.logger.debug("Timers refresh");
+
+    // First, load any saved timers from storage
+    const savedTimers = loadAllTimers();
+    if (savedTimers && savedTimers.length > 0) {
+      this.logger.debug(`Loaded ${savedTimers.length} timers from storage`);
+      savedTimers.forEach(timer => {
+        if (!this.lookup(timer.id)) {
+          this.add(timer);
+          this.logger.debug(`Added saved timer: ${timer.name}`);
+        }
+      });
+    }
+
+    // Then load timers from settings
     var settings_timers = this.settings.unpack_timers();
     settings_timers.forEach( (settings_timer) => {
       var id=settings_timer.id;
@@ -259,6 +285,11 @@ var Timers = class Timers extends Array {
         this.add(timer);
       }
     });
+
+    // Restore any running timers
+    this.restoreRunningTimers();
+
+    // Clean up any invalid timers
     for (let i = 0; i < this.length; i++) {
       var timer=this[i];
       if (timer.still_valid(settings_timers)) {
@@ -274,10 +305,11 @@ var Timers = class Timers extends Array {
     var running=[];
     this.sort_by_running().forEach( (timer) => {
       if (timer.running) {
-        this.logger.debug("Saving running timer state id=%s start=%d", timer.id, timer._start);
+        this.logger.debug("Saving running timer state id=%s start=%d end=%d", timer.id, timer._start, timer._end);
         var run_state = {
           id: timer.id,
           start: timer._start,
+          end: timer._end,  // Save the end time
           persist: timer.persist_alarm
         }
         if (timer.alarm_timer) {
@@ -308,13 +340,24 @@ var Timers = class Timers extends Array {
         timer.alarm_timer = AlarmTimer.restore(run_state.alarm_timer);
       }
 
-      // Key change: Use saved _end time to determine if timer is still active
+      // Use saved _end time to determine if timer is still active
       const now = Date.now();
+
+      // Restore the original start and end times
+      timer._start = run_state.start;
+
+      // If end time was saved, use it; otherwise calculate it from start + duration
+      if (run_state.end) {
+        timer._end = run_state.end;
+      } else {
+        timer._end = timer._start + timer.duration_ms();
+      }
+
       if (timer._end > now) {
         // Directly restart the interval with the existing _end time
-        timer._start = run_state.start;  // Restore original start time
         timer._interval_id = Utils.setInterval(timer.timer_callback, timer._interval_ms, timer);
-        this.logger.debug(`Restored timer: ${timer.toString()}`);
+        timer._state = TimerState.RUNNING;
+        this.logger.debug(`Restored timer: ${timer.toString()}, remaining: ${Math.round((timer._end - now)/1000)} seconds`);
       } else {
         // Timer has expired during downtime
         timer.expired = true;
@@ -799,6 +842,11 @@ var Timer = class Timer {
       }
       timersInstance.set_panel_label(panel_label);
     }
+    // Periodically save timer state (every 30 seconds)
+    if (now % 30000 < timer._interval_ms) {
+      saveAllTimers(timersInstance);
+    }
+
     return true;
   }
 
@@ -844,6 +892,7 @@ var Timer = class Timer {
       reason = _("Timer completed %s late at").format(stdiff);
     } else {
       text = this.name;
+      saveAllTimers(timersInstance); // Save timer state when completed normally
       reason = _("Timer completed on time at");
     }
 
@@ -858,6 +907,7 @@ var Timer = class Timer {
     timersInstance.set_panel_name("");
     timersInstance.set_panel_label("");
     timersInstance.saveRunningTimers();
+    saveAllTimers(timersInstance); // Save all timers to persistent storage
 
     if (this.notify_volume || this.notify_muted) {
       let stream = mixerControl.get_default_sink();
@@ -943,9 +993,38 @@ var Timer = class Timer {
     timersInstance.inhibitor.inhibit_timer(this);
 
     timersInstance.saveRunningTimers();
+    saveAllTimers(timersInstance); // Save all timers to persistent storage
 
     let quick=this._quick ? ' quick ' : ' ';
     this.logger.info("%s%stimer at %d", action, quick, this._start);
+    timersInstance.inc_prefer_presets(this._quick ? -1 : 1);
+
+    this._interval_id = Utils.setInterval(this.timer_callback, this._interval_ms, this);
+
+    return true;
+  }
+
+  static fromSettingsTimer(settings_timer) {
+    var timer = new Timer(settings_timer.name, settings_timer.duration, settings_timer.id);
+    timer._quick = settings_timer.quick;
+    settings_timer.id = timer.id;
+    return timer;
+  }
+
+  static fromJSON(timerData) {
+    const timer = new Timer(timerData.name, timerData.duration_secs, timerData.id);
+    timer._quick = timerData.quick || false;
+    timer._state = timerData.state || TimerState.INIT;
+    timer._start = timerData.start || 0;
+    timer._end = timerData.end || 0;
+    timer._persist_alarm = timerData.persist_alarm || false;
+
+    if (timerData.alarm_timer) {
+      timer._alarm_timer = AlarmTimer.restore(timerData.alarm_timer);
+    }
+
+    return timer;
+  }
     timersInstance.inc_prefer_presets(this._quick ? -1 : 1);
 
     this._interval_id = Utils.setInterval(this.timer_callback, this._interval_ms, this);
@@ -1024,6 +1103,25 @@ var Timer = class Timer {
       this.name = this.alarm_timer.name_at_hms();
       timersInstance.settings.pack_timers(timersInstance);
     }
+  }
+
+  toJSON() {
+    const timerData = {
+      id: this._id,
+      name: this._name,
+      duration_secs: this._duration_secs,
+      quick: this._quick,
+      state: this._state,
+      start: this._start,
+      end: this._end,
+      persist_alarm: this._persist_alarm
+    };
+
+    if (this._alarm_timer) {
+      timerData.alarm_timer = this._alarm_timer.save();
+    }
+
+    return timerData;
   }
 
   backward() {

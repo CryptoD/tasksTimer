@@ -51,6 +51,14 @@ class Extension {
     }
 
     disable() {
+        // Save timer state before disabling
+        const Timers = Me.imports.timers.Timers;
+        const timersInstance = Timers.getInstance();
+        if (timersInstance) {
+            const saveAllTimers = Me.imports.timers.saveAllTimers;
+            saveAllTimers(timersInstance);
+        }
+
         this._indicator.destroy();
         this._indicator = null;
     }
