@@ -745,7 +745,12 @@ class KitchenTimerControlButton extends St.Button {
         switch(this.type) {
         case "stop":
           this.connect('clicked', (cb) => {
-            this.timer.stop();
+            // Directly stop the timer and clear the interval
+            if (this.timer.running) {
+              Utils.clearInterval(this.timer._interval_id);
+              this.timer._interval_id = undefined;
+              this.timer.stop_callback(Date.now());
+            }
             this.rebuild();
           });
           break;
