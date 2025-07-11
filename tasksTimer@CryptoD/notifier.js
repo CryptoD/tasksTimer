@@ -236,9 +236,10 @@ class KitchenTimerNotifier extends MessageTray.Notification {
       if (play_sound && this.sound_enabled) {
         this._initPlayer();
 
-        // call callback manually to play a sound without waiting for the given interval to end
+        // Start the first sound
         this.playSound_callback(this);
-        this._interval_id = Utils.setInterval(this.playSound_callback, 500, this);
+        // REMOVE interval-based repeat logic
+        // this._interval_id = Utils.setInterval(this.playSound_callback, 500, this);
       }
       this._addActions();
     } else {
@@ -330,37 +331,32 @@ class KitchenTimerNotifier extends MessageTray.Notification {
   }
 
 	playSound_callback(ktNotifier) {
-	  //ktNotifier.logger.debug("Entering playSound_callback after %d of %d loops", ktNotifier._loops, ktNotifier.sound_loops);
-
+	  // Only start playback if not already playing
     var [ rv, state, pending ] = ktNotifier._player.get_state(500000);
-    //ktNotifier.logger.debug("state=%s %s %s", ""+rv, ""+state, ""+pending)
-
-    if (rv === Gst.StateChangeReturn.SUCCESS && state === Gst.State. PLAYING) {
-      //ktNotifier.logger.debug("Already playing, wait for the stream to end")
+    if (rv === Gst.StateChangeReturn.SUCCESS && state === Gst.State.PLAYING) {
       return true;
     }
-
     // if sound_loops == 0, play for duration of notification
-	  if (ktNotifier.sound_loops > 0 && ktNotifier._loops >= ktNotifier.sound_loops) {
-	    //ktNotifier.logger.debug("exiting callback after %d loops", ktNotifier._loops);
+    if (ktNotifier.sound_loops > 0 && ktNotifier._loops >= ktNotifier.sound_loops) {
       return ktNotifier.stop_player();
-	  }
-
+    }
     // play it (again), Sam
     ktNotifier._player.set_property('uri', ktNotifier._uri);
     ktNotifier._player.set_state(Gst.State.PLAYING);
-	  ktNotifier._loops++;
-
-	  return true;
+    ktNotifier._loops++;
+    return true;
 	}
 
   stop_player() {
-    if (this._interval_id) {
-      this.logger.debug("Stopping player after %d loops: %d", this._loops, this._interval_id);
-      Utils.clearInterval(this._interval_id);
-      this._interval_id = undefined;
-      this.timer.persist_alarm = false;
-    }
+    // Remove interval logic
+    // if (this._interval_id) {
+    //   this.logger.debug("Stopping player after %d loops: %d", this._loops, this._interval_id);
+    //   Utils.clearInterval(this._interval_id);
+    //   this._interval_id = undefined;
+    //   this.timer.persist_alarm = false;
+    // }
+    this.logger.debug("Stopping player after %d loops", this._loops);
+    this.timer.persist_alarm = false;
     return false;
   }
 
