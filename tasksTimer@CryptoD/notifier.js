@@ -51,8 +51,6 @@ var Annoyer = class Annoyer {
 
     this._gicon = Gio.icon_new_for_string('dialog-warning');
 
-    this._source = this._createSource();
-
   }
 
   _createSource() {
@@ -219,6 +217,8 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     this._timer = timer;
     this._loops = 0;
     this._sound_loops = timer.persist_alarm ? 0 : this.settings.sound_loops;
+    this._is_playing = false; // Tracks if sound is currently playing
+    // removed duplicate line
 
     if (this.settings.notification === false && this._sound_loops == 0) {
       // prevent infinite sound loops if notification dialog is turned off
@@ -237,9 +237,7 @@ class KitchenTimerNotifier extends MessageTray.Notification {
         this._initPlayer();
 
         // Start the first sound
-        this.playSound_callback(this);
-        // REMOVE interval-based repeat logic
-        // this._interval_id = Utils.setInterval(this.playSound_callback, 500, this);
+        this.playSound_callback();
       }
       this._addActions();
     } else {
@@ -258,7 +256,7 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     this.setTransient(false);
     this.acknowledged = false;
 
-    this._long_timeout = Utils.setTimeout(this.longTimeout_callback, this.settings.notification_longtimeout, this);
+    this._long_timeout = Utils.setTimeout(() => this.longTimeout_callback(), this.settings.notification_longtimeout);
 
     this._banner.addAction(_("Restart timer %s").format(this.timer.name), () => {
       this.logger.debug("Restart timer");
@@ -276,8 +274,8 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     };
 
     if (this.timer.alarm_timer) {
-      this._banner.addSnoozeSecs(snoozeLimits[25], this.snoozeCallback);
-      this._banner.addSnoozeSecs(snoozeLimits[10], this.snoozeCallback);
+      this._banner.addSnoozeSecs(snoozeLimits[25], this.snoozeCallback.bind(this));
+      this._banner.addSnoozeSecs(snoozeLimits[10], this.snoozeCallback.bind(this));
       return;
     } else if (this.timer.duration < round*2) {
       return;
@@ -286,15 +284,15 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     if (!this.addSnoozeButtons(round, snoozeLimits)) {
       // add a 30 second snooze
       this.logger.debug("Add default snooze of %d seconds", round);
-      this._banner.addSnoozeSecs(round, this.snoozeCallback);
+      this._banner.addSnoozeSecs(round, this.snoozeCallback.bind(this));
     }
   }
 
-  snoozeCallback(notifier, secs) {
-    notifier.logger.debug("💤 %d seconds", secs);
-    notifier.acknowledged = true;
-    notifier.timer.snooze(secs);
-    notifier.destroy();
+  snoozeCallback(secs) {
+    this.logger.debug("💤 %d seconds", secs);
+    this.acknowledged = true;
+    this.timer.snooze(secs);
+    this.destroy();
   }
 
   addSnoozeButtons(round, snoozeLimits) {
@@ -310,7 +308,7 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     for (let i=0; i < percentages.length; i++) {
       let percentage = percentages[i];
       let limit = snoozeLimits[percentage];
-      ssecs = this._banner.addSnoozePercent(percentage, limit, round, this.snoozeCallback);
+      ssecs = this._banner.addSnoozePercent(percentage, limit, round, this.snoozeCallback.bind(this));
       if (ssecs <= round) {
         this.logger.debug("Won't create snooze for ssecs=%d", ssecs);
         break;
@@ -323,38 +321,39 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     return this._banner;
   }
 
-  longTimeout_callback(ktNotifier) {
-    ktNotifier.acknowledged = true;
-    ktNotifier.destroy();
-    Utils.clearTimeout(ktNotifier._long_timeout);
+  longTimeout_callback() {
+    this.acknowledged = true;
+    this.destroy();
+    Utils.clearTimeout(this._long_timeout);
     return false;
   }
 
-	playSound_callback(ktNotifier) {
-	  // Only start playback if not already playing
-    var [ rv, state, pending ] = ktNotifier._player.get_state(500000);
-    if (rv === Gst.StateChangeReturn.SUCCESS && state === Gst.State.PLAYING) {
+  playSound_callback() {
+    // Only start playback if not already playing
+    if (this._is_playing) {
       return true;
     }
+
     // if sound_loops == 0, play for duration of notification
-    if (ktNotifier.sound_loops > 0 && ktNotifier._loops >= ktNotifier.sound_loops) {
-      return ktNotifier.stop_player();
+    if (this.sound_loops > 0 && this._loops >= this.sound_loops) {
+      return this.stop_player();
     }
+
     // play it (again), Sam
-    ktNotifier._player.set_property('uri', ktNotifier._uri);
-    ktNotifier._player.set_state(Gst.State.PLAYING);
-    ktNotifier._loops++;
-    return true;
-	}
+    try {
+      this._player.set_property('uri', this._uri);
+      this._player.set_state(Gst.State.PLAYING);
+      this._loops++;
+      this._is_playing = true;
+      return true;
+    } catch (e) {
+      this.logger.error("Error playing sound: " + e.message);
+      this._is_playing = false;
+      return false;
+    }
+  }
 
   stop_player() {
-    // Remove interval logic
-    // if (this._interval_id) {
-    //   this.logger.debug("Stopping player after %d loops: %d", this._loops, this._interval_id);
-    //   Utils.clearInterval(this._interval_id);
-    //   this._interval_id = undefined;
-    //   this.timer.persist_alarm = false;
-    // }
     this.logger.debug("Stopping player after %d loops", this._loops);
     this.timer.persist_alarm = false;
     return false;
@@ -386,13 +385,15 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     this.playBus = this._player.get_bus();
     this.playBus.add_signal_watch();
     this.playBus.connect('message', (playBus, message) => {
-	    if (message != null) {
-		    // IMPORTANT: to reuse the player, set state to READY
-		    let message_type = message.type;
-		    if (message_type == Gst.MessageType.EOS || message_type == Gst.MessageType.ERROR) {
-			    this._player.set_state(Gst.State.READY);
-		    }
-	    } // message handler
+      if (message != null) {
+        // IMPORTANT: to reuse the player, set state to READY
+        let message_type = message.type;
+        if (message_type == Gst.MessageType.EOS || message_type == Gst.MessageType.ERROR) {
+          this._player.set_state(Gst.State.READY);
+          this._is_playing = false;
+          this.playSound_callback();
+        }
+      } // message handler
     });
   }
 
@@ -507,7 +508,7 @@ class KitchenTimerNotifierBanner extends MessageTray.NotificationBanner {
       button.snooze = snooze;
       button.connect('clicked', (button) => {
 
-        callback(this.notifier, button.snooze);
+        callback(button.snooze);
 
         // if (!this.notification.resident) {
           // We don't hide a resident notification when the user invokes one of its actions,
