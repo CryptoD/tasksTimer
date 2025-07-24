@@ -34,6 +34,7 @@ const HMS = Me.imports.hms.HMS;
 const AlarmTimer = Me.imports.alarm_timer.AlarmTimer;
 const SessionManagerInhibitor = Me.imports.inhibitor.SessionManagerInhibitor;
 const KeyboardShortcuts = Me.imports.keyboard_shortcuts.KeyboardShortcuts;
+const ProgressIcon = Me.imports.progress_icon.ProgressIcon;
 
 const Storage = Me.imports.storage.Storage;
 const TIMERS_SAVE_PATH = GLib.get_user_data_dir() + '/tasksTimer@CryptoD/timers.json';
@@ -73,6 +74,7 @@ var Timers = class Timers extends Array {
     this._attached = false;
     this.accel = new KeyboardShortcuts(this.settings);
     this.logger = new Logger('kt timers', this.settings);
+    this._progressIcon = new ProgressIcon(this.logger);
 
     try {
       this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
@@ -172,12 +174,7 @@ var Timers = class Timers extends Array {
   }
 
   progress_gicon(degrees) {
-    var icon = this._progressIconsDegrees[degrees];
-    if (icon === undefined) {
-      //this.logger.debug(`Failed to get icon for degrees=${degrees}`);
-      icon=this._progressIconsDegrees[0];
-    }
-    return icon;
+    return this._progressIcon.get(degrees);
   }
 
   get fullIcon() {
