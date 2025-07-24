@@ -81,31 +81,6 @@ var Timers = class Timers extends Array {
       this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
     }
 
-    this._progressIconsDegrees = {};
-    let zeroDegIcon = null;
-    try {
-      zeroDegIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-0.svg');
-    } catch (e) {
-      this.logger.warning('Failed to load 0 degree icon: ' + e.message);
-      zeroDegIcon = Gio.icon_new_for_string('image-missing-symbolic');
-    }
-
-    for (let deg = 0; deg <= 345; deg += 15) {
-      try {
-        var icon_name = "/icons/kitchen-timer-" + deg + ".svg";
-        var gicon = Gio.icon_new_for_string(Me.path + icon_name);
-        if (!gicon) {
-          this.logger.warning(`Icon not found for ${icon_name}, using 0 degree icon as fallback.`);
-          gicon = zeroDegIcon;
-        }
-        this._progressIconsDegrees[deg] = gicon;
-        this.logger.debug(`Loaded progress icon ${icon_name} for ${deg} degrees`);
-      } catch (e) {
-        this.logger.warning(`Failed to load icon ${icon_name}: ${e.message}, using 0 degree icon as fallback.`);
-        this._progressIconsDegrees[deg] = zeroDegIcon;
-      }
-    }
-
     // requires this._settings
     this._notifier = new Notifier.Annoyer(this);
     this._inhibitor = new SessionManagerInhibitor(this.settings);
@@ -419,6 +394,30 @@ var Timers = class Timers extends Array {
         return t;
       }
     }
+  }
+
+  // Called during restore after loading timers from storage, to handle expired timers
+  restoreExpiredTimer(timer, now) {
+    // Timer has expired during downtime - trigger the completion notification
+    const tdiff = now - timer._end;
+    timer.expired = true;
+    timer._state = TimerState.EXPIRED;
+
+    // Check if we already have an active notification for this timer
+    if (timersInstance.notifier && timersInstance.notifier._activeNotifications &&
+        timersInstance.notifier._activeNotifications.has(timer.id)) {
+      this.logger.debug("Skipping duplicate notification for expired timer during restore: %s", timer.name);
+      return;
+    }
+
+    // Show notification for expired timer
+    const reason = _("Timer completed %s late at").format(new HMS(tdiff/1000).toString(true));
+    const time = new Date(now).toLocaleTimeString();
+    const text = "%s due at %s".format(timer.name, timer.end_time());
+
+    timersInstance.notifier.notify(timer, text, "%s %s", reason, time);
+
+    this.logger.debug(`Timer expired during downtime: ${timer.toString()}, was late by ${Math.round(tdiff/1000)} seconds`);
     if (this.attached) {
       this.logger.debug("Timer id=[%s] not found", id);
     }
@@ -913,6 +912,24 @@ var Timer = class Timer {
     this.logger.info('Timer has ended %s: state=%d', early ? "early" : (late ? "late" : "on time"), this._state);
     Utils.clearInterval(this._interval_id);
     this._interval_id = undefined;
+
+    // Prevent duplicate notifications
+    if (timersInstance.notifier && timersInstance.notifier._activeNotifications &&
+        timersInstance.notifier._activeNotifications.has(this.id)) {
+      this.logger.debug("Skipping duplicate notification for timer: %s", this.name);
+
+      // Still perform cleanup
+      var hms = new HMS(this.duration);
+      this.label_progress(hms);
+      this.icon_progress();
+
+      timersInstance.set_panel_name("");
+      timersInstance.set_panel_label("");
+      timersInstance.saveRunningTimers();
+      saveAllTimers(timersInstance);
+
+      return false;
+    }
 
     var stdiff = early || late ? new HMS(tdiff/1000).toString(true) : "";
     var reason;

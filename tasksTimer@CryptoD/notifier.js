@@ -44,6 +44,9 @@ var Annoyer = class Annoyer {
     this._settings = timers.settings;
     this._source = this._createSource();
 
+    // Track active notifications to prevent duplicates
+    this._activeNotifications = new Map();
+
     //var policy = new MessageTray.NotificationPolicy({'show-in-lock-screen': true, 'details-in-lock-screen': true});
     //this._source.policy = policy;
 
@@ -67,9 +70,15 @@ var Annoyer = class Annoyer {
   }
 
   warning(timer, text, fmt=undefined, ...args) {
-    var source = this._createSource();
+    // Prevent duplicate warning notifications for the same timer
+    if (this._activeNotifications.has(timer.id)) {
+      this.logger.debug("Skipping duplicate warning notification for timer: %s", timer.name);
+      return;
+    }
 
     let details = fmt === undefined ? "" : fmt.format(...args);
+
+    var source = this._createSource();
 
     var notifier = new KitchenTimerNotifier(timer,
                                               source,
@@ -79,10 +88,23 @@ var Annoyer = class Annoyer {
                                               { gicon: timer.timers.fullIcon, bannerMarkup: true,
                                               secondaryGIcon: this._gicon });
 
+    // Track this notification
+    this._activeNotifications.set(timer.id, notifier);
+
+    // Clean up tracking when notification is destroyed
+    notifier.connect('destroy', () => {
+      this._activeNotifications.delete(timer.id);
+    });
+
     source.showNotification(notifier);
   }
 
   notify(timer, text, fmt=undefined, ...args) {
+    // Prevent duplicate notifications for the same timer
+    if (this._activeNotifications.has(timer.id)) {
+      this.logger.debug("Skipping duplicate notification for timer: %s", timer.name);
+      return;
+    }
 
     let details = fmt===undefined ? "" : fmt.format(...args);
 
@@ -93,7 +115,13 @@ var Annoyer = class Annoyer {
                                               true,   // sound
                                               { gicon: timer.timers.fullIcon, bannerMarkup: false });
 
-    //notifier.setPrivacyScope(MessageTray.PrivacyScope.SYSTEM);
+    // Track this notification
+    this._activeNotifications.set(timer.id, notifier);
+
+    // Clean up tracking when notification is destroyed
+    notifier.connect('destroy', () => {
+      this._activeNotifications.delete(timer.id);
+    });
 
     if (this.notification) {
       this.source.showNotification(notifier);
@@ -218,6 +246,7 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     this._loops = 0;
     this._sound_loops = timer.persist_alarm ? 0 : this.settings.sound_loops;
     this._is_playing = false; // Tracks if sound is currently playing
+    this._destroyed = false; // Track if notification is being destroyed
     // removed duplicate line
 
     if (this.settings.notification === false && this._sound_loops == 0) {
@@ -244,9 +273,16 @@ class KitchenTimerNotifier extends MessageTray.Notification {
       timer.uninhibit();
     }
 
+    // Ensure notification is acknowledged when destroyed for any reason
+    this.connect('destroy', () => {
+      this.acknowledged = true;
+      this.stop_player();
+    });
+
     this._banner.connect('clicked', (banner) => {
       this.logger.debug("Clicked!");
-      banner.close();
+      this.acknowledged = true;
+      this.destroy();
     });
   }
 
@@ -391,7 +427,13 @@ class KitchenTimerNotifier extends MessageTray.Notification {
         if (message_type == Gst.MessageType.EOS || message_type == Gst.MessageType.ERROR) {
           this._player.set_state(Gst.State.READY);
           this._is_playing = false;
-          this.playSound_callback();
+
+          // Only restart if we haven't reached the loop limit and notification is still active
+          if (!this._destroyed && (this.sound_loops == 0 || this._loops < this.sound_loops)) {
+            this.playSound_callback();
+          } else {
+            this.logger.debug("Stopping sound playback: reached limit or notification destroyed");
+          }
         }
       } // message handler
     });
@@ -418,19 +460,16 @@ class KitchenTimerNotifier extends MessageTray.Notification {
   }
 
   destroy(reason = NotificationDestroyedReason.DISMISSED) {
-    if (!this.acknowledged) {
-      this.logger.debug("Not acknowledged yet");
+    if (this._destroyed) {
+      this.logger.debug("Already destroyed, skipping");
       return;
     }
-    if (!this._destroyed) {
-      this.logger.debug("Acknowledged notification will be destroyed");
-      this._destroyed = true;
-      this.stop_player();
-      super.destroy(reason);
 
-      this.timer.uninhibit();
-
-    }
+    this.logger.debug("Destroying notification, reason: %d, acknowledged: %s", reason, this.acknowledged);
+    this._destroyed = true;
+    this.stop_player();
+    super.destroy(reason);
+    this.timer.uninhibit();
   }
 });
 
