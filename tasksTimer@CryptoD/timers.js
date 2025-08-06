@@ -77,10 +77,16 @@ var Timers = class Timers extends Array {
     this._progressIcon = new ProgressIcon(this.logger);
 
     try {
-      this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
+      // Try loading PNG icon first
+      this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.png');
     } catch (e) {
-      this.logger.warning('Failed to load full icon: ' + e.message);
-      this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
+      try {
+        // Fallback to SVG if PNG fails
+        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
+      } catch (e2) {
+        this.logger.warning('Failed to load icons: ' + e2.message);
+        this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
+      }
     }
 
     // requires this._settings
@@ -798,20 +804,22 @@ var Timer = class Timer {
       return;
     }
     var key = this.degree_progress();
-    var gicon = timersInstance.progress_gicon(key);
-    if (gicon !== this._gicon) {
-      this._gicon = gicon;
-      var icon = new St.Icon({
-        gicon: gicon,
-        style_class: 'system-status-icon'
-      });
-      icon.set_icon_size(20);
-      var panel_box = timersInstance.box;
-      if (panel_box) {
-        var current = panel_box.get_child_at_index(0);
-        panel_box.replace_child(current, icon);
-        current.destroy();
-      }
+    // Use the PNG logo as the icon instead of the progress icon
+    let logoPath = Me.path + '/img/logo.png';
+    let logoGicon = Gio.icon_new_for_string(logoPath);
+
+    // Create the icon with the PNG logo
+    var icon = new St.Icon({
+      gicon: logoGicon,
+      style_class: 'system-status-icon'
+    });
+    icon.set_icon_size(20);
+
+    var panel_box = timersInstance.box;
+    if (panel_box) {
+      var current = panel_box.get_child_at_index(0);
+      panel_box.replace_child(current, icon);
+      current.destroy();
     }
   }
 
