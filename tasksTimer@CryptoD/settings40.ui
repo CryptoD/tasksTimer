@@ -63,10 +63,10 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
   </object>
   -->
   <!--
-  <object class="GtkImage" id="img_kitchentimer_symbolic">
+  <object class="GtkImage" id="img_tasktimer_symbolic">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="file">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
+    <property name="file">icons/tasktimer-symbolic.svg</property>
   </object>
   -->
   <!--
@@ -250,7 +250,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
                               <property name="margin-end">5</property>
-                              <property name="file">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                              <property name="file">icons/tasktimer-full.svg</property>
                             </object>
                           </child>
                           -->
@@ -547,7 +547,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                             <object class="GtkImage" id="img_timer2">
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
-                              <property name="file">icons/kitchen-timer-blackjackshellac-full.svg</property>
+                              <property name="file">icons/tasktimer-full.svg</property>
                             </object>
                             <!--<packing>
                               <property name="expand">False</property>
@@ -1304,7 +1304,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                               <property name="can-focus">False</property>
                               <property name="margin-top">0</property>
                               <property name="margin-bottom">0</property>
-                              <property name="icon-name">kitchen-timer-blackjackshellac-full</property>
+                              <property name="icon-name">tasktimer-full</property>
                               <property name="icon-size">2</property>
                             </object>
                           </child>
@@ -1367,16 +1367,16 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                               <property name="can-focus">False</property>
                               <property name="margin-top">0</property>
                               <property name="margin-bottom">0</property>
-                              <property name="icon-name">kitchen-timer-blackjackshellac-full</property>
+                              <property name="icon-name">tasktimer-full</property>
                               <property name="icon-size">1</property>
                             </object>
                           </child>
                           <!--
                           <child>
-                            <object class="GtkPicture" id="img_kitchentimer_symbolic">
+                            <object class="GtkPicture" id="img_tasktimer_symbolic">
                               <property name="visible">True</property>
                               <property name="can-focus">False</property>
-                              <property name="file">icons/kitchen-timer-blackjackshellac-symbolic.svg</property>
+                              <property name="file">icons/tasktimer-symbolic.svg</property>
                             </object>
                           </child>
                           -->

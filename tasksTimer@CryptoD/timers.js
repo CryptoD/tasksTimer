@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
+const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -77,16 +77,22 @@ var Timers = class Timers extends Array {
     this._progressIcon = new ProgressIcon(this.logger);
 
     try {
-      // Try loading PNG icon first
-      this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.png');
-    } catch (e) {
-      try {
-        // Fallback to SVG if PNG fails
+      // Try loading new tasktimer icons first, then fall back to original kitchen-timer assets
+      if (GLib.file_test(`${Me.path}/icons/tasktimer-full.png`, GLib.FileTest.EXISTS)) {
+        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/tasktimer-full.png');
+      } else if (GLib.file_test(`${Me.path}/icons/tasktimer-full.svg`, GLib.FileTest.EXISTS)) {
+        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/tasktimer-full.svg');
+      } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.png`, GLib.FileTest.EXISTS)) {
+        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.png');
+      } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.svg`, GLib.FileTest.EXISTS)) {
         this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
-      } catch (e2) {
-        this.logger.warning('Failed to load icons: ' + e2.message);
+      } else {
+        this.logger.warning('Failed to load icons');
         this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
       }
+    } catch (e2) {
+      this.logger.warning('Failed to load icons: ' + e2.message);
+      this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
     }
 
     // requires this._settings

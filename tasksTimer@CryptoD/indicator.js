@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
+const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -75,15 +75,20 @@ class KitchenTimerIndicator extends PanelMenu.Button {
       try {
         if (!this._icon.gicon || (this._icon.gicon && this._icon.gicon.to_string().indexOf('image-missing') !== -1)) {
           this.logger.info('Indicator: gicon was missing or image-missing; applying fallback icon');
+          // Prefer tasktimer icons, but gracefully fall back to existing kitchen-timer icons
           try {
-            this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
-          } catch (e) {
-            try {
+            if (GLib.file_test(`${Me.path}/icons/tasktimer-symbolic.svg`, GLib.FileTest.EXISTS)) {
+              this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-symbolic.svg');
+            } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-symbolic.svg`, GLib.FileTest.EXISTS)) {
+              this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
+            } else if (GLib.file_test(`${Me.path}/icons/tasktimer-full.svg`, GLib.FileTest.EXISTS)) {
+              this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-full.svg');
+            } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.svg`, GLib.FileTest.EXISTS)) {
               this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-full.svg');
-            } catch (e2) {
-              // leave as-is; system will show a default
-              this.logger && this.logger.debug && this.logger.debug('No fallback icon available: ' + (e2 && e2.message));
             }
+          } catch (e2) {
+            // leave as-is; system will show a default
+            this.logger && this.logger.debug && this.logger.debug('No fallback icon available: ' + (e2 && e2.message));
           }
         }
       } catch (e) {

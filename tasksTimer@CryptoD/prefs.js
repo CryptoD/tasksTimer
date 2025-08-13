@@ -18,7 +18,7 @@
 const { Gio, Gtk, Gdk, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 
-const GETTEXT_DOMAIN = 'kitchen-timer-blackjackshellac';
+const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
@@ -75,13 +75,13 @@ class PreferencesBuilder {
 
     if (Utils.isGnome3x()) {
       this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings.ui']) );
-      this._kitchenTimer_settings = this._builder.get_object('kitchenTimer_settings');
-      this._viewport.add(this._kitchenTimer_settings);
+      this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
+      this._viewport.add(this._taskTimer_settings);
       this._widget.add(this._viewport);
     } else {
       this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings40.ui']) );
-      this._kitchenTimer_settings = this._builder.get_object('kitchenTimer_settings');
-      this._viewport.set_child(this._kitchenTimer_settings);
+      this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
+      this._viewport.set_child(this._taskTimer_settings);
       this._widget.set_child(this._viewport);
     }
 
@@ -599,7 +599,7 @@ class PreferencesBuilder {
        file_dialog.current_folder = Me.path;
     }
 
-    let settings_json = 'kitchen_timer_settings.json';
+    let settings_json = 'tasktimer_settings.json';
 
     this.logger.debug("json file=%s", settings_json);
     file_dialog.set_filter(this._bo('json_files_filter'));
@@ -668,7 +668,7 @@ class PreferencesBuilder {
        file_dialog.current_folder = Me.path;
     }
 
-    let settings_json = 'kitchen_timer_settings.json' ;
+    let settings_json = 'tasktimer_settings.json' ;
 
     this.logger.debug("json file=%s", settings_json);
     file_dialog.set_filter(this._bo('json_files_filter'));

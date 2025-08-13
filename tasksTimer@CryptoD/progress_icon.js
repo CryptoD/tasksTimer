@@ -1,3 +1,7 @@
+const GETTEXT_DOMAIN = 'tasktimer';
+const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
+const _ = Gettext.gettext;
+
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const { GLib, Gio } = imports.gi;
 const Utils = Me.imports.utils;
@@ -8,7 +12,14 @@ var ProgressIcon = class ProgressIcon {
         this._progressIconsDegrees = {};
         // Prefer using the extension's symbolic icon as a fallback if available
         try {
-            this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
+            // Prefer new tasktimer symbolic icon, but fall back to the original kitchen-timer symbolic
+            if (GLib.file_test(`${Me.path}/icons/tasktimer-symbolic.svg`, GLib.FileTest.EXISTS)) {
+                this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-symbolic.svg');
+            } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-symbolic.svg`, GLib.FileTest.EXISTS)) {
+                this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
+            } else {
+                this._fallbackIcon = Gio.icon_new_for_string('image-missing-symbolic');
+            }
         } catch (e) {
             this._fallbackIcon = Gio.icon_new_for_string('image-missing-symbolic');
         }
@@ -21,12 +32,15 @@ var ProgressIcon = class ProgressIcon {
             try {
                 // Try both the legacy progress folder and the flat named icons that exist in this repo
                 let icon_path1 = `${Me.path}/icons/progress/${i}.svg`;
-                let icon_path2 = `${Me.path}/icons/kitchen-timer-${i}.svg`;
+                let icon_path2 = `${Me.path}/icons/tasktimer-${i}.svg`;
+                let icon_path3 = `${Me.path}/icons/kitchen-timer-${i}.svg`;
 
                 if (GLib.file_test(icon_path1, GLib.FileTest.EXISTS)) {
                     this._progressIconsDegrees[i] = Gio.icon_new_for_string(icon_path1);
                 } else if (GLib.file_test(icon_path2, GLib.FileTest.EXISTS)) {
                     this._progressIconsDegrees[i] = Gio.icon_new_for_string(icon_path2);
+                } else if (GLib.file_test(icon_path3, GLib.FileTest.EXISTS)) {
+                    this._progressIconsDegrees[i] = Gio.icon_new_for_string(icon_path3);
                 }
             } catch (e) {
                 // Log and continue; missing single-degree icons are expected in this repo

@@ -17,7 +17,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: kitchen-timer-blackjackshellac\n"
+"Project-Id-Version: taskTimer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-05-18 11:18-0400\n"
 "PO-Revision-Date: 2021-05-18 11:18-0400\n"
@@ -47,7 +47,7 @@ msgstr ""
 #: settings.ui:942 settings.ui:947 settings.ui:1040 settings.ui:1045
 #: settings.ui:1117 settings.ui:1121 settings.ui:1131 settings.ui:1132
 #: settings.ui:1142 settings.ui:1148 settings4x.ui:1011
-msgid "Kitchen Timer"
+msgid "taskTimer"
 msgstr ""
 
 #: menuitem.js:42 menuitem.js:43 menuitem.js:45 menuitem.js:47 menuitem.js:49

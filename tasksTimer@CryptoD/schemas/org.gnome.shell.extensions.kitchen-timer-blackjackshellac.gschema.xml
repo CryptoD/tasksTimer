@@ -92,7 +92,7 @@ https://developer.gnome.org/glib/stable/gvariant-text.html
       <summary>Number of times to ring alarm sound, 0 is the duration of notification</summary>
     </key>
     <key name="sound-file" type="s">
-      <default>"kitchen_timer.ogg"</default>
+      <default>"tasktimer.ogg"</default>
       <summary>Path to sound file</summary>
     </key>
     <key name="default-timer" type="i">

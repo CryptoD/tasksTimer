@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<interface domain="kitchen-timer-blackjackshellac">
+<interface domain="tasktimer">
   <requires lib="gtk+" version="3.24"/>
   
   <!-- Adjustments for Spin Buttons and Scales -->
@@ -33,7 +33,7 @@
   </object>
 
   <!-- Main Settings Container -->
-  <object class="GtkBox" id="kitchenTimer_settings">
+  <object class="GtkBox" id="taskTimer_settings">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="orientation">vertical</property>
