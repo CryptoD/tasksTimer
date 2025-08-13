@@ -43,24 +43,42 @@ class Extension {
       this._uuid = uuid;
 
       ExtensionUtils.initTranslations(GETTEXT_DOMAIN);
+      log(`taskTimer: init called for uuid=${uuid}`);
     }
 
     enable() {
-        this._indicator = new Indicator.KitchenTimerIndicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
+        try {
+            log('taskTimer: enabling extension');
+            this._indicator = new Indicator.KitchenTimerIndicator();
+            Main.panel.addToStatusArea(this._uuid, this._indicator);
+            log('taskTimer: indicator added to status area');
+        } catch (e) {
+            logError(e, 'taskTimer: failed to enable extension');
+        }
     }
 
     disable() {
-        // Save timer state before disabling
-        const Timers = Me.imports.timers.Timers;
-        const timersInstance = Timers.getInstance();
-        if (timersInstance) {
-            const saveAllTimers = Me.imports.timers.saveAllTimers;
-            saveAllTimers(timersInstance);
-        }
+        try {
+            log('taskTimer: disabling extension');
+            // Save timer state before disabling
+            const Timers = Me.imports.timers.Timers;
+            const timersInstance = Timers.getInstance();
+            if (timersInstance) {
+                const saveAllTimers = Me.imports.timers.saveAllTimers;
+                saveAllTimers(timersInstance);
+                log('taskTimer: timers saved during disable');
+            }
 
-        this._indicator.destroy();
-        this._indicator = null;
+            if (this._indicator) {
+                this._indicator.destroy();
+                this._indicator = null;
+                log('taskTimer: indicator destroyed');
+            } else {
+                log('taskTimer: no indicator to destroy');
+            }
+        } catch (e) {
+            logError(e, 'taskTimer: failed to disable extension');
+        }
     }
 }
 

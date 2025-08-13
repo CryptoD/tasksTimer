@@ -6,29 +6,59 @@ var ProgressIcon = class ProgressIcon {
     constructor(logger) {
         this.logger = logger;
         this._progressIconsDegrees = {};
-        this._fallbackIcon = Gio.icon_new_for_string('image-missing-symbolic');
+        // Prefer using the extension's symbolic icon as a fallback if available
+        try {
+            this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
+        } catch (e) {
+            this._fallbackIcon = Gio.icon_new_for_string('image-missing-symbolic');
+        }
+
         this._initializeProgressIcons();
     }
 
     _initializeProgressIcons() {
         for (let i = 0; i <= 360; i++) {
             try {
-                let icon_path = `${Me.path}/icons/progress/${i}.svg`;
-                if (GLib.file_test(icon_path, GLib.FileTest.EXISTS)) {
-                    this._progressIconsDegrees[i] = Gio.icon_new_for_string(icon_path);
+                // Try both the legacy progress folder and the flat named icons that exist in this repo
+                let icon_path1 = `${Me.path}/icons/progress/${i}.svg`;
+                let icon_path2 = `${Me.path}/icons/kitchen-timer-${i}.svg`;
+
+                if (GLib.file_test(icon_path1, GLib.FileTest.EXISTS)) {
+                    this._progressIconsDegrees[i] = Gio.icon_new_for_string(icon_path1);
+                } else if (GLib.file_test(icon_path2, GLib.FileTest.EXISTS)) {
+                    this._progressIconsDegrees[i] = Gio.icon_new_for_string(icon_path2);
                 }
             } catch (e) {
-                this.logger.error(`Failed to create progress icon for degree ${i}: ${e.message}`);
+                // Log and continue; missing single-degree icons are expected in this repo
+                this.logger && this.logger.error && this.logger.error(`Failed to create progress icon for degree ${i}: ${e.message}`);
             }
         }
 
+        // Ensure we at least have an icon for degree 0
         if (!this._progressIconsDegrees[0]) {
-            this.logger.debug(`Progress icon for 0 degrees not found. Using fallback.`);
+            this.logger && this.logger.debug && this.logger.debug(`Progress icon for 0 degrees not found. Using fallback.`);
             this._progressIconsDegrees[0] = this._fallbackIcon;
         }
     }
 
     get(degrees) {
-        return this._progressIconsDegrees[degrees] || this._progressIconsDegrees[0];
+        // Normalize degrees to integer between 0 and 360
+        let deg = Math.round(Number(degrees) || 0);
+        deg = ((deg % 360) + 360) % 360;
+
+        // Direct match
+        if (this._progressIconsDegrees[deg])
+            return this._progressIconsDegrees[deg];
+
+        // Try nearest 15-degree step (icons in repo are available in 15° increments)
+        const step = 15;
+        let rounded = Math.round(deg / step) * step;
+        rounded = ((rounded % 360) + 360) % 360;
+        if (this._progressIconsDegrees[rounded])
+            return this._progressIconsDegrees[rounded];
+
+        // Fallback to 0-degree icon or the symbolic fallback
+        return this._progressIconsDegrees[0] || this._fallbackIcon;
     }
 };
+

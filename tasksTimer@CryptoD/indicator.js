@@ -39,22 +39,61 @@ var KitchenTimerIndicator = GObject.registerClass(
 class KitchenTimerIndicator extends PanelMenu.Button {
     _init() {
       // settings now lives in Timers singleton
-      this._timers = Timers.attach(this);
+      try {
+        this._timers = Timers.attach(this);
+      } catch (e) {
+        logError(e, 'taskTimer: failed to attach timers in indicator._init');
+        throw e;
+      }
+
       this.logger = new Logger('kt indicator', this.settings);
       this.logger.info('Initializing extension');
 
       super._init(0.0, _('taskTimer'));
 
-      var icon = new St.Icon({
-        gicon: this.timers.progress_gicon(0),
-        style_class: 'system-status-icon'
-      });
-      icon.set_icon_size(20);
+      // Keep the icon reference so we can update it later and ensure it's visible in the top bar
+      try {
+        const gicon = this.timers.progress_gicon(0);
+        this.logger.info('Indicator: obtained gicon from progress_gicon: ' + (gicon ? gicon.to_string() : 'null'));
+
+        this._icon = new St.Icon({
+          gicon: gicon,
+          style_class: 'system-status-icon'
+        });
+        this._icon.set_icon_size(20);
+      } catch (e) {
+        logError(e, 'taskTimer: failed creating St.Icon in indicator._init');
+        // create a plain icon so the widget exists
+        this._icon = new St.Icon({
+          icon_name: 'alarm-symbolic',
+          style_class: 'system-status-icon'
+        });
+        this._icon.set_icon_size(20);
+      }
+
+      // If no useful gicon was returned, use the extension symbolic/full icon as fallback
+      try {
+        if (!this._icon.gicon || (this._icon.gicon && this._icon.gicon.to_string().indexOf('image-missing') !== -1)) {
+          this.logger.info('Indicator: gicon was missing or image-missing; applying fallback icon');
+          try {
+            this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
+          } catch (e) {
+            try {
+              this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-full.svg');
+            } catch (e2) {
+              // leave as-is; system will show a default
+              this.logger && this.logger.debug && this.logger.debug('No fallback icon available: ' + (e2 && e2.message));
+            }
+          }
+        }
+      } catch (e) {
+        logError(e, 'taskTimer: error while applying fallback gicon');
+      }
 
       this._box = new St.BoxLayout({ name: 'panelStatusMenu',
         style_class: 'kitchentimer-panel-box'
       });
-      this._box.add_child(icon);
+      this._box.add_child(this._icon);
       //this._box.add_child(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
       this._panel_label=new St.Label({ text: "",
