@@ -15,5 +15,5 @@
   "gettext-domain": "tasktimer",
   "settings-schema": "org.gnome.shell.extensions.kitchen-timer-blackjackshellac",
   "url": "https://github.com/CryptoD/taskTimer",
-  "version": 1.1
+  "version": 1.0
 }
