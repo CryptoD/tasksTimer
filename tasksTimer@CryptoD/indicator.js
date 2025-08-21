@@ -77,12 +77,12 @@ class KitchenTimerIndicator extends PanelMenu.Button {
           this.logger.info('Indicator: gicon was missing or image-missing; applying fallback icon');
           // Prefer tasktimer icons, but gracefully fall back to existing kitchen-timer icons
           try {
-            if (GLib.file_test(`${Me.path}/icons/tasktimer-symbolic.svg`, GLib.FileTest.EXISTS)) {
+            if (GLib.file_test(`${Me.path}/icons/tasktimer-full.svg`, GLib.FileTest.EXISTS)) {
+              this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-full.svg');
+            } else if (GLib.file_test(`${Me.path}/icons/tasktimer-symbolic.svg`, GLib.FileTest.EXISTS)) {
               this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-symbolic.svg');
             } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-symbolic.svg`, GLib.FileTest.EXISTS)) {
               this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
-            } else if (GLib.file_test(`${Me.path}/icons/tasktimer-full.svg`, GLib.FileTest.EXISTS)) {
-              this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-full.svg');
             } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.svg`, GLib.FileTest.EXISTS)) {
               this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-full.svg');
             }

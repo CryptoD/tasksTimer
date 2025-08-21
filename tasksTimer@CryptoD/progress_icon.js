@@ -12,9 +12,11 @@ var ProgressIcon = class ProgressIcon {
         this._progressIconsDegrees = {};
         // Prefer using the extension's symbolic icon as a fallback if available
         try {
-            // Prefer new tasktimer symbolic icon, but fall back to the original kitchen-timer symbolic
+            // Prefer new tasktimer symbolic icon but keep legacy file as secondary fallback
             if (GLib.file_test(`${Me.path}/icons/tasktimer-symbolic.svg`, GLib.FileTest.EXISTS)) {
                 this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/tasktimer-symbolic.svg');
+            } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-symbolic.svg`, GLib.FileTest.EXISTS)) {
+                this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-symbolic.svg');
             } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-symbolic.svg`, GLib.FileTest.EXISTS)) {
                 this._fallbackIcon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-symbolic.svg');
             } else {

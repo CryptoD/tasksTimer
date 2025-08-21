@@ -32,7 +32,7 @@ aa{sv}
 
 https://developer.gnome.org/glib/stable/gvariant-text.html
 -->
-<schemalist gettext-domain="kitchen-timer-blackjackshellac">
+<schemalist gettext-domain="tasktimer">
   <schema id="org.gnome.shell.extensions.kitchen-timer-blackjackshellac"
           path="/org/gnome/shell/extensions/kitchen-timer-blackjackshellac/">
     <key name="notification" type="b">

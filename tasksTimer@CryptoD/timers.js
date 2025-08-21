@@ -77,16 +77,24 @@ var Timers = class Timers extends Array {
     this._progressIcon = new ProgressIcon(this.logger);
 
     try {
-      // Try loading new tasktimer icons first, then fall back to original kitchen-timer assets
-      if (GLib.file_test(`${Me.path}/icons/tasktimer-full.png`, GLib.FileTest.EXISTS)) {
-        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/tasktimer-full.png');
-      } else if (GLib.file_test(`${Me.path}/icons/tasktimer-full.svg`, GLib.FileTest.EXISTS)) {
-        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/tasktimer-full.svg');
-      } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.png`, GLib.FileTest.EXISTS)) {
-        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.png');
-      } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.svg`, GLib.FileTest.EXISTS)) {
-        this._fullIcon = Gio.icon_new_for_string(Me.path+'/icons/kitchen-timer-blackjackshellac-full.svg');
-      } else {
+      // Preference order for icons: tasktimer-* first, then kitchen-timer-blackjackshellac-*
+      const iconFiles = [
+        'tasktimer-full.png',
+        'tasktimer-full.svg',
+        'kitchen-timer-blackjackshellac-full.png',
+        'kitchen-timer-blackjackshellac-full.svg'
+      ];
+
+      let iconFound = false;
+      for (const iconFile of iconFiles) {
+        const iconPath = `${Me.path}/icons/${iconFile}`;
+        if (GLib.file_test(iconPath, GLib.FileTest.EXISTS)) {
+          this._fullIcon = Gio.icon_new_for_string(iconPath);
+          iconFound = true;
+          break;
+        }
+      }
+      if (!iconFound) {
         this.logger.warning('Failed to load icons');
         this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
       }
