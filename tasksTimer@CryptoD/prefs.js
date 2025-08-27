@@ -80,9 +80,46 @@ class PreferencesBuilder {
       this._widget.add(this._viewport);
     } else {
       this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings40.ui']) );
-      this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
-      this._viewport.set_child(this._taskTimer_settings);
-      this._widget.set_child(this._viewport);
+      // settings40.ui uses a different root ID (kitchenTimer_settings) compared to
+      // the GTK3 settings.ui (taskTimer_settings). Try the GTK4 root id first
+      // and fall back to the GTK3 id if necessary.
+      const gtk4RootIds = ['kitchenTimer_settings', 'taskTimer_settings'];
+      this._taskTimer_settings = null;
+      for (let rid of gtk4RootIds) {
+        try {
+          let obj = this._builder.get_object(rid);
+          if (obj) {
+            this._taskTimer_settings = obj;
+            break;
+          }
+        } catch (e) {
+          // ignore and continue
+        }
+      }
+
+      if (!this._taskTimer_settings) {
+        this.logger.error('Unable to find root settings widget in settings40.ui (tried ' + gtk4RootIds.join(', ') + '). Preferences may be blank.');
+        // As a last resort, try to use the builder's first object if available
+        try {
+          let objects = this._builder.get_objects();
+          if (objects && objects.length > 0) {
+            this._taskTimer_settings = objects[0];
+            this.logger.debug('Falling back to first builder object as root.');
+          }
+        } catch (e) {
+          this.logger.error('Failed to fallback to first builder object: ' + e);
+        }
+      }
+
+      if (this._taskTimer_settings) {
+        // GTK4 widgets use set_child
+        this._viewport.set_child(this._taskTimer_settings);
+        this._widget.set_child(this._viewport);
+      } else {
+        // prevent calling set_child with null which can crash or show blank UI
+        this.logger.error('No valid root widget found - returning an empty ScrolledWindow to avoid crash.');
+        // leave _widget as an empty scrolled window
+      }
     }
 
     this._bo('version').set_text("Version "+Me.metadata.version);
