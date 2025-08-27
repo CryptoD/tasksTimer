@@ -950,11 +950,13 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                               <!--<property name="receives-default">False</property>-->
                               <!--<property name="draw-indicator">True</property>-->
                             </object>
-                            <!--<packing>
-                              <property name="expand">False</property>
-                              <property name="fill">True</property>
-                              <property name="position">0</property>
-                            </packing>-->
+                          </child>
+                          <child>
+                            <object class="GtkButton" id="export_logs_button">
+                              <property name="label" translatable="yes">Export logs</property>
+                              <property name="visible">True</property>
+                              <property name="can-focus">True</property>
+                            </object>
                           </child>
                           <child>
                             <object class="GtkButton" id="import_settings">

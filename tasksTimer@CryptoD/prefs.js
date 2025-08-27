@@ -200,6 +200,16 @@ class PreferencesBuilder {
             this.logger.error('Failed to attach preferences wrapper to viewport/scrolledwindow: ' + e2);
           }
         }
+
+        // If the export logs button exists in the builder, connect it
+        try {
+          let exportLogsBtn = this._builder.get_object('export_logs_button');
+          if (exportLogsBtn) {
+            exportLogsBtn.connect('clicked', () => { this._export_logs(); });
+          }
+        } catch (e) {
+          this.logger.debug('export_logs_button not present or failed to connect: %s', e);
+        }
       } else {
         // prevent calling set_child with null which can crash or show blank UI
         this.logger.error('No valid root widget found - returning a wrapper with an error message to avoid crash.');
@@ -219,6 +229,16 @@ class PreferencesBuilder {
 
     this._bo('version').set_text("Version "+Me.metadata.version);
     this._bo('description').set_text(Me.metadata.description.split(/\n/)[0]);
+
+    // Connect Export Logs button if present (both GTK3 & GTK4 UI)
+    try {
+      let exportLogsBtn = this._builder.get_object('export_logs_button');
+      if (exportLogsBtn) {
+        exportLogsBtn.connect('clicked', () => { this._export_logs(); });
+      }
+    } catch (e) {
+      try { this.logger.debug('export_logs_button not present or failed to connect: %s', e); } catch (e2) {}
+    }
 
     // Timers
 
@@ -735,6 +755,69 @@ class PreferencesBuilder {
     });
 
     return noop;
+  }
+
+  // Export logs helper: shows a file chooser and writes buffered logs to the chosen path
+  _export_logs() {
+    try {
+      const file_dialog = new Gtk.FileChooserDialog({
+        title: _('Export logs'),
+        action: Gtk.FileChooserAction.SAVE,
+        create_folders: true
+      });
+
+      if (file_dialog.current_folder == undefined) {
+        file_dialog.current_folder = Me.path;
+      }
+
+      let default_name = 'tasktimer_logs.txt';
+      file_dialog.set_current_name(default_name);
+      file_dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
+      file_dialog.add_button('Export', Gtk.ResponseType.OK);
+
+      if (!Utils.isGnome3x()) {
+        file_dialog.set_current_folder(Gio.File.new_for_path(Me.path));
+      } else {
+        file_dialog.set_current_folder(Me.path);
+      }
+
+      file_dialog.connect('response', (dialog, response_id) => {
+        if (response_id === Gtk.ResponseType.OK) {
+          try {
+            let file = dialog.get_file();
+            let path = file.get_path();
+            // Use logger's exportToFile if available
+            let logger = this.logger;
+            if (logger && typeof logger.exportToFile === 'function') {
+              let ok = logger.exportToFile(path);
+              if (ok) {
+                try { this._bo('import_export_msg').set_text(_('Exported logs to %s'.format(path))); } catch (e) {}
+              } else {
+                try { this._bo('import_export_msg').set_text(_('Failed to export logs to %s'.format(path))); } catch (e) {}
+              }
+            } else {
+              // fallback: write buffered logs using GLib
+              let buffer = '';
+              try { buffer = this.logger.getBufferedLogs(); } catch (e) { buffer = 'No logs available'; }
+              try {
+                GLib.file_set_contents(path, buffer);
+                try { this._bo('import_export_msg').set_text(_('Exported logs to %s'.format(path))); } catch (e) {}
+              } catch (e) {
+                this.logger.error('Failed to write logs to %s: %s', path, e);
+                try { this._bo('import_export_msg').set_text(_('Failed to export logs to %s'.format(path))); } catch (e) {}
+              }
+            }
+          } catch (e) {
+            this.logger.error('Exception during export logs: %s', e);
+          }
+        }
+        dialog.destroy();
+      });
+
+      file_dialog.show();
+    } catch (e) {
+      this.logger.error('Failed to open export logs dialog: %s', e);
+    }
   }
 
   /**
