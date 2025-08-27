@@ -74,12 +74,13 @@ class PreferencesBuilder {
     this._widget = new Gtk.ScrolledWindow();
 
     if (Utils.isGnome3x()) {
-      this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings.ui']) );
+      this._builder.add_from_file(GLib.build_filenamev([Me.path, 'settings.ui']));
       this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
       this._viewport.add(this._taskTimer_settings);
       this._widget.add(this._viewport);
     } else {
-      this._builder.add_from_file( GLib.build_filenamev( [Me.path, 'settings40.ui']) );
+      this._builder.add_from_file(GLib.build_filenamev([Me.path, 'settings40.ui']));
+
       // settings40.ui uses a different root ID (kitchenTimer_settings) compared to
       // the GTK3 settings.ui (taskTimer_settings). Try the GTK4 root id first
       // and fall back to the GTK3 id if necessary.
@@ -111,14 +112,108 @@ class PreferencesBuilder {
         }
       }
 
+      // We will wrap the settings widget into a top-level container so we can
+      // display a helpful error message to the user if some UI elements are missing.
+      let topWrapper;
+      try {
+        topWrapper = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 12});
+      } catch (e) {
+        // Some environments may not accept object literal constructors; fallback
+        topWrapper = new Gtk.Box();
+        topWrapper.set_orientation(Gtk.Orientation.VERTICAL);
+        topWrapper.set_spacing(12);
+      }
+
+      function addChild(container, child) {
+        // Support both GTK3 and GTK4 container child APIs
+        if (container.append) container.append(child);
+        else if (container.add) container.add(child);
+        else if (container.pack_start) container.pack_start(child, false, false, 0);
+        else throw new Error('Unable to add child to container');
+      }
+
+      // List of widget IDs that are used later in prefs.js. We'll check for their
+      // existence and show a helpful message if some are missing.
+      const requiredIds = [
+        'version','description','timers_liststore','timers_combo','spin_hours','spin_mins','spin_secs',
+        'quick_radio','timers_add','timers_remove','timer_enabled','timers_combo_entry','tv_timers',
+        'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
+        'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
+        'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
+        'accel_enable','notification','notification_sticky'
+      ];
+
+      let missing = [];
+      for (let id of requiredIds) {
+        try {
+          if (!this._builder.get_object(id)) {
+            missing.push(id);
+          }
+        } catch (e) {
+          missing.push(id);
+        }
+      }
+
+      if (missing.length > 0) {
+        this.logger.error('Preferences UI missing the following widgets: ' + missing.join(', '));
+
+        // Create a visible message to inform the user about missing widgets
+        let msg;
+        try {
+          msg = new Gtk.Label({use_markup: true, xalign: 0});
+        } catch (e) {
+          msg = new Gtk.Label();
+          msg.set_xalign(0);
+        }
+
+        let text = '<b>Preferences failed to load correctly</b>\nThe following UI elements are missing from the loaded settings file:\n' + missing.map(x => '- ' + x).join('\n') + '\n\nPlease check your extension installation or the settings file.';
+        // Use markup for the heading but avoid injection for the list
+        let markup = '<b>Preferences failed to load correctly</b><br/><small>The following UI elements are missing from the loaded settings file:</small><br/>' + missing.map(x => '<tt>' + x + '</tt>').join('<br/>') + '<br/><br/><small>Please check your extension installation or the settings file.</small>';
+        try {
+          msg.set_markup(markup);
+        } catch (e) {
+          msg.set_text(text);
+        }
+        msg.set_line_wrap(true);
+        msg.set_selectable(true);
+
+        addChild(topWrapper, msg);
+      }
+
       if (this._taskTimer_settings) {
-        // GTK4 widgets use set_child
-        this._viewport.set_child(this._taskTimer_settings);
-        this._widget.set_child(this._viewport);
+        try {
+          addChild(topWrapper, this._taskTimer_settings);
+        } catch (e) {
+          this.logger.error('Failed to attach settings widget to wrapper: ' + e);
+        }
+
+        // Attach wrapper to viewport / scrolled window for GTK4
+        try {
+          this._viewport.set_child(topWrapper);
+          this._widget.set_child(this._viewport);
+        } catch (e) {
+          // Some older GJS/GTK4 combos may not have set_child on ScrolledWindow
+          try {
+            this._viewport.add(topWrapper);
+            this._widget.add(this._viewport);
+          } catch (e2) {
+            this.logger.error('Failed to attach preferences wrapper to viewport/scrolledwindow: ' + e2);
+          }
+        }
       } else {
         // prevent calling set_child with null which can crash or show blank UI
-        this.logger.error('No valid root widget found - returning an empty ScrolledWindow to avoid crash.');
-        // leave _widget as an empty scrolled window
+        this.logger.error('No valid root widget found - returning a wrapper with an error message to avoid crash.');
+        try {
+          this._viewport.set_child(topWrapper);
+          this._widget.set_child(this._viewport);
+        } catch (e) {
+          try {
+            this._viewport.add(topWrapper);
+            this._widget.add(this._viewport);
+          } catch (e2) {
+            this.logger.error('Failed to attach top wrapper in fallback: ' + e2);
+          }
+        }
       }
     }
 
@@ -167,336 +262,6 @@ class PreferencesBuilder {
     this.quick_radio.connect('toggled', (quick_radio) => {
       this._populate_liststore();
     });
-
-    this.timers_remove.connect('clicked', () => {
-      var [ ok, iter ] = this.timers_combo.get_active_iter();
-      if (ok) {
-        var model = this.timers_combo.get_model();
-        // set disabled
-        model.set_value(iter, Model.ENABLED, false);
-        var id=model.get_value(iter, Model.ID);
-        this.logger.debug('Disabling active entry %s:%s', model.get_value(iter, Model.NAME), id);
-        this.allow_updates=false;
-        ok = model.remove(iter);
-        if (ok) {
-          // iter points to the next entry in the model
-          this.timers_combo.set_active_iter(iter);
-          this._iter = iter;
-        } else {
-          [ok, iter] = model.get_iter_first();
-          if (ok) {
-            //var name = model.get_value(iter,Model.NAME);
-            this.logger.debug('Set combo to first item '+model.get_value(iter, Model.NAME));
-            this.timers_combo.set_active(0);
-            this._iter = iter;
-          }
-        }
-        this.allow_updates=true;
-
-        if (this._update_timers_tab_from_model(this.timers_combo)) {
-          this._save_liststore();
-        }
-      }
-    });
-
-    this.timers_add.connect('clicked', () => {
-      this.logger.debug('Add new timer');
-      var iter = this.timers_liststore.append();
-
-      this.timers_liststore.set_value(iter, Model.NAME, _('New timer')); // name
-      this.timers_liststore.set_value(iter, Model.ID, Utils.uuid());   // id
-      this.timers_liststore.set_value(iter, Model.DURATION, 0);           // duration
-      this.timers_liststore.set_value(iter, Model.ENABLED, true);        // enabled
-      this.timers_liststore.set_value(iter, Model.QUICK, false);
-
-      var index = this.timers_liststore.iter_n_children(null);
-
-      //iter = this.timers_liststore.iter_nth_child(null, index-1);
-      var model = this.timers_combo.get_model();
-      var [ ok, iter ] = model.iter_nth_child(null, index-1);
-      if (ok) {
-        this.logger.debug(`liststore rows=${index} ${ok} ${iter}`);
-        //this._iter = iter;
-        this.timers_combo.set_active_iter(iter);
-        //this._update_timers_tab_from_model(this.timers_combo);
-        if (this._update_active_liststore_from_tab()) {
-          this._save_liststore();
-        }
-      }
-    });
-
-    if (Utils.isGnome3x()) {
-
-      this.timers_combo_entry = this._bo('timers_combo_entry');
-
-      this.timers_combo.connect('changed', (combo) => {
-        var [ ok, iter ] = combo.get_active_iter();
-        if (ok) {
-          var model = combo.get_model();
-          var name = model.get_value(iter, Model.NAME);
-          var entry = this.timers_combo_entry.get_text();
-          this.logger.debug(`combo changed: ${name}:${entry} ${ok}`);
-          if (this.allow_updates) {
-            this._update_timers_tab_from_model(combo, entry);
-          }
-        }
-      });
-
-      this.timers_combo.connect('set-focus-child', (combo, child) => {
-        var [ ok, iter ] = combo.get_active_iter();
-        this.logger.debug(`current child focus=${child}, ok=${ok} iter=${iter}`);
-        if (child == null) {
-          iter = ok ? iter : this._iter;
-          this.allow_updates=false;
-          var entry = this.timers_combo_entry.get_text();
-          this.logger.debug(`child lost focus, entry=${entry}`);
-          this._update_combo_model_entry(combo, iter, entry);
-          combo.set_active_iter(iter);
-          //this.timers_liststore.set_value(iter, Model.NAME, this.timers_combo_entry.get_text());
-          this.allow_updates=true;
-          if (this._update_active_liststore_from_tab()) {
-            this._save_liststore();
-          }
-        } else if (ok) {
-          this.logger.debug('combox box iter saved');
-          this._iter = iter;
-        } else {
-          this.logger.debug('combo box does not have an active iter: current='+this._iter);
-        }
-      });
-
-      this.timers_combo_entry.connect('activate', (combo_entry) => {
-        var [ ok, iter ] = this.timers_combo.get_active_iter();
-        this.logger.debug(`Got activate ${ok}`);
-      });
-
-      this.timers_combo_entry.connect('focus-in-event', (combo_entry) => {
-        var [ ok, iter ] = this.timers_combo.get_active_iter();
-        this.logger.debug(`Got focus-in-event ${ok} ${iter}`);
-        if (ok) {
-          this._current_iter = iter;
-        }
-      });
-
-      this.timers_combo_entry.connect('focus-out-event', (combo_entry) => {
-        var [ ok, iter ] = this.timers_combo.get_active_iter();
-        this.logger.debug(`Got focus-out-event ${ok} ${iter} ${this._current_iter}`);
-        if (ok) {
-        } else if (this._current_iter) {
-        }
-        this._current_iter = undefined;
-      });
-
-    } else {
-
-      this.timers_combo_entry = this.timers_combo.get_child(); // this._bo('timers_combo_entry');
-
-      this.timers_combo.connect('changed', (combo) => {
-        let model = combo.get_model();
-        let entry = combo.get_child().get_text();
-
-        var [ ok, iter ] = combo.get_active_iter();
-        if (ok) {
-          this._iter = iter;
-
-          var name = model.get_value(iter, Model.NAME);
-          this.logger.debug('combo changed active: %s %s', name, entry);
-          this._update_timers_tab_from_model(combo, entry);
-        } else if (this._iter) {
-          // editing entry when get_active_iter is not 'ok'?
-          this.logger.debug('combo changed entry: %s %s',  entry, this._iter);
-          this._update_combo_model_entry(combo, this._iter, entry);
-        } else {
-          this.logger.debug("combo changed: active iter unknown");
-        }
-      });
-
-      // use to capture Enter
-      this.timers_combo_entry.connect('activate', (combo_entry) => {
-        var [ ok, iter ] = this.timers_combo.get_active_iter();
-        this.logger.debug(`Got activate ${ok}`);
-      });
-    }
-
-    this.allow_updates = true;
-    this._populate_liststore();
-
-    this.tv_timers = this._bo('tv_timers');
-    // this.tvs_timers = this._bo('tvs_timers');
-
-    // this.tvs_timers.connect('changed', (select) => {
-    //   let [ ok, model, iter ] = select.get_selected();
-    //   if (ok) {
-    //     this.logger.debug("tree view select changed");
-    //     this.timers_combo.set_active_iter(iter);
-    //   }
-    // });
-
-    // this.tvcr_enabled = this._bo('tvcr_enabled');
-    // this.tvcr_enabled.set_activatable(true);
-    // this.tvcr_enabled.connect('toggled', (toggle, path) => {
-    //   var active = toggle.get_active();
-    //   this.logger.debug("toggled=%s path=%s", active, path);
-      //toggle.set_active(!toggle.get_active());
-    //   var model = this.tv_timers.get_model();
-    //   var [ ok, iter ] = model.get_iter_from_string(path);
-    //   if (ok) {
-    //     model.set_value(iter, Model.ENABLED, !active);
-    //     this._save_liststore();
-    //     this._update_timers_tab_from_model(this.timers_combo);
-    //   }
-
-    // });
-
-    // this.tvcr_trash = this._bo('tvcr_trash');
-    // this.tvcr_trash.connect('toggled', (toggle, path) => {
-
-    // });
-
-    // this.tvcr_name = this._bo('tvcr_name');
-    // this.tvcr_name.editable = true;
-    // this.tvcr_name.connect('edited', (text, path, new_text) => {
-    //   this.logger.debug("path=%s new_text=%s", path, new_text);
-    //   var model = this.tv_timers.get_model();
-    //   var [ ok, iter ] = model.get_iter_from_string(path);
-    //   if (ok) {
-    //     model.set_value(iter, Model.NAME, new_text);
-    //     var alarm_timer = AlarmTimer.matchRegex(new_text);
-    //     if (alarm_timer) {
-    //       var hms = alarm_timer.hms();
-    //       model.set_value(iter, Model.DURATION, hms.toSeconds());
-    //       model.set_value(iter, Model.HMS, hms.toString());
-    //     }
-    //     this._save_liststore();
-    //     this._update_timers_tab_from_model(this.timers_combo);
-    //   }
-    // });
-
-    // this.tvcr_hms = this._bo('tvcr_hms');
-    // this.tvcr_hms.editable = true;
-    // this.tvcr_hms.connect('edited', (text, path, new_text) => {
-    //   this.logger.debug("path=%s new_text=%s", path, new_text);
-    //   var model = this.tv_timers.get_model();
-    //   var [ ok, iter ] = model.get_iter_from_string(path);
-    //   if (ok) {
-    //     var duration = model.get_value(iter, Model.DURATION);
-    //     var hms_text = model.get_value(iter, Model.HMS);
-    //     this.logger.debug("duration=%d hms=%s new=%s", duration, hms_text, new_text);
-    //     var hms = HMS.fromString(new_text);
-    //     if (hms) {
-    //       model.set_value(iter, Model.DURATION, hms.toSeconds());
-    //       model.set_value(iter, Model.HMS, hms.toString());
-    //       this._save_liststore();
-    //       this._update_timers_tab_from_model(this.timers_combo);
-    //     }
-
-    //   }
-    // });
-
-    // this.tvcr_duration = this._bo('tvcr_duration');
-    // this.tvcr_duration.editable = true;
-    // this.tvcr_duration.connect('edited', (text, path, new_text) => {
-    //   this.logger.debug("path=%s new_text=%s", path, new_text);
-    //   var model = this.tv_timers.get_model();
-    //   var [ ok, iter ] = model.get_iter_from_string(path);
-    //   if (ok) {
-    //     var duration = model.get_value(iter, Model.DURATION);
-    //     var hms_text = model.get_value(iter, Model.HMS);
-    //     this.logger.debug("duration=%d hms=%s new=%s", duration, hms_text, new_text);
-    //     var hms = new HMS(new_text);
-    //     if (hms) {
-    //       model.set_value(iter, Model.DURATION, hms.toSeconds());
-    //       model.set_value(iter, Model.HMS, hms.toString());
-    //       this._save_liststore();
-    //       this._update_timers_tab_from_model(this.timers_combo);
-    //     }
-
-    //   }
-    // });
-
-    // Options
-    if (Utils.isGnome3x()) {
-      this._json_file_chooser_button = this._bo('json_file_chooser_button');
-      this._json_file_chooser_button.connect('clicked', (button) => {
-        if (this._bo('export_settings_radio').get_active()) {
-          this.export_settings();
-        } else {
-          this.import_settings();
-        }
-      });
-    } else {
-      this._bo('export_settings').connect('clicked', (button) => {
-        this.export_settings();
-      });
-
-      this._bo('import_settings').connect('clicked', (button) => {
-        this.import_settings();
-      });
-    }
-
-    this.inhibit = this._bo('inhibit');
-    this.inhibit.connect('toggled', (check) => {
-      let val=0;
-      if (check.get_active()) {
-        val = 12;
-      }
-      this._settings.inhibit = val;
-    });
-    this.inhibit.set_active(this._settings.inhibit > 0);
-
-    // Sound
-    if (Utils.isGnome3x()) {
-      let file_chooser = this._bo('sound_path');
-
-      if (file_chooser.current_folder == undefined) {
-        file_chooser.current_folder = Me.path;
-      }
-      this.logger.debug("file chooser dir="+file_chooser.current_folder);
-      let sound_file = this._settings.sound_file;
-      if (GLib.basename(sound_file) == sound_file) {
-        sound_file = GLib.build_filenamev([ Me.path, sound_file ]);
-      }
-      this.logger.debug("sound_file="+sound_file);
-      file_chooser.set_filename(sound_file);
-
-      file_chooser.connect('file-set', (user_data) => {
-        this.logger.debug("file-set happened: "+user_data.get_filename());
-        this.logger.debug(Object.getOwnPropertyNames(user_data));
-        this._settings.sound_file = user_data.get_filename();
-      });
-    } else {
-      this._bo('sound_path').connect('clicked', (btn) => {
-        this.sound_file_chooser();
-      });
-
-      this._bo('label_sound_file').set_label(GLib.basename(this._settings.sound_file));
-    }
-
-    // About box
-    this._about_clicks = 0;
-    if (Utils.isGnome3x()) {
-
-      this.timer_icon = this._bo('timer_icon');
-
-      this.timer_icon.connect('button-press-event', () => {
-        this._about_clicks = this._spawn_dconf_config(this._about_clicks);
-      });
-    } else {
-      this.timer_icon_button = this._bo('timer_icon_button');
-
-      this.timer_icon_button.connect('clicked', (btn) => {
-        this._about_clicks = this._spawn_dconf_config(this._about_clicks);
-      });
-
-      let bmac = Gtk.Picture.new_for_filename(Me.dir.get_path()+'/icons/bmc_logo_wordmark.svg');
-      this._bo('link_bmac').set_child(bmac);
-    }
-
-    // bind all checkboxes to settings
-    this._bind();
-
-    return this._widget;
-  }
 
   _spawn_dconf_config(clicks) {
     if (clicks === 2) {
@@ -907,10 +672,69 @@ class PreferencesBuilder {
   }
 
   /**
-   * Get Gtk Builder object by id
+   * Get Gtk Builder object by id. If the object is missing return a "noop"
+   * proxy that safely swallows method calls and returns safe defaults so
+   * the preferences code does not crash; also log the missing id.
    */
   _bo(id) {
-    return this._builder.get_object(id);
+    let obj = this._builder.get_object(id);
+    if (obj) return obj;
+
+    try {
+      this.logger.error(`Builder returned null for id='${id}'`);
+    } catch (e) {
+      // ignore
+    }
+
+    const logger = this.logger;
+
+    const safeDefaults = {
+      get_active_iter: () => [false, null],
+      get_iter_first: () => [false, null],
+      iter_nth_child: () => [false, null],
+      iter_n_children: () => 0,
+      get_model: () => null,
+      get_value: () => null,
+      append: () => null,
+      remove: () => false,
+      clear: () => {},
+      set_value: () => {},
+      set_active: () => {},
+      set_active_iter: () => {},
+      get_text: () => '',
+      set_text: () => {},
+      set_markup: () => {},
+      set_label: () => {},
+      hide: () => {},
+      show_all: () => {},
+      connect: () => {},
+      set_child: () => {},
+      add: () => {},
+      append: () => {},
+      pack_start: () => {},
+      set_orientation: () => {},
+      set_spacing: () => {},
+      set_property: () => {},
+      get_root: () => null,
+      get_toplevel: () => null
+    };
+
+    const noop = new Proxy(function() {}, {
+      get(target, prop) {
+        if (prop === 'toString') return () => `<noop:${id}>`;
+        if (prop in safeDefaults) return safeDefaults[prop];
+        // return a generic noop function for any method
+        return function() {
+          try { logger.debug(`Called noop method '${String(prop)}' on missing builder object '${id}'`); } catch (e) {}
+          return null;
+        };
+      },
+      apply(target, thisArg, args) {
+        return null;
+      }
+    });
+
+    return noop;
   }
 
   /**
