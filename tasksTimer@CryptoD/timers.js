@@ -818,13 +818,12 @@ var Timer = class Timer {
       return;
     }
     var key = this.degree_progress();
-    // Use the PNG logo as the icon instead of the progress icon
-    let logoPath = Me.path + '/img/logo.png';
-    let logoGicon = Gio.icon_new_for_string(logoPath);
+    // Use the progress icon instead of the PNG logo
+    let progressGicon = this.timers.progress_gicon(key);
 
-    // Create the icon with the PNG logo
+    // Create the icon with the progress icon
     var icon = new St.Icon({
-      gicon: logoGicon,
+      gicon: progressGicon,
       style_class: 'system-status-icon'
     });
     icon.set_icon_size(20);
