@@ -90,6 +90,25 @@ function spawn(command, callback) {
  * Normally if exit_status is 0 stderr will be empty
  *
  */
+ // Helper to convert GBytes/ByteArray/Uint8Array to string safely
+function bytesToString(data) {
+  if (!data)
+    return '';
+
+  if (typeof TextDecoder !== 'undefined' && data instanceof Uint8Array)
+    return new TextDecoder().decode(data);
+
+  try {
+    return ByteArray.toString(data);
+  } catch (e) {
+    try {
+      return data.toString();
+    } catch (err) {
+      return '';
+    }
+  }
+}
+
 function execute(cmdargs, params={ wdir: null, envp: null, flags: GLib.SpawnFlags.SEARCH_PATH }) {
   var [ok, stdout, stderr, exit_status] = GLib.spawn_sync(
     params.wdir, // working directory
@@ -100,8 +119,8 @@ function execute(cmdargs, params={ wdir: null, envp: null, flags: GLib.SpawnFlag
   );
 
   if (ok) {
-    stdout = ByteArray.toString(stdout);
-    stderr = ByteArray.toString(stderr);
+    stdout = bytesToString(stdout);
+    stderr = bytesToString(stderr);
     //log(`ok=${ok} exit_status=${exit_status} stdout=${stdout} stderr=${stderr}`);
     return [ exit_status, stdout, stderr ];
   }

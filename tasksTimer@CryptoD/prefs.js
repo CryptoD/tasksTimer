@@ -160,10 +160,14 @@ class PreferencesBuilder {
         // Create a visible message to inform the user about missing widgets
         let msg;
         try {
-          msg = new Gtk.Label({use_markup: true, xalign: 0});
+          msg = new Gtk.Label({use_markup: true, halign: Gtk.Align.START});
         } catch (e) {
           msg = new Gtk.Label();
-          msg.set_xalign(0);
+          try {
+            msg.set_halign(Gtk.Align.START);
+          } catch (e2) {
+            msg.set_xalign(0);
+          }
         }
 
         let text = '<b>Preferences failed to load correctly</b>\nThe following UI elements are missing from the loaded settings file:\n' + missing.map(x => '- ' + x).join('\n') + '\n\nPlease check your extension installation or the settings file.';
@@ -174,7 +178,7 @@ class PreferencesBuilder {
         } catch (e) {
           msg.set_text(text);
         }
-        msg.set_line_wrap(true);
+        msg.set_wrap(true);
         msg.set_selectable(true);
 
         addChild(topWrapper, msg);
@@ -282,6 +286,10 @@ class PreferencesBuilder {
     this.quick_radio.connect('toggled', (quick_radio) => {
       this._populate_liststore();
     });
+
+    this._populate_liststore();
+    return this._widget;
+  }
 
   _spawn_dconf_config(clicks) {
     if (clicks === 2) {
@@ -536,6 +544,8 @@ class PreferencesBuilder {
     });
 
     file_dialog.show();
+            var data = stream.read_bytes(size, null).get_data();
+            var json = Utils.bytesToString ? Utils.bytesToString(data) : ByteArray.toString(data);
   }
 
   _update_combo_model_entry(combo, iter, entry) {
