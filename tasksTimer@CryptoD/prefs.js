@@ -66,7 +66,7 @@ class PreferencesBuilder {
       // window.resize(700, 900);
     }
     this._bo('timer_box').hide();
-    this.tv_timers.hide();
+    this._bo('tv_timers').hide();
   }
 
   build() {
