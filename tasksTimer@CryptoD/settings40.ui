@@ -276,7 +276,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                                   <property name="visibility">True</property>
                                   <property name="can-focus">True</property>
                                   <property name="placeholder-text" translatable="yes" context="timers-combo-entry">Timer name</property>
-                                  <property name="show-emoji-icon">True</property>
+                                  <property name="show-emoji-icon">False</property>
                                   <property name="editable">True</property>
                                 </object>
                               </child>
@@ -559,8 +559,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                             <object class="GtkEntry" id="name_entry">
                               <property name="visible">True</property>
                               <property name="can-focus">True</property>
-                              <property name="show-emoji-icon">True</property>
-                              <property name="enable-emoji-completion">True</property>
+                              <property name="show-emoji-icon">False</property>
                             </object>
                             <!--<packing>
                               <property name="expand">False</property>
@@ -1261,6 +1260,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                         <object class="GtkLabel">
                           <property name="visible">True</property>
                           <property name="can-focus">False</property>
+                          <property name="margin-top">-20</property>
                           <property name="label">taskTimer</property>
                           <property name="halign">center</property>
                           <attributes>

@@ -117,7 +117,7 @@
                     <child internal-child="entry">
                       <object class="GtkEntry" id="timers_combo_entry">
                         <property name="placeholder-text" translatable="yes" context="timers-combo-entry">Timer name</property>
-                        <property name="show-emoji-icon">True</property>
+                        <property name="show-emoji-icon">False</property>
                       </object>
                     </child>
                   </object>
@@ -224,8 +224,7 @@
                 <child>
                   <object class="GtkEntry" id="name_entry">
                     <property name="placeholder-text" translatable="yes">Enter timer name</property>
-                    <property name="show-emoji-icon">True</property>
-                    <property name="enable-emoji-completion">True</property>
+                    <property name="show-emoji-icon">False</property>
                   </object>
                 </child>
                 <child>
