@@ -36,7 +36,7 @@ var Settings = class Settings {
   constructor() {
     // try to recompile the schema
     let compile_schemas = [ Me.path+"/bin/compile_schemas.sh" ];
-    let [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas);
+    let [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas, undefined, GLib);
 
     this.settings = ExtensionUtils.getSettings();
     this.logger = new Logger('kt settings', this.settings);

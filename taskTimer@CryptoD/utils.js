@@ -1,59 +1,31 @@
-/*
- * taskTimer: A GNOME Shell Extension for Task Timing
- *
- * Utility functions and constants for the taskTimer GNOME Shell extension.
- * Provides helpers for internationalization, GNOME version detection,
- * logging, timeouts, intervals, command execution, and more.
- *
- * Copyright (C) 2023 CryptoD
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
 const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
 String.prototype.format = imports.format.format;
 
-const GLib = imports.gi.GLib;
+const { GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 
-// https://gjs.guide/extensions/upgrading/gnome-shell-40.html
-const Config = imports.misc.config;
-const [major] = Config.PACKAGE_VERSION.split('.');
-const shellVersion = Number.parseInt(major);
-
+const shellVersion = 40;
 function isGnome3x() {
-  return (shellVersion < 40);
+  return shellVersion < 40;
 }
 
 function isGnome40() {
-  return (shellVersion >= 40);
+  return shellVersion >= 40;
 }
 
 function logObjectPretty(obj) {
   log(JSON.stringify(obj, null, 2));
 }
 
-var clearTimeout, clearInterval;
+ // let clearTimeout, clearInterval;
 clearTimeout = clearInterval = GLib.Source.remove;
 
 function setTimeout(func, delay, ...args) {
   const wrappedFunc = () => {
     func.apply(this, args);
-    // never continue timeout
     return false;
   };
   return GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, wrappedFunc);
@@ -61,38 +33,26 @@ function setTimeout(func, delay, ...args) {
 
 function setInterval(func, delay, ...args) {
   const wrappedFunc = () => {
-    // continue timeout until func returns false
     return func.apply(this, args);
   };
   return GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, wrappedFunc);
 }
 
 function spawn(command, callback) {
-  var [status, pid] = GLib.spawn_async(
-      null,
-      ['/usr/bin/env', 'bash', '-c', command],
-      null,
-      GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
-      null
+  const [status, pid] = GLib.spawn_async(
+    null,
+    ['/usr/bin/env', 'bash', '-c', command],
+    null,
+    GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+    null,
   );
 
-  if (callback) {
+  if (callback)
     GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, callback);
-  }
+  var clearTimeout = GLib.Source.remove;
+  var clearInterval = GLib.Source.remove;
 }
 
-/**
- * execute the given cmdargs [ cmd, arg0, arg1, ... ] synchronously
- *
- * Return [ exit_value, output ]
- *
- * - if it fails return [ -1, undefined, undefined ]
- * - otherwise return [ exit_status, stdout, stderr ]
- *
- * Normally if exit_status is 0 stderr will be empty
- *
- */
- // Helper to convert GBytes/ByteArray/Uint8Array to string safely
 function bytesToString(data) {
   if (!data)
     return '';
@@ -111,52 +71,86 @@ function bytesToString(data) {
   }
 }
 
-function execute(cmdargs, params={ wdir: null, envp: null, flags: GLib.SpawnFlags.SEARCH_PATH }) {
-  var [ok, stdout, stderr, exit_status] = GLib.spawn_sync(
-    params.wdir, // working directory
-    cmdargs,  // string array
-    params.envp,     // envp
+function execute(cmdargs, params, glib = GLib) {
+  if (!params)
+    params = { wdir: null, envp: null, flags: 8 };
+  else {
+    if (params.wdir === undefined)
+      params.wdir = null;
+    if (params.envp === undefined)
+      params.envp = null;
+    if (params.flags === undefined)
+      params.flags = 8;
+  }
+
+  const [ok, stdoutRaw, stderrRaw, exit_status] = glib.spawn_sync(
+    params.wdir,
+    cmdargs,
+    params.envp,
     params.flags,
-    null    // child setup function
+    null,
   );
 
   if (ok) {
-    stdout = bytesToString(stdout);
-    stderr = bytesToString(stderr);
-    //log(`ok=${ok} exit_status=${exit_status} stdout=${stdout} stderr=${stderr}`);
-    return [ exit_status, stdout, stderr ];
+    const stdout = bytesToString(stdoutRaw);
+    const stderr = bytesToString(stderrRaw);
+    return [exit_status, stdout, stderr];
   }
-  // fatal
-  return [ -1, undefined, "execute failed: %s".format(cmdargs.join(" ")) ];
+
+  return [-1, undefined, "execute failed: %s".format(cmdargs.join(" "))];
 }
 
-function uuid(id=undefined) {
+function uuid(id = undefined) {
   return id === undefined || id.length === 0 ? GLib.uuid_string_random() : id;
 }
 
-function isDebugModeEnabled() {
-    return new Settings().debug();
-}
-
 function addSignalsHelperMethods(prototype) {
-    prototype._connectSignal = function (subject, signal_name, method) {
-        if (!this._signals) this._signals = [];
+  prototype._connectSignal = function(subject, signal_name, method) {
+    if (!this._signals)
+      this._signals = [];
 
-        var signal_id = subject.connect(signal_name, method);
-        this._signals.push({
-            subject: subject,
-            signal_id: signal_id
-        });
-    }
+    const signal_id = subject.connect(signal_name, method);
+    this._signals.push({
+      subject,
+      signal_id,
+    });
+  };
 
-    prototype._disconnectSignals = function () {
-        if (!this._signals) return;
+  prototype._disconnectSignals = function() {
+    if (!this._signals)
+      return;
 
-        this._signals.forEach((signal) => {
-            signal.subject.disconnect(signal.signal_id);
-        });
-        this._signals = [];
-    };
+    this._signals.forEach(signal => {
+      signal.subject.disconnect(signal.signal_id);
+    });
+    this._signals = [];
+  };
 }
 
+const moduleExports = {
+  isGnome3x,
+  isGnome40,
+  logObjectPretty,
+  clearTimeout,
+  clearInterval,
+  setTimeout,
+  setInterval,
+  spawn,
+  bytesToString,
+  execute,
+  uuid,
+  addSignalsHelperMethods,
+};
 
+this.isGnome3x = isGnome3x;
+this.isGnome40 = isGnome40;
+this.logObjectPretty = logObjectPretty;
+this.clearTimeout = clearTimeout;
+this.clearInterval = clearInterval;
+this.setTimeout = setTimeout;
+this.setInterval = setInterval;
+this.spawn = spawn;
+this.bytesToString = bytesToString;
+this.execute = execute;
+this.uuid = uuid;
+this.addSignalsHelperMethods = addSignalsHelperMethods;
