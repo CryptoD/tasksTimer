@@ -13,7 +13,7 @@
     "45"
   ],
   "gettext-domain": "tasktimer",
-  "settings-schema": "org.gnome.shell.extensions.kitchen-timer-blackjackshellac",
+  "settings-schema": "org.gnome.shell.extensions.tasktimer",
   "url": "https://github.com/CryptoD/taskTimer",
   "version": 1.0
 }
