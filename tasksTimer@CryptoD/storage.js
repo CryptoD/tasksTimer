@@ -1,5 +1,6 @@
 const GLib = imports.gi.GLib;
 
+ * Copyright (C) 2023 CryptoD
 function saveJSON(filename, data) {
     try {
         let jsonString = JSON.stringify(data, null, 2);

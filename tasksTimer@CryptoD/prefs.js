@@ -1,5 +1,6 @@
 /*
  * taskTimer: Gnome Shell taskTimer Extension
+ * Copyright (C) 2023 CryptoD
  *
  * Copyright (C) 2023 CryptoD
  *

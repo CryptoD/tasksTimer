@@ -1,5 +1,6 @@
 const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
+ * Copyright (C) 2023 CryptoD
 const _ = Gettext.gettext;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
