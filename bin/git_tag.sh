@@ -14,7 +14,7 @@ info() {
 [ $# -lt 2 ] && test="DRYRUN" && info -e "set > 1 parameters to create tag"
 
 info $MD
-cd $MD/../kitchentimer@blackjackshellac.ca
+cd $MD/../taskTimer@CryptoD
 [ $? -ne 0 ] && echo "Failed to change to extension directory" && exit 1
 
 info Working in $(pwd)
@@ -24,7 +24,7 @@ gsv=$(cat metadata.json | ruby -rjson -e 'puts JSON.parse(STDIN.read)["shell-ver
 ver=$(cat metadata.json | ruby -rjson -e 'puts JSON.parse(STDIN.read)["version"]')
 ver=$(echo -n $ver)
 
-msg="Kitchen Timer ver$ver for Gnome Shell $gsv"
+msg="taskTimer ver$ver for Gnome Shell $gsv"
 tag_name=$(echo -n $msg | sed 's/[ \.]/_/g')
 info git tag -a $tag_name -m "$msg"
 

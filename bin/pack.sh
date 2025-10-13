@@ -1,6 +1,12 @@
 #!/bin/bash
 
-ed=kitchentimer@blackjackshellac.ca
+ed=taskTimer@CryptoD
+[ ! -d $ed ] && echo "Extension dir $ed not found" && exit 1
+cd $ed
+
+#kitchen-timer-blackjackshellac
+extra_source=$(ls -1 *.js | grep -v prefs.js | grep -v extension.js)
+extra_source="$extra_source $(ls *.ogg *.ui)"
 [ ! -d $ed ] && echo "Extension dir $ed not found" && exit 1
 cd $ed
 
@@ -12,6 +18,7 @@ echo $extra_source
 eso=""
 for es in $extra_source; do
 	echo "Adding extra $es"
+	sed -i 's|--schema=schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml --gettext-domain=kitchen-timer-blackjackshellac|--schema=schemas/org.gnome.shell.extensions.tasktimer.gschema.xml --gettext-domain=tasktimer|' bin/pack.sh
 	eso="$eso --extra-source=$es"
 done
 
