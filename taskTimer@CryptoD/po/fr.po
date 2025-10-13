@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskTimer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-18 11:18-0400\n"
+"POT-Creation-Date: 2025-10-13 15:17+0400\n"
 "PO-Revision-Date: 2021-05-14 06:10-0400\n"
 "Last-Translator: Steeve McCauley <steeve.mccauley@gmail.com>\n"
 "Language-Team: French <steeve.mccauley@gmail.com>\n"
@@ -29,19 +29,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "X-Generator: Gtranslator 40.0\n"
 
-#: ../indicator.js:47 ../settings.ui:1040
-msgid "taskTimer"
-msgstr "taskTimer"
-
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:41
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:42
 msgid "Show a notification when a timer ends"
 msgstr "Afficher une notification à la fin de la minuterie"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:46
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:47
 msgid "Inhibit screen lock"
 msgstr "Désactiver le verrouillage de l'écran"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:47
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:48
 msgid ""
 "0 - off 1 - Inhibit logging out 2 - Inhibit user switching 4 - Inhibit "
 "suspending the session or computer 8 - Inhibit the session being marked as "
@@ -51,439 +47,211 @@ msgstr ""
 "suspending the session or computer 8 - Inhibit the session being marked as "
 "idle"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:57
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:58
 msgid "Maximum amount of time to inhibit screen lock, in seconds"
 msgstr "Temps maximum pour empêcher le verrouillage de l'écran, en secondes"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:58
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:59
 msgid "0 is no maximum, positive integer specifies the number of seconds"
 msgstr ""
 "0 n'est pas un maximum, une valeur positive spécifie le nombre de secondes"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:63
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:64
 msgid "Make the notification wait for input"
 msgstr "Faire attendre la notification pour l'entrée de l'utilisateur"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:68
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:69
 msgid "Long timeout for sticky notifications, default is 30 seconds"
 msgstr ""
 "Long délai d'attente pour les notifications persistantes, la valeur par "
 "défaut est de 30 secondes"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:72
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:73
 msgid "Show the time when the timer will expire rather than the countdown"
 msgstr ""
 "Afficher le temps lorsque la minuterie expirera plutôt que le compte à "
 "rebours"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:76
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:77
 msgid "Show time remaining in panel menu"
 msgstr "Afficher le temps restant dans le panneau"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:80
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:81
 msgid "Show timer progress in panel menu"
 msgstr "Afficher la progression de la minuterie dans le panneau"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:84
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:85
 msgid "Show timer name in panel menu"
 msgstr "Afficher le nom de la minuterie dans le panneau"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:88
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:89
 msgid "Play sound notifications"
 msgstr "Jouer les sons de notification"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:93
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:94
 msgid "Number of times to ring alarm sound, 0 is the duration of notification"
 msgstr "Nombre de sonneries d'alarme, 0 est la durée de la notification"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:97
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:98
 msgid "Path to sound file"
 msgstr "Chemin vers le fichier son"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:102
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:103
 msgid "Default length of timer in seconds"
 msgstr "Durée par défaut de la minuterie en secondes"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:106
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:107
 msgid "Array of Timer descriptions"
 msgstr "Tableau de descriptions de minuterie"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:110
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:111
 msgid "Array of Quick Timer descriptions"
 msgstr "Table of descriptions of convenient timers"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:114
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:115
 msgid "timers configuration stored as json"
 msgstr "configuration des minuteries stockée en tant que json"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:115
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:116
 msgid "Experimental feature for storing timer data"
 msgstr "Fonction expérimentale de stockage des données de minuterie"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:119
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:120
 msgid "Sort list of timers by duration"
 msgstr "Trier la liste des minuteries par durée"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:123
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:124
 msgid "Sort from longest to shortest"
 msgstr "Trier du plus long au plus court"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:127
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:128
 msgid "Save quick timers between sessions if enabled"
 msgstr "Enregistrer des minuteries pratiques entre les sessions si activé"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:131
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:132
 msgid "Prevent creation of duplicate timers of the same type"
 msgstr "Eviter la création de minuteries en double du même type"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:135
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:136
 msgid "State of running timers as json string"
 msgstr "État des minuteries en cours d'exécution comme json"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:140
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:141
 msgid "Low volume threshold in percent"
 msgstr "Limite de volume faible en pourcentage"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:145
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:146
 msgid ""
 "Heuristic counter to prefer displaying the quick or preset menus expanded"
 msgstr ""
 "Compteur heuristique pour préférer afficher les menus rapides ou préréglées"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:149
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:150
 msgid "Warn if volume levels are below threshold"
 msgstr "Avertir si les niveaux de volume sont inférieurs au seuil"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:153
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:154
 msgid "Turn on debugging"
 msgstr "Activer le débogage"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:157
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:158
 msgid "Enable keyboard shortcuts"
 msgstr "Activer les raccourcis clavier"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:161
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:162
 msgid "Keyboard shortcut for toggling show-end-time setting"
 msgstr "Accélérateur de clavier pour basculer le paramètre show-end-time"
 
-#: ../schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml:165
+#: ../schemas/org.gnome.shell.extensions.tasktimer.gschema.xml:166
 msgid "Keyboard shortcut to stop the next timer to expire"
 msgstr "Accélérateur de clavier pour arrêter la prochaine minuterie à expirer"
 
-#: ../settings.ui:55 ../settings.ui:267 ../settings40.ui:299
-#: ../settings40.ui:306
-msgctxt "add-timer"
-msgid "Add new timer"
-msgstr "Ajouter une nouvelle minuterie"
-
-#: ../settings.ui:72 ../settings.ui:282 ../settings40.ui:324
-#: ../settings40.ui:330
-msgctxt "remove-timer"
-msgid "Remove selected timer"
-msgstr "Supprimer la minuterie sélectionnée"
-
-#: ../settings.ui:169 ../settings40.ui:187
+#: ../settings.ui:79 ../settings40.ui:185
 msgctxt "preset_radio"
 msgid "Preset timers"
 msgstr "Minuteries préréglées"
 
-#: ../settings.ui:185 ../settings40.ui:204
+#: ../settings.ui:87 ../settings40.ui:202
 msgctxt "quick_radio"
 msgid "Quick timers"
 msgstr "Minuteries pratiques"
 
-#: ../settings.ui:207
-msgid "Timer types"
-msgstr "Types de minuterie"
+#: ../settings.ui:98
+msgid "Timer Types"
+msgstr ""
 
-#: ../settings.ui:241 ../settings40.ui:268
+#: ../settings.ui:113 ../settings40.ui:266
 msgctxt "select-timer"
 msgid "Select the timer to be modified"
 msgstr "Sélectionnez le minuteur à modifier"
 
-#: ../settings.ui:251 ../settings40.ui:280
+#: ../settings.ui:119 ../settings40.ui:278
 msgctxt "timers-combo-entry"
 msgid "Timer name"
 msgstr "Nom de la minuterie"
 
-#: ../settings.ui:295 ../settings40.ui:345
+#: ../settings.ui:128 ../settings40.ui:297 ../settings40.ui:304
+msgctxt "add-timer"
+msgid "Add new timer"
+msgstr "Ajouter une nouvelle minuterie"
+
+#: ../settings.ui:136 ../settings40.ui:322 ../settings40.ui:328
+msgctxt "remove-timer"
+msgid "Remove selected timer"
+msgstr "Supprimer la minuterie sélectionnée"
+
+#: ../settings.ui:144 ../settings40.ui:343
 msgctxt "timer-enabled-text"
 msgid "Enabled"
 msgstr "Activer"
 
-#: ../settings.ui:299 ../settings40.ui:349
+#: ../settings.ui:145 ../settings40.ui:347
 msgctxt "timer-enabled"
 msgid "Enable timer if checked"
 msgstr "Activer la minuterie si coché"
 
-#: ../settings.ui:330 ../settings40.ui:382
+#: ../settings.ui:158 ../settings40.ui:380
 msgctxt "label-hour"
 msgid "Hours"
 msgstr "Heures"
 
-#: ../settings.ui:342
-msgctxt "label-minutes"
-msgid "Minutes\t"
-msgstr "Minutes"
-
-#: ../settings.ui:354 ../settings40.ui:416
-msgctxt "label-seconds"
-msgid "Seconds"
-msgstr "Secondes"
-
-#: ../settings.ui:421 ../settings40.ui:505
-msgid "1"
-msgstr "1"
-
-#: ../settings.ui:434 ../settings40.ui:522
-msgid "0"
-msgstr "0"
-
-#: ../settings.ui:543 ../settings40.ui:635
-msgctxt "tvcr-name"
-msgid "Name"
-msgstr "Nom"
-
-#: ../settings.ui:558 ../settings40.ui:650
-msgctxt "tvcr-hms"
-msgid "HH:MM:SS"
-msgstr "HH:MM:SS"
-
-#: ../settings.ui:573 ../settings40.ui:665
-msgctxt "tvcr-duration"
-msgid "Duration"
-msgstr "Duration"
-
-#: ../settings.ui:588 ../settings40.ui:680
-msgctxt "tvcr-enabled"
-msgid "Enabled"
-msgstr "Activée"
-
-#: ../settings.ui:599 ../settings40.ui:691
-msgid "Delete"
-msgstr "Supprimer"
-
-#: ../settings.ui:627 ../settings40.ui:159
-msgid "Timers"
-msgstr "Minuteries"
-
-#: ../settings.ui:641 ../settings40.ui:739
-msgctxt "notification"
-msgid "Notification"
-msgstr "Notification"
-
-#: ../settings.ui:645 ../settings40.ui:743
-msgctxt "notification"
-msgid "Show a notification when the timer is done"
-msgstr "Afficher une notification lorsque la minuterie est terminée"
-
-#: ../settings.ui:655 ../settings40.ui:757
-msgctxt "sort_by_duration_text"
-msgid "Sort by duration"
-msgstr "Trier par durée"
-
-#: ../settings.ui:659 ../settings40.ui:761
-msgctxt "sort-by-duration"
-msgid "Sort timers by duration"
-msgstr "Trier les minuteries par durée"
-
-#: ../settings.ui:669 ../settings40.ui:775
-msgctxt "sort_descending_text"
-msgid "Sort descending"
-msgstr "Trier par ordre décroissant"
-
-#: ../settings.ui:673 ../settings40.ui:779
-msgctxt "sort-descending"
-msgid "Sort timers by duration from longest to shortest"
-msgstr "Trier les minuteries par durée du plus long au plus court"
-
-#: ../settings.ui:683 ../settings40.ui:793
-msgctxt "save-quick-timers"
-msgid "Save quick timers"
-msgstr "Enregistrer des minuteries practiques"
-
-#: ../settings.ui:687 ../settings40.ui:797
-msgctxt "save-quick-timers-tooltip"
-msgid "If selected, quick timers are also saved"
-msgstr "Si sélectionné, les minuteries practiques sont également enregistrées"
-
-#: ../settings.ui:697 ../settings40.ui:811
-msgctxt "show_label"
-msgid "Show name"
-msgstr "Afficher nom"
-
-#: ../settings.ui:701 ../settings40.ui:815
-msgctxt "show_timer_name"
-msgid "Show timer name in the panel menu"
-msgstr "Afficher le nom de la minuterie dans le menu du panneau"
-
-#: ../settings.ui:711 ../settings40.ui:829
-msgctxt "detect-dupes"
-msgid "Detect dupes"
-msgstr "Eviter les doublons"
-
-#: ../settings.ui:715 ../settings40.ui:833
-msgctxt "detect-dupes-tooltip"
-msgid "Prevent timers with the same duration, name and type"
-msgstr "Évitez les minuteries avec la même durée, le même nom et le même type"
-
-#: ../settings.ui:725 ../settings40.ui:847
-msgctxt "show_time"
-msgid "Show time"
-msgstr "Afficher l'heure"
-
-#: ../settings.ui:729 ../settings40.ui:851
-msgctxt "show-time"
-msgid "Show remaining time for running timers in the panel"
-msgstr ""
-"Afficher le temps restant pour l'exécution des minuteries dans le panneau"
-
-#: ../settings.ui:739 ../settings40.ui:865
-msgctxt "notification_sticky"
-msgid "Sticky notification"
-msgstr "Notification persistente"
-
-#: ../settings.ui:743 ../settings40.ui:869
-msgctxt "notification-sticky-tooltip"
-msgid "Notification waits for input"
-msgstr "La notification attend l'action de l'utilisateur"
-
-#: ../settings.ui:753 ../settings40.ui:883
-msgctxt "animate_progress_icon"
-msgid "Animate progress icon"
-msgstr "Animer l'icône de progression"
-
-#: ../settings.ui:757 ../settings40.ui:887
-msgctxt "show-progress-tooltip"
-msgid "Animate progress icon in the panel menu"
-msgstr "Animer l'icône de progression dans le panneau"
-
-#: ../settings.ui:767 ../settings.ui:971 ../settings40.ui:901
-#: ../settings40.ui:1177
-msgctxt "play-sound"
-msgid "Play sound"
-msgstr "Jouer son"
-
-#: ../settings.ui:771 ../settings40.ui:905
-msgctxt "play-sound"
-msgid "Play the sound when the timer is done"
-msgstr "Jouez le son lorsque la minuterie est terminée"
-
-#: ../settings.ui:788
-msgctxt "json_file_chooser_button"
-msgid "Settings…"
-msgstr "Paramètres…"
-
-#: ../settings.ui:792
-msgctxt "json_file_chooser_tooltip"
-msgid "Export timer settings, or import them into the program"
-msgstr "Exportez les paramètres de la minuterie ou importez-les"
-
-#: ../settings.ui:805 ../settings40.ui:949
-msgctxt "export-settings-radio"
-msgid "Export"
-msgstr "Exporter"
-
-#: ../settings.ui:820 ../settings40.ui:963
-msgctxt "import-settings-radio"
-msgid "Import"
-msgstr "Importer"
-
-#: ../settings.ui:865 ../settings40.ui:1019
-msgctxt "inhibit"
-msgid "Inhibit screen lock"
-msgstr "Désactiver le verrouillage de l'écran"
-
-#: ../settings.ui:869 ../settings40.ui:1023
-msgctxt "inhibit-tooltip"
-msgid "Inhibit screen lock when timers are running"
-msgstr ""
-"Désactiver le verrouillage de l'écran lorsque les minuteries sont en cours "
-"d'exécution"
-
-#: ../settings.ui:879 ../settings40.ui:1037
-msgctxt "accel-enable"
-msgid "Keyboard shortcuts"
-msgstr "Raccourcis clavier"
-
-#: ../settings.ui:883 ../settings40.ui:1041
-msgctxt "accel-enable-tooltip"
-msgid "Click to enable global keyboard shortcuts"
-msgstr "Cliquez pour activer les raccourcis clavier globaux"
-
-#: ../settings.ui:894 ../settings40.ui:727
-msgid "Options"
-msgstr "Options"
-
-#: ../settings.ui:910 ../settings40.ui:1077
-msgctxt "sound_file_tooltip"
-msgid "Timer notification sound file"
-msgstr "Fichier sonore de notification de minuterie"
-
-#: ../settings.ui:913 ../settings40.ui:1076
-msgctxt "sound_file"
-msgid "Sound file"
-msgstr "Fichier son"
-
-#: ../settings.ui:927
-msgctxt "path_to_sound_file"
-msgid "Sound file"
-msgstr "Fichier son"
-
-#: ../settings.ui:941 ../settings40.ui:1139
-msgctxt "warn-volume-level"
-msgid "Warn low volume"
-msgstr "Avertir un faible volume"
-
-#: ../settings.ui:957 ../settings40.ui:1159
-msgctxt "low-volume-threshold-percent"
-msgid "Low volume threshold percent"
-msgstr "Pourcentage de seuil de volume faible"
-
-#: ../settings.ui:987 ../settings40.ui:1197
-msgctxt "sound_loops_tooltip"
-msgid ""
-"Loops to play timer notification sound, 0 plays for the duration of the "
-"notification dialog"
-msgstr "Nombre de sonneries d'alarme, 0 est la durée de la notification"
-
-#: ../settings.ui:1015 ../settings40.ui:1065
-msgid "Sound"
-msgstr "Son"
-
-#: ../settings.ui:1112
-msgid "Copyright © 2021, Steeve McCauley"
-msgstr "Copyright © 2021, Steeve McCauley"
-
-#: ../settings.ui:1126 ../settings40.ui:1355
-msgid "https://github.com/blackjackshellac/kitchenTimer"
-msgstr "https://github.com/blackjackshellac/kitchenTimer"
-
-#: ../settings.ui:1144
-msgid ""
-"<span size='smaller' style='italic'>This program comes with absolutely no "
-"warranty.\n"
-"See the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL 3 "
-"License</a> for details.</span>"
-msgstr ""
-"<span size='smaller' style='italic'>This program comes with absolutely no "
-"warranty.\n"
-"See the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL 3 "
-"License</a> for details.</span>"
-
-#: ../settings.ui:1182
-msgctxt "about"
-msgid "About"
-msgstr "À propos"
-
-#: ../settings40.ui:400
+#: ../settings.ui:178 ../settings40.ui:398
 msgctxt "label-minutes"
 msgid "Minutes"
 msgstr "Minutes"
 
-#: ../settings40.ui:1242
-msgid "About"
-msgstr "À propos"
+#: ../settings.ui:198 ../settings40.ui:414
+msgctxt "label-seconds"
+msgid "Seconds"
+msgstr "Secondes"
+
+#: ../settings.ui:226
+msgid "Enter timer name"
+msgstr ""
+
+#: ../settings.ui:250 ../settings40.ui:632
+msgctxt "tvcr-name"
+msgid "Name"
+msgstr "Nom"
+
+#: ../settings.ui:259 ../settings40.ui:647
+msgctxt "tvcr-hms"
+msgid "HH:MM:SS"
+msgstr "HH:MM:SS"
+
+#: ../settings.ui:268 ../settings40.ui:662
+msgctxt "tvcr-duration"
+msgid "Duration"
+msgstr "Duration"
+
+#: ../settings.ui:277 ../settings40.ui:677
+msgctxt "tvcr-enabled"
+msgid "Enabled"
+msgstr "Activée"
+
+#: ../settings.ui:285 ../settings40.ui:688
+msgid "Delete"
+msgstr "Supprimer"
 
 #: ../menus.js:107
 msgid "Running timers"
@@ -496,44 +264,6 @@ msgstr "Minuteries pratiques"
 #: ../menus.js:144
 msgid "Preset timers"
 msgstr "Minuteries préréglées"
-
-#: ../hms.js:141
-msgid "seconds"
-msgstr "secondes"
-
-#: ../hms.js:144
-msgid "minutes"
-msgstr "minutes"
-
-#: ../hms.js:149
-msgid "hours"
-msgstr "heures"
-
-#: ../prefs.js:170
-msgid "New timer"
-msgstr "Nouvelle minuterie"
-
-#: ../prefs.js:564
-msgid "Sound file"
-msgstr "Fichier son"
-
-#: ../prefs.js:594 ../prefs.js:608
-msgid "Export"
-msgstr "Exporter"
-
-#: ../prefs.js:644
-#, javascript-format
-msgid "Exported settings to %s"
-msgstr "Les paramètres ont été exportés vers %s"
-
-#: ../prefs.js:677
-msgid "Import"
-msgstr "Importer"
-
-#: ../prefs.js:706
-#, javascript-format
-msgid "Imported settings from %s"
-msgstr "Les paramètres ont été importés du %s"
 
 #: ../menuitem.js:49
 msgid "Create Preset"
@@ -548,37 +278,323 @@ msgid "Create"
 msgstr "Créer"
 
 #: ../menuitem.js:488
-msgid "Show end time"
-msgstr "Afficher l'heure de fin"
+msgid "Show End Time"
+msgstr ""
 
-#: ../notifier.js:263
+#: ../menuitem.js:514
+msgid "Enable"
+msgstr ""
+
+#: ../settings40.ui:157
+msgid "Timers"
+msgstr "Minuteries"
+
+#: ../settings40.ui:503
+msgid "1"
+msgstr "1"
+
+#: ../settings40.ui:520
+msgid "0"
+msgstr "0"
+
+#: ../settings40.ui:724
+msgid "Options"
+msgstr "Options"
+
+#: ../settings40.ui:736
+msgctxt "notification"
+msgid "Notification"
+msgstr "Notification"
+
+#: ../settings40.ui:740
+msgctxt "notification"
+msgid "Show a notification when the timer is done"
+msgstr "Afficher une notification lorsque la minuterie est terminée"
+
+#: ../settings40.ui:754
+msgctxt "sort_by_duration_text"
+msgid "Sort by duration"
+msgstr "Trier par durée"
+
+#: ../settings40.ui:758
+msgctxt "sort-by-duration"
+msgid "Sort timers by duration"
+msgstr "Trier les minuteries par durée"
+
+#: ../settings40.ui:772
+msgctxt "sort_descending_text"
+msgid "Sort descending"
+msgstr "Trier par ordre décroissant"
+
+#: ../settings40.ui:776
+msgctxt "sort-descending"
+msgid "Sort timers by duration from longest to shortest"
+msgstr "Trier les minuteries par durée du plus long au plus court"
+
+#: ../settings40.ui:790
+msgctxt "save-quick-timers"
+msgid "Save quick timers"
+msgstr "Enregistrer des minuteries practiques"
+
+#: ../settings40.ui:794
+msgctxt "save-quick-timers-tooltip"
+msgid "If selected, quick timers are also saved"
+msgstr "Si sélectionné, les minuteries practiques sont également enregistrées"
+
+#: ../settings40.ui:808
+msgctxt "show_label"
+msgid "Show name"
+msgstr "Afficher nom"
+
+#: ../settings40.ui:812
+msgctxt "show_timer_name"
+msgid "Show timer name in the panel menu"
+msgstr "Afficher le nom de la minuterie dans le menu du panneau"
+
+#: ../settings40.ui:826
+msgctxt "detect-dupes"
+msgid "Detect dupes"
+msgstr "Eviter les doublons"
+
+#: ../settings40.ui:830
+msgctxt "detect-dupes-tooltip"
+msgid "Prevent timers with the same duration, name and type"
+msgstr "Évitez les minuteries avec la même durée, le même nom et le même type"
+
+#: ../settings40.ui:844
+msgctxt "show_time"
+msgid "Show time"
+msgstr "Afficher l'heure"
+
+#: ../settings40.ui:848
+msgctxt "show-time"
+msgid "Show remaining time for running timers in the panel"
+msgstr ""
+"Afficher le temps restant pour l'exécution des minuteries dans le panneau"
+
+#: ../settings40.ui:862
+msgctxt "notification_sticky"
+msgid "Sticky notification"
+msgstr "Notification persistente"
+
+#: ../settings40.ui:866
+msgctxt "notification-sticky-tooltip"
+msgid "Notification waits for input"
+msgstr "La notification attend l'action de l'utilisateur"
+
+#: ../settings40.ui:880
+msgctxt "animate_progress_icon"
+msgid "Animate progress icon"
+msgstr "Animer l'icône de progression"
+
+#: ../settings40.ui:884
+msgctxt "show-progress-tooltip"
+msgid "Animate progress icon in the panel menu"
+msgstr "Animer l'icône de progression dans le panneau"
+
+#: ../settings40.ui:898 ../settings40.ui:1176
+msgctxt "play-sound"
+msgid "Play sound"
+msgstr "Jouer son"
+
+#: ../settings40.ui:902
+msgctxt "play-sound"
+msgid "Play the sound when the timer is done"
+msgstr "Jouez le son lorsque la minuterie est terminée"
+
+#: ../settings40.ui:946
+msgctxt "export-settings-radio"
+msgid "Export"
+msgstr "Exporter"
+
+#: ../settings40.ui:955 ../prefs.js:777
+msgid "Export logs"
+msgstr ""
+
+#: ../settings40.ui:962
+msgctxt "import-settings-radio"
+msgid "Import"
+msgstr "Importer"
+
+#: ../settings40.ui:1018
+msgctxt "inhibit"
+msgid "Inhibit screen lock"
+msgstr "Désactiver le verrouillage de l'écran"
+
+#: ../settings40.ui:1022
+msgctxt "inhibit-tooltip"
+msgid "Inhibit screen lock when timers are running"
+msgstr ""
+"Désactiver le verrouillage de l'écran lorsque les minuteries sont en cours "
+"d'exécution"
+
+#: ../settings40.ui:1036
+msgctxt "accel-enable"
+msgid "Keyboard shortcuts"
+msgstr "Raccourcis clavier"
+
+#: ../settings40.ui:1040
+msgctxt "accel-enable-tooltip"
+msgid "Click to enable global keyboard shortcuts"
+msgstr "Cliquez pour activer les raccourcis clavier globaux"
+
+#: ../settings40.ui:1064
+msgid "Sound"
+msgstr "Son"
+
+#: ../settings40.ui:1075
+msgctxt "sound_file"
+msgid "Sound file"
+msgstr "Fichier son"
+
+#: ../settings40.ui:1076
+msgctxt "sound_file_tooltip"
+msgid "Timer notification sound file"
+msgstr "Fichier sonore de notification de minuterie"
+
+#: ../settings40.ui:1138
+msgctxt "warn-volume-level"
+msgid "Warn low volume"
+msgstr "Avertir un faible volume"
+
+#: ../settings40.ui:1158
+msgctxt "low-volume-threshold-percent"
+msgid "Low volume threshold percent"
+msgstr "Pourcentage de seuil de volume faible"
+
+#: ../settings40.ui:1196
+msgctxt "sound_loops_tooltip"
+msgid ""
+"Loops to play timer notification sound, 0 plays for the duration of the "
+"notification dialog"
+msgstr "Nombre de sonneries d'alarme, 0 est la durée de la notification"
+
+#: ../settings40.ui:1241
+msgid "About"
+msgstr "À propos"
+
+#: ../indicator.js:55
+msgid "taskTimer"
+msgstr "taskTimer"
+
+#: ../timers.js:382 ../timers.js:432 ../timers.js:959
 #, javascript-format
-msgid "Restart timer %s"
-msgstr "Redémarrer la minuterie %s"
+msgid "Timer completed %s late at"
+msgstr "La minuterie a terminé avec %s de retard à"
 
-#: ../timers.js:377
+#: ../timers.js:527
 msgid "Duplicate timer is already running"
 msgstr "Une minuterie en double est déjà en cours d'exécution"
 
-#: ../timers.js:489
+#: ../timers.js:644
 #, javascript-format
 msgid "volume level is low for running timer: %d %%"
 msgstr ""
 "Le niveau de volume est faible pour la minuterie en cours d'exécution: %d %%"
 
-#: ../timers.js:786
+#: ../timers.js:957
 #, javascript-format
 msgid "Timer stopped %s early at"
 msgstr "La minuterie s'est arrêtée %s plus tôt à"
 
-#: ../timers.js:788
-#, javascript-format
-msgid "Timer completed %s late at"
-msgstr "La minuterie a terminé avec %s de retard à"
-
-#: ../timers.js:791
+#: ../timers.js:963
 msgid "Timer completed on time at"
 msgstr "Minuterie terminée à temps à"
+
+#: ../prefs.js:396
+msgid "Sound file"
+msgstr "Fichier son"
+
+#: ../prefs.js:426 ../prefs.js:440
+msgid "Export"
+msgstr "Exporter"
+
+#: ../prefs.js:476
+#, javascript-format
+msgid "Exported settings to %s"
+msgstr "Les paramètres ont été exportés vers %s"
+
+#: ../prefs.js:509
+msgid "Import"
+msgstr "Importer"
+
+#: ../prefs.js:538
+#, javascript-format
+msgid "Imported settings from %s"
+msgstr "Les paramètres ont été importés du %s"
+
+#: ../prefs.js:807 ../prefs.js:817
+#, javascript-format
+msgid "Exported logs to %s"
+msgstr ""
+
+#: ../prefs.js:809 ../prefs.js:820
+#, javascript-format
+msgid "Failed to export logs to %s"
+msgstr ""
+
+#: ../notifier.js:298
+#, javascript-format
+msgid "Restart timer %s"
+msgstr "Redémarrer la minuterie %s"
+
+#: ../hms.js:141
+msgid "seconds"
+msgstr "secondes"
+
+#: ../hms.js:144
+msgid "minutes"
+msgstr "minutes"
+
+#: ../hms.js:149
+msgid "hours"
+msgstr "heures"
+
+#~ msgid "Timer types"
+#~ msgstr "Types de minuterie"
+
+#~ msgctxt "label-minutes"
+#~ msgid "Minutes\t"
+#~ msgstr "Minutes"
+
+#~ msgctxt "json_file_chooser_button"
+#~ msgid "Settings…"
+#~ msgstr "Paramètres…"
+
+#~ msgctxt "json_file_chooser_tooltip"
+#~ msgid "Export timer settings, or import them into the program"
+#~ msgstr "Exportez les paramètres de la minuterie ou importez-les"
+
+#~ msgctxt "path_to_sound_file"
+#~ msgid "Sound file"
+#~ msgstr "Fichier son"
+
+#~ msgid "Copyright © 2021, Steeve McCauley"
+#~ msgstr "Copyright © 2021, Steeve McCauley"
+
+#~ msgid "https://github.com/blackjackshellac/kitchenTimer"
+#~ msgstr "https://github.com/blackjackshellac/kitchenTimer"
+
+#~ msgid ""
+#~ "<span size='smaller' style='italic'>This program comes with absolutely no "
+#~ "warranty.\n"
+#~ "See the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL 3 "
+#~ "License</a> for details.</span>"
+#~ msgstr ""
+#~ "<span size='smaller' style='italic'>This program comes with absolutely no "
+#~ "warranty.\n"
+#~ "See the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL 3 "
+#~ "License</a> for details.</span>"
+
+#~ msgctxt "about"
+#~ msgid "About"
+#~ msgstr "À propos"
+
+#~ msgid "New timer"
+#~ msgstr "Nouvelle minuterie"
+
+#~ msgid "Show end time"
+#~ msgstr "Afficher l'heure de fin"
 
 #~ msgid "Quick"
 #~ msgstr "Pratique"
