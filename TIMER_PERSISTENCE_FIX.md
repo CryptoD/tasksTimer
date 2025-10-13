@@ -4,7 +4,7 @@
 Timers would stop counting when the desktop restarts or the computer reboots. Users expected timers to continue from where they left off, like a real timer that keeps running even when you're not looking at it.
 
 ## Root Cause Analysis
-The issue was in the timer restoration logic in `tasksTimer@CryptoD/timers.js`:
+The issue was in the timer restoration logic in `taskTimer@CryptoD/timers.js`:
 
 1. **Missing `run_states` getter**: The code tried to access `this.settings.run_states` but this property didn't exist in the Settings class.
 2. **Wrong method name**: The code called `this.find_by_id()` but the actual method was `this.lookup()`.
@@ -76,7 +76,7 @@ Use the provided `test_timer_persistence.sh` script to verify the fix works:
 4. Verify timer continues from correct remaining time
 
 ## Files Modified
-- `tasksTimer@CryptoD/settings.js`: Added `run_states` getter
-- `tasksTimer@CryptoD/timers.js`: Fixed `restoreRunningTimers()` method
+- `taskTimer@CryptoD/settings.js`: Added `run_states` getter
+- `taskTimer@CryptoD/timers.js`: Fixed `restoreRunningTimers()` method
 
 The fix ensures timers behave like real physical timers - they keep running even when you can't see them, and resume from the correct time when you check back.
