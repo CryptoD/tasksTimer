@@ -1,5 +1,8 @@
 /*
  * taskTimer: Gnome Shell taskTimer Extension
+ * Copyright (C) 2023 CryptoD
+ *
+ * Copyright (C) 2023 CryptoD
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +36,7 @@ var Settings = class Settings {
   constructor() {
     // try to recompile the schema
     let compile_schemas = [ Me.path+"/bin/compile_schemas.sh" ];
-    let [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas);
+    let [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas, undefined, GLib);
 
     this.settings = ExtensionUtils.getSettings();
     this.logger = new Logger('kt settings', this.settings);
@@ -418,7 +421,7 @@ var Settings = class Settings {
       }
       return JSON.parse(runningJson);
     } catch (e) {
-      this.logger.warning('Failed to parse running timers JSON: %s', e.message);
+      this.logger.warn('Failed to parse running timers JSON: %s', e.message);
       return [];
     }
   }

@@ -10,11 +10,11 @@
 ## Installation (for GNOME Shell users)
 1. Copy the extension folder to your local extensions directory:
    - mkdir -p ~/.local/share/gnome-shell/extensions
-   - cp -r tasksTimer@CryptoD ~/.local/share/gnome-shell/extensions/
+   - cp -r taskTimer@CryptoD ~/.local/share/gnome-shell/extensions/
 2. Compile the GSettings schema (the extension includes a helper script):
-   - bash ~/.local/share/gnome-shell/extensions/tasksTimer@CryptoD/bin/compile_schemas.sh
+   - bash ~/.local/share/gnome-shell/extensions/taskTimer@CryptoD/bin/compile_schemas.sh
 3. (Optional) Compile translations if you maintain them:
-   - msgfmt -o ~/.local/share/gnome-shell/extensions/tasksTimer@CryptoD/locale/<lang>/LC_MESSAGES/tasktimer.mo tasksTimer@CryptoD/po/<lang>.po
+   - msgfmt -o ~/.local/share/gnome-shell/extensions/taskTimer@CryptoD/locale/<lang>/LC_MESSAGES/tasktimer.mo taskTimer@CryptoD/po/<lang>.po
 4. Restart GNOME Shell (Alt+F2, r, Enter) or logout/login for changes to take effect.
 
 Alternative: package and upload to extensions.gnome.org following their packaging guidelines (ensure the UUID in metadata.json is unique and matches the directory/package name).

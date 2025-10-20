@@ -4,21 +4,21 @@ ME=$(basename $0)
 MD=$(cd $(dirname $0); pwd)
 
 echo $MD
-cd $MD/../kitchentimer@blackjackshellac.ca
+cd $MD/../taskTimer@CryptoD
 [ $? -ne 0 ] && echo "Failed to change to extension directory" && exit 1
 
 echo Working in $(pwd)
 
-pot='po/kitchen-timer-blackjackshellac.pot'
-opts="--from-code=UTF-8 -F -j --output=$pot"
+pot='po/tasktimer.pot'
+opts="--from-code=UTF-8 -F --output=$pot"
 #opts="$opts --copyright-holder=SteeveMcCauley"
 #--foreign-user
 #omit FSF copyright in output for foreign user
-opts="$opts --package-name=kitchen-timer-blackjackshellac"
+opts="$opts --package-name=taskTimer"
 #opts="$opts --package-version='5'"
 files="*.js *.ui schemas/*.xml"
 
-cmd="xgettext $opts $files $pot"
+cmd="xgettext $opts $files"
 echo $cmd
 $cmd
 
@@ -30,7 +30,7 @@ $cmd
 # #
 #@@ -8,7 +8,7 @@ msgid ""
 # msgstr ""
-# "Project-Id-Version: kitchen-timer-blackjackshellac\n"
+# "Project-Id-Version: taskTimer\n"
 # "Report-Msgid-Bugs-To: \n"
 #-"POT-Creation-Date: 2021-01-03 10:34-0500\n"
 #+"POT-Creation-Date: 2021-01-03 11:22-0500\n"
@@ -38,7 +38,7 @@ $cmd
 # "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 # "Language-Team: LANGUAGE <LL@li.org>\n"
 
-sed -i 's/SOME DESCRIPTIVE TITLE./Kitchen Timer/' $pot
+sed -i 's/SOME DESCRIPTIVE TITLE./taskTimer/' $pot
 sed -i 's/YEAR THE PACKAGE.S COPYRIGHT HOLDER/2021, Steeve McCauley/' $pot
 sed -i 's/FIRST AUTHOR/Steeve McCauley/' $pot
 sed -i 's/EMAIL.ADDRESS/steeve.mccauley@gmail.com/' $pot

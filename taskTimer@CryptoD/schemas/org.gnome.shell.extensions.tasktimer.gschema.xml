@@ -2,6 +2,8 @@
 /*
  * taskTimer: Gnome Shell taskTimer Extension
  *
+ * Copyright (C) 2023 CryptoD
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -33,8 +35,8 @@ aa{sv}
 https://developer.gnome.org/glib/stable/gvariant-text.html
 -->
 <schemalist gettext-domain="tasktimer">
-  <schema id="org.gnome.shell.extensions.kitchen-timer-blackjackshellac"
-          path="/org/gnome/shell/extensions/kitchen-timer-blackjackshellac/">
+  <schema id="org.gnome.shell.extensions.tasktimer"
+          path="/org/gnome/shell/extensions/tasktimer/">
     <key name="notification" type="b">
       <default>true</default>
       <summary>Show a notification when a timer ends</summary>
