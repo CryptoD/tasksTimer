@@ -108,7 +108,7 @@ class KitchenTimerIndicator extends PanelMenu.Button {
         style_class: 'kitchentimer-panel-label'
       });
 
-      this._panel_name=new St.Label({ text: "",
+      this._panel_name=new St.Label({ text: _('taskTimer'),
         x_align: Clutter.ActorAlign.END,
         y_align: Clutter.ActorAlign.CENTER,
         y_expand: false,
