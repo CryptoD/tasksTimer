@@ -5,6 +5,10 @@ const GLib = imports.gi.GLib;
  */
 function saveJSON(filename, data) {
     try {
+        let dirname = GLib.path_get_dirname(filename);
+        if (!GLib.file_test(dirname, GLib.FileTest.EXISTS)) {
+            GLib.mkdir_with_parents(dirname, 0o755);
+        }
         let jsonString = JSON.stringify(data, null, 2);
         GLib.file_set_contents(filename, jsonString);
         return true;
