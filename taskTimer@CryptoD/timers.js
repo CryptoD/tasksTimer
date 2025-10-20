@@ -37,7 +37,7 @@ const SessionManagerInhibitor = Me.imports.inhibitor.SessionManagerInhibitor;
 const KeyboardShortcuts = Me.imports.keyboard_shortcuts.KeyboardShortcuts;
 const ProgressIcon = Me.imports.progress_icon.ProgressIcon;
 
-const Storage = Me.imports.storage.Storage;
+const Storage = Me.imports.storage.StorageModule;
 const TIMERS_SAVE_PATH = GLib.get_user_data_dir() + '/taskTimer@CryptoD/timers.json';
 
 // Utility to save all timers
@@ -559,10 +559,12 @@ var Timers = class Timers extends Array {
   }
 
   remove(timer, i=undefined) {
+    this.logger.debug(`Timers.remove() called for timer: ${timer.name}`);
     if (i === undefined) {
       // we don't know index of timer
       i = this.indexOf(timer);
       if (i == -1) {
+        this.logger.debug(`Timer ${timer.name} not found in timers array`);
         return false;
       }
     }
@@ -572,6 +574,8 @@ var Timers = class Timers extends Array {
     this.logger.debug("timer %s has been purged", timer.name);
     this.settings.pack_timers(this);
     delete this._lookup[timer.id];
+    saveAllTimers(this); // Save the updated timers list to storage
+    this.logger.debug(`Timers.remove() completed for timer: ${timer.name}`);
     return true;
   }
 }
@@ -960,6 +964,11 @@ var Timer = class Timer {
       timersInstance.saveRunningTimers();
       saveAllTimers(timersInstance);
 
+      // Rebuild menu to show delete button for expired timer
+      if (timersInstance.attached && timersInstance.indicator) {
+        timersInstance.indicator.rebuild_menu();
+      }
+
       return false;
     }
 
@@ -1013,11 +1022,23 @@ var Timer = class Timer {
       }
     }
 
-    // return with false to stop interval callback loop
-    return false;
+  // Return is handled after rebuilding the menu so the menu can be
+  // updated to show delete buttons for expired timers.
   }
 
   stop() {
+    // Rebuild the timers menu after a timer stops so expired timers
+    // will show the delete button in the menu.
+    try {
+      if (typeof timersInstance !== 'undefined' && timersInstance !== null && typeof timersInstance.rebuildMenu === 'function') {
+        timersInstance.rebuildMenu();
+      }
+    } catch (e) {
+      // If logger is available, log the error; otherwise fail silently.
+      if (this.logger && typeof this.logger.error === 'function') {
+        this.logger.error('Failed to rebuild timers menu after stop(): ' + e);
+      }
+    }
     this.reset = true;
     this.uninhibit();
   }
@@ -1151,7 +1172,9 @@ var Timer = class Timer {
   }
 
   delete() {
+    this.logger.debug(`Timer.delete() called for timer: ${this.name}`);
     this.timers.remove(this);
+    this.logger.debug(`Timer.delete() completed for timer: ${this.name}`);
   }
 
   reduce() {

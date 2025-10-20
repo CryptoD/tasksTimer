@@ -33,7 +33,7 @@ function loadJSON(filename) {
 }
 
 // Export as a single object
-var Storage = {
+var StorageModule = {
     saveJSON: saveJSON,
     loadJSON: loadJSON
 };

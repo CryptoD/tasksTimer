@@ -213,9 +213,10 @@ class KitchenTimerTimeSliderItem extends PopupMenu.PopupMenuItem {
 var KitchenTimerMenuItem = GObject.registerClass(
 class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
   _init(timer, menu) {
-      super._init("", { reactive: true });
+      super._init("", { hover: false, reactive: false, can_focus: false });
 
       this._timer = timer;
+      this._menu = menu;
 
       logger.settings = timer.timers.settings;
 
@@ -225,7 +226,7 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
         pack_start: true,
         style_class: 'kitchentimer-menu-box'
       });
-      this.add(box);
+      this.add_child(box);
 
       var name = new St.Label({
         style_class: 'kitchentimer-menu-name',
@@ -275,15 +276,20 @@ class KitchenTimerMenuItem extends PopupMenu.PopupMenuItem {
       }
       box.add_child(name);
 
-      this.connect('activate', (tmi) => {
-        if (!tmi._timer.running) {
-          tmi._timer.start();
-        }
-      });
-
       timer.label_progress();
 
       menu.addMenuItem(this);
+
+      // Menu item itself remains non-reactive so individual buttons handle input
+      // Prevent the menu item from grabbing button events intended for child buttons.
+      try {
+        this.reactive = false;
+      } catch (e) {
+        // Fallback: if 'reactive' isn't available, attempt set_reactive (older/newer APIs)
+        if (typeof this.set_reactive === 'function') {
+          this.set_reactive(false);
+        }
+      }
   }
 
   get timer() {
@@ -701,114 +707,98 @@ class KitchenTimerQuickItem extends PopupMenu.PopupMenuItem {
 var KitchenTimerControlButton = GObject.registerClass(
 class KitchenTimerControlButton extends St.Button {
     _init(timer, type) {
-        super._init();
+        super._init({
+            style_class: 'kitchentimer-menu-button',
+            reactive: true,
+            can_focus: true,
+            track_hover: true,
+            x_expand: false,
+            y_expand: false,
+        });
 
-        this._type = type;
         this._timer = timer;
+        this._type = type;
 
-        // 'media-playback-stop-symbolic'
-        // 'edit-delete-symbolic'
+        logger.debug(`Creating control button - type: ${type}, timer: ${timer.name}`);
 
-        let icon=null;
-        let gicon=null;
-        let style='kitchentimer-menu-delete-icon';
+        let icon;
+        let gicon;
+        let style = 'kitchentimer-menu-delete-icon';
+
         if (type === 'progress') {
-          if (!timer.persist_alarm) {
-            gicon = timer.timers.progress_gicon(timer.degree_progress(15 /* 15 degree increments */));
-            style='kitchentimer-menu-icon';
-          }
+            if (!timer.persist_alarm) {
+                gicon = timer.timers.progress_gicon(timer.degree_progress(15 /* 15 degree increments */));
+                style = 'kitchentimer-menu-icon';
+            }
         } else if (type === 'persist') {
-          style='kitchentimer-menu-icon';
+            style = 'kitchentimer-menu-icon';
         }
+
         if (gicon) {
-          icon = new St.Icon({
-            x_align: St.Align.END,
-            x_expand: false,
-            gicon: gicon,
-            style_class: style
-          });
+            icon = new St.Icon({
+                x_align: St.Align.END,
+                x_expand: false,
+                gicon,
+                style_class: style,
+            });
         } else {
-          icon = new St.Icon({
-            x_align: St.Align.END,
-            x_expand: false,
-            icon_name: KTTypes[type],
-            style_class: style
-          });
+            icon = new St.Icon({
+                x_align: St.Align.END,
+                x_expand: false,
+                icon_name: KTTypes[type],
+                style_class: style,
+            });
         }
         icon.set_icon_size(20);
 
-        this.child = icon;
-
-        this.connect_type();
+        this.set_child(icon);
+        this.connect('clicked', this._onClicked.bind(this));
     }
 
-    connect_type() {
-        switch(this.type) {
-        case "stop":
-          this.connect('clicked', (cb) => {
-            // Directly stop the timer and clear the interval
-            if (this.timer.running) {
-              Utils.clearInterval(this.timer._interval_id);
-              this.timer._interval_id = undefined;
-              this.timer.stop_callback(Date.now());
+    _onClicked() {
+        logger.debug(`Button clicked - type: ${this._type}, timer: ${this._timer.name}`);
+
+        switch (this._type) {
+        case 'stop':
+            if (this._timer.running) {
+                Utils.clearInterval(this._timer._interval_id);
+                this._timer._interval_id = undefined;
+                this._timer.stop_callback(Date.now());
             }
-            this.rebuild();
-          });
-          break;
-        case "delete":
-          this.connect('clicked', (cb) => {
-            this.timer.delete();
-            this.rebuild();
-          });
-          break;
-        case "extend":
-          this.connect('clicked', (cb) => {
-            this.timer.extend();
-            this.rebuild();
-          });
-          break;
-        case "reduce":
-          this.connect('clicked', (cb) => {
-            this.timer.reduce();
-            this.rebuild();
-          });
-          break;
-        case "forward":
-          this.connect('clicked', (cb) => {
-            this.timer.forward();
-            this.rebuild();
-          });
-          break;
-        case "backward":
-          this.connect('clicked', (cb) => {
-            this.timer.backward();
-            this.rebuild();
-          });
-          break;
+            break;
+        case 'delete':
+            logger.debug(`Delete button handler executing for timer: ${this._timer.name}`);
+            try {
+                this._timer.delete();
+                logger.debug(`Timer delete completed successfully for: ${this._timer.name}`);
+            } catch (e) {
+                logger.error(`Error deleting timer: ${e && e.message ? e.message : e}`);
+            }
+            break;
+        case 'extend':
+            this._timer.extend();
+            break;
+        case 'reduce':
+            this._timer.reduce();
+            break;
+        case 'forward':
+            this._timer.forward();
+            break;
+        case 'backward':
+            this._timer.backward();
+            break;
         case 'persist':
         case 'progress':
-          this.connect('clicked', (cb) => {
-            this.timer.toggle_persist_alarm();
-            this.rebuild();
-          });
-          break;
+            this._timer.toggle_persist_alarm();
+            break;
+        }
+
+        this._rebuildMenu();
+    }
+
+    _rebuildMenu() {
+        if (this._timer && this._timer.timers && this._timer.timers.attached && this._timer.timers.indicator) {
+            this._timer.timers.indicator.rebuild_menu();
         }
     }
-
-    get timer() {
-      return this._timer;
-    }
-
-    get type() {
-      return this._type;
-    }
-
-    get icon() {
-      return this.child;
-    }
-
-    rebuild() {
-      this.timer.timers.indicator.rebuild_menu();
-    }
 });
-
