@@ -421,7 +421,7 @@ var Settings = class Settings {
       }
       return JSON.parse(runningJson);
     } catch (e) {
-      this.logger.warning('Failed to parse running timers JSON: %s', e.message);
+      this.logger.warn('Failed to parse running timers JSON: %s', e.message);
       return [];
     }
   }

@@ -10,7 +10,9 @@
     "42",
     "43",
     "44",
-    "45"
+    "45",
+    "46",
+    "47"
   ],
   "gettext-domain": "tasktimer",
   "settings-schema": "org.gnome.shell.extensions.tasktimer",

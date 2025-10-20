@@ -1,11 +1,18 @@
+/*
+ * taskTimer: Gnome Shell taskTimer Extension
+ * Copyright (C) 2023 CryptoD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
 const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
- * Copyright (C) 2023 CryptoD
 const _ = Gettext.gettext;
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const { GLib, Gio } = imports.gi;
-const Utils = Me.imports.utils;
 
 var ProgressIcon = class ProgressIcon {
     constructor(logger) {

@@ -96,11 +96,11 @@ var Timers = class Timers extends Array {
         }
       }
       if (!iconFound) {
-        this.logger.warning('Failed to load icons');
+        this.logger.warn('Failed to load icons');
         this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
       }
     } catch (e2) {
-      this.logger.warning('Failed to load icons: ' + e2.message);
+      this.logger.warn('Failed to load icons: ' + e2.message);
       this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
     }
 
@@ -124,6 +124,10 @@ var Timers = class Timers extends Array {
     timersInstance.indicator = indicator;
 
     timersInstance.refresh();
+
+    if (timersInstance.sort_by_running().length === 0) {
+      timersInstance.set_panel_name('taskTimer');
+    }
     timersInstance.settings.settings.connect('changed::accel-enable', () => {
       timersInstance.logger.debug('accel-enable has changed');
       timersInstance.toggle_keyboard_shortcuts();
@@ -234,7 +238,7 @@ var Timers = class Timers extends Array {
   set_panel_name(text, has_name=true) {
     var label = this.panel_name;
     if (label) {
-      label.set_text(this.settings.show_label && has_name && text.length > 0 ? text : "");
+      label.set_text((text === 'taskTimer' || (this.settings.show_label && has_name && text.length > 0)) ? text : "");
     }
   }
 
@@ -324,7 +328,7 @@ var Timers = class Timers extends Array {
     for (let run_state of run_states) {
       let timer = this.lookup(run_state.id);
       if (!timer) {
-        this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
+        this.logger.warn(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
         continue;
       }
 
@@ -407,7 +411,7 @@ var Timers = class Timers extends Array {
     for (let i=0; i < this.length; i++) {
       var t=this[i];
       if (t.id == id) {
-        this.logger.warning("adding timer to lookup hash %s:%s", t.name, t.id);
+        this.logger.warn("adding timer to lookup hash %s:%s", t.name, t.id);
         this._lookup[id] = t;
         return t;
       }
@@ -942,7 +946,16 @@ var Timer = class Timer {
       this.label_progress(hms);
       this.icon_progress();
 
-      timersInstance.set_panel_name("");
+      if (timersInstance.sort_by_running().length === 0) {
+        timersInstance.set_panel_name('taskTimer');
+      } else {
+        timersInstance.set_panel_name("");
+      }
+      if (!timersInstance.runningTimers || timersInstance.runningTimers.length === 0) {
+        timersInstance.set_panel_name("taskTimer");
+      } else {
+        timersInstance.set_panel_name("");
+      }
       timersInstance.set_panel_label("");
       timersInstance.saveRunningTimers();
       saveAllTimers(timersInstance);
@@ -959,8 +972,16 @@ var Timer = class Timer {
       reason = _("Timer completed %s late at").format(stdiff);
     } else {
       text = this.name;
-      saveAllTimers(timersInstance); // Save timer state when completed normally
       reason = _("Timer completed on time at");
+
+      if (timersInstance.sort_by_running().length === 0) {
+        timersInstance.set_panel_name('taskTimer');
+      } else {
+        timersInstance.set_panel_name("");
+      }
+      timersInstance.set_panel_label("");
+      timersInstance.saveRunningTimers();
+      saveAllTimers(timersInstance); // Save all timers to persistent storage
     }
 
     var time=new Date(now).toLocaleTimeString();

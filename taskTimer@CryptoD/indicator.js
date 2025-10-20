@@ -22,7 +22,7 @@ const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
-const { GObject, St, Clutter, Gio } = imports.gi;
+const { GObject, St, Clutter, Gio, GLib } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -53,6 +53,17 @@ class KitchenTimerIndicator extends PanelMenu.Button {
       this.logger.info('Initializing extension');
 
       super._init(0.0, _('taskTimer'));
+      // Ensure the indicator is clickable and visible in the top bar
+      try {
+        this.reactive = true;
+        if (this.actor) {
+          this.actor.reactive = true;
+          this.actor.visible = true;
+        }
+        if (this.logger) this.logger.info('Indicator: set reactive and visible');
+      } catch (e) {
+        logError(e, 'taskTimer: failed to make indicator reactive/visible in indicator._init');
+      }
 
       // Keep the icon reference so we can update it later and ensure it's visible in the top bar
       try {
@@ -60,18 +71,25 @@ class KitchenTimerIndicator extends PanelMenu.Button {
         this.logger.info('Indicator: obtained gicon from progress_gicon: ' + (gicon ? gicon.to_string() : 'null'));
 
         this._icon = new St.Icon({
-          gicon: gicon,
-          style_class: 'system-status-icon'
+          gicon: gicon
         });
-        this._icon.set_icon_size(20);
+        this._icon.set_icon_size(16);
       } catch (e) {
         logError(e, 'taskTimer: failed creating St.Icon in indicator._init');
         // create a plain icon so the widget exists
         this._icon = new St.Icon({
-          icon_name: 'alarm-symbolic',
-          style_class: 'system-status-icon'
+          icon_name: 'system-run-symbolic'
         });
-        this._icon.set_icon_size(20);
+      }
+      // Ensure the fallback icon will be larger (override previous size)
+      try {
+        if (this._icon && this._icon.set_icon_size) {
+          this._icon.set_icon_size(16);
+        }
+      } catch (e) {
+        try {
+          this.logger && this.logger.warn && this.logger.warn('Indicator: failed to set icon size to 16', e);
+        } catch (_) {}
       }
 
       // If no useful gicon was returned, use the extension symbolic/full icon as fallback
@@ -111,12 +129,14 @@ class KitchenTimerIndicator extends PanelMenu.Button {
         style_class: 'kitchentimer-panel-label'
       });
 
-      this._panel_name=new St.Label({ text: "",
-        x_align: Clutter.ActorAlign.END,
-        y_align: Clutter.ActorAlign.CENTER,
-        y_expand: false,
-        style_class: 'kitchentimer-panel-name'
-      });
+      // Reverted the panel name text back to empty to avoid causing GNOME to freeze
+      this._panel_name = new St.Label({
+         text: "",
+         x_align: Clutter.ActorAlign.END,
+         y_align: Clutter.ActorAlign.CENTER,
+         y_expand: false,
+         style_class: 'kitchentimer-panel-name'
+       });
 
       this._box.add(this._panel_name);
       this._box.add(this._panel_label);
