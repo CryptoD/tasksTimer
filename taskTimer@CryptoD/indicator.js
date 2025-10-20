@@ -67,8 +67,20 @@ class KitchenTimerIndicator extends PanelMenu.Button {
 
       // Keep the icon reference so we can update it later and ensure it's visible in the top bar
       try {
-        const gicon = this.timers.progress_gicon(0);
-        this.logger.info('Indicator: obtained gicon from progress_gicon: ' + (gicon ? gicon.to_string() : 'null'));
+        let gicon = this.timers.progress_gicon(0);
+
+        // If progress_gicon didn't return a valid icon (or returned an image-missing gicon),
+        // fall back to a GIcon created from a symbolic icon name for better reliability.
+        if (!gicon || (gicon && gicon.to_string && gicon.to_string().indexOf('image-missing') !== -1)) {
+          try {
+            gicon = Gio.icon_new_for_string('system-run-symbolic');
+            this.logger.info('Indicator: using fallback gicon system-run-symbolic');
+          } catch (e) {
+            this.logger.warn('Indicator: failed to create fallback gicon: ' + e);
+          }
+        }
+
+        this.logger.info('Indicator: obtained gicon from progress_gicon: ' + (gicon ? (gicon.to_string ? gicon.to_string() : 'gicon') : 'null'));
 
         this._icon = new St.Icon({
           gicon: gicon
@@ -107,6 +119,16 @@ class KitchenTimerIndicator extends PanelMenu.Button {
             } else if (GLib.file_test(`${Me.path}/icons/kitchen-timer-blackjackshellac-full.svg`, GLib.FileTest.EXISTS)) {
               this._icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/kitchen-timer-blackjackshellac-full.svg');
             }
+
+            // Ensure the panel label is created and shown so text can also appear in the panel
+            this._panel_label = new St.Label({
+              text: "",
+              x_align: Clutter.ActorAlign.END,
+              y_align: Clutter.ActorAlign.CENTER,
+              y_expand: false,
+              style_class: 'kitchentimer-panel-label'
+            });
+            this._panel_label.show();
           } catch (e2) {
             // leave as-is; system will show a default
             this.logger && this.logger.debug && this.logger.debug('No fallback icon available: ' + (e2 && e2.message));
@@ -115,6 +137,15 @@ class KitchenTimerIndicator extends PanelMenu.Button {
       } catch (e) {
         logError(e, 'taskTimer: error while applying fallback gicon');
       }
+
+      this._panel_name = new St.Label({
+         text: "",
+         x_align: Clutter.ActorAlign.END,
+         y_align: Clutter.ActorAlign.CENTER,
+         y_expand: false,
+         style_class: 'kitchentimer-panel-name'
+       });
+      this._panel_name.show();
 
       this._box = new St.BoxLayout({ name: 'panelStatusMenu',
         style_class: 'kitchentimer-panel-box'
