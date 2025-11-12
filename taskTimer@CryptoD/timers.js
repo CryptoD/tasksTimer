@@ -233,7 +233,7 @@ var Timers = class Timers extends Array {
   set_panel_name(text, has_name=true) {
     var label = this.panel_name;
     if (label) {
-      label.set_text(this.settings.show_label && has_name && text.length > 0 ? text : "");
+      label.set_text(this.settings.show_label && has_name && text.length > 0 ? text : _('taskTimer'));
     }
   }
 

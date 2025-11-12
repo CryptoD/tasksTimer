@@ -1,5 +1,8 @@
 /*
  * taskTimer: Gnome Shell taskTimer Extension
+ * Copyright (C) 2023 CryptoD
+ *
+ * Copyright (C) 2023 CryptoD
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +49,7 @@ class PreferencesBuilder {
     this._builder = new Gtk.Builder();
     this.logger = new Logger('kt prefs', this._settings);
 
-    if (Utils.isGnome40()) {
+    if (true) {
       let iconPath = Me.dir.get_child("icons").get_path();
       let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
       iconTheme.add_search_path(iconPath);
@@ -54,7 +57,7 @@ class PreferencesBuilder {
   }
 
   show() {
-    if (Utils.isGnome3x()) {
+    if (false) {
       this._widget.show_all();
     } else {
       let window = this._widget.get_root();
@@ -73,7 +76,7 @@ class PreferencesBuilder {
     this._viewport = new Gtk.Viewport();
     this._widget = new Gtk.ScrolledWindow();
 
-    if (Utils.isGnome3x()) {
+    if (false) {
       this._builder.add_from_file(GLib.build_filenamev([Me.path, 'settings.ui']));
       this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
       this._viewport.add(this._taskTimer_settings);
@@ -439,7 +442,7 @@ class PreferencesBuilder {
     file_dialog.add_button('Export', Gtk.ResponseType.OK);
     this.logger.debug("action=%s", ""+file_dialog.get_action());
 
-    if (Utils.isGnome3x()) {
+    if (false) {
       file_dialog.set_current_folder(Me.path);
       file_dialog.set_do_overwrite_confirmation(true);
       file_dialog.set_local_only(true);
@@ -508,7 +511,7 @@ class PreferencesBuilder {
     file_dialog.add_button('Import', Gtk.ResponseType.OK);
     this.logger.debug("action=%s", ""+file_dialog.get_action());
 
-    if (Utils.isGnome3x()) {
+    if (false) {
       file_dialog.set_current_folder(Me.path);
       file_dialog.set_local_only(true);
     } else {
@@ -785,7 +788,7 @@ class PreferencesBuilder {
       file_dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
       file_dialog.add_button('Export', Gtk.ResponseType.OK);
 
-      if (!Utils.isGnome3x()) {
+      if (true) {
         file_dialog.set_current_folder(Gio.File.new_for_path(Me.path));
       } else {
         file_dialog.set_current_folder(Me.path);
@@ -901,7 +904,7 @@ function buildPrefsWidget() {
   preferencesBuilder.show();
 
   widget.connect('realize', () => {
-    let window = Utils.isGnome3x() ? widget.get_toplevel() : widget.get_root();
+    let window = widget.get_root();
     preferencesBuilder.logger.debug('window=%s', window);
     //window.default_width = 700;
     //window.default_height = 900;
