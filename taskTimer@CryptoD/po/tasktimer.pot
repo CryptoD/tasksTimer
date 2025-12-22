@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskTimer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 15:17+0400\n"
-"PO-Revision-Date: 2025-10-13 15:17+0400\n"
+"POT-Creation-Date: 2025-12-22 18:17+0700\n"
+"PO-Revision-Date: 2025-12-22 18:17+0700\n"
 "Last-Translator: Steeve McCauley <steeve.mccauley@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -29,7 +29,7 @@ msgstr ""
 msgid "hours"
 msgstr ""
 
-#: indicator.js:55
+#: indicator.js:52 indicator.js:111 timers.js:236
 msgid "taskTimer"
 msgstr ""
 
@@ -37,7 +37,7 @@ msgstr ""
 msgid "Create Preset"
 msgstr ""
 
-#: menuitem.js:60 menuitem.js:555
+#: menuitem.js:60 menuitem.js:561
 msgid "Name 00:00:00"
 msgstr ""
 
@@ -45,11 +45,11 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-#: menuitem.js:488
+#: menuitem.js:494
 msgid "Show End Time"
 msgstr ""
 
-#: menuitem.js:514
+#: menuitem.js:520
 msgid "Enable"
 msgstr ""
 
@@ -502,25 +502,25 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: timers.js:382 timers.js:432 timers.js:959
+#: timers.js:381 timers.js:431 timers.js:958
 #, javascript-format
 msgid "Timer completed %s late at"
 msgstr ""
 
-#: timers.js:527
+#: timers.js:526
 msgid "Duplicate timer is already running"
 msgstr ""
 
-#: timers.js:644
+#: timers.js:643
 #, javascript-format
 msgid "volume level is low for running timer: %d %%"
 msgstr ""
 
-#: timers.js:957
+#: timers.js:956
 #, javascript-format
 msgid "Timer stopped %s early at"
 msgstr ""
 
-#: timers.js:963
+#: timers.js:962
 msgid "Timer completed on time at"
 msgstr ""

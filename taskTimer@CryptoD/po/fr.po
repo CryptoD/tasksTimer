@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: taskTimer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 15:17+0400\n"
+"POT-Creation-Date: 2025-12-22 18:18+0700\n"
 "PO-Revision-Date: 2021-05-14 06:10-0400\n"
 "Last-Translator: Steeve McCauley <steeve.mccauley@gmail.com>\n"
 "Language-Team: French <steeve.mccauley@gmail.com>\n"
@@ -178,7 +178,7 @@ msgstr "Minuteries pratiques"
 
 #: ../settings.ui:98
 msgid "Timer Types"
-msgstr ""
+msgstr "Types de minuterie"
 
 #: ../settings.ui:113 ../settings40.ui:266
 msgctxt "select-timer"
@@ -227,7 +227,7 @@ msgstr "Secondes"
 
 #: ../settings.ui:226
 msgid "Enter timer name"
-msgstr ""
+msgstr "Entrez le nom de la minuterie"
 
 #: ../settings.ui:250 ../settings40.ui:632
 msgctxt "tvcr-name"
@@ -269,7 +269,7 @@ msgstr "Minuteries préréglées"
 msgid "Create Preset"
 msgstr "Créer un préréglage"
 
-#: ../menuitem.js:60 ../menuitem.js:555
+#: ../menuitem.js:60 ../menuitem.js:561
 msgid "Name 00:00:00"
 msgstr "Nom 00:00:00"
 
@@ -277,13 +277,13 @@ msgstr "Nom 00:00:00"
 msgid "Create"
 msgstr "Créer"
 
-#: ../menuitem.js:488
+#: ../menuitem.js:494
 msgid "Show End Time"
-msgstr ""
+msgstr "Afficher l'heure de fin"
 
-#: ../menuitem.js:514
+#: ../menuitem.js:520
 msgid "Enable"
-msgstr ""
+msgstr "Activer"
 
 #: ../settings40.ui:157
 msgid "Timers"
@@ -409,7 +409,7 @@ msgstr "Exporter"
 
 #: ../settings40.ui:955 ../prefs.js:777
 msgid "Export logs"
-msgstr ""
+msgstr "Exporter les journaux"
 
 #: ../settings40.ui:962
 msgctxt "import-settings-radio"
@@ -473,31 +473,31 @@ msgstr "Nombre de sonneries d'alarme, 0 est la durée de la notification"
 msgid "About"
 msgstr "À propos"
 
-#: ../indicator.js:55
+#: ../indicator.js:52 ../indicator.js:111 ../timers.js:236
 msgid "taskTimer"
 msgstr "taskTimer"
 
-#: ../timers.js:382 ../timers.js:432 ../timers.js:959
+#: ../timers.js:381 ../timers.js:431 ../timers.js:958
 #, javascript-format
 msgid "Timer completed %s late at"
 msgstr "La minuterie a terminé avec %s de retard à"
 
-#: ../timers.js:527
+#: ../timers.js:526
 msgid "Duplicate timer is already running"
 msgstr "Une minuterie en double est déjà en cours d'exécution"
 
-#: ../timers.js:644
+#: ../timers.js:643
 #, javascript-format
 msgid "volume level is low for running timer: %d %%"
 msgstr ""
 "Le niveau de volume est faible pour la minuterie en cours d'exécution: %d %%"
 
-#: ../timers.js:957
+#: ../timers.js:956
 #, javascript-format
 msgid "Timer stopped %s early at"
 msgstr "La minuterie s'est arrêtée %s plus tôt à"
 
-#: ../timers.js:963
+#: ../timers.js:962
 msgid "Timer completed on time at"
 msgstr "Minuterie terminée à temps à"
 
