@@ -149,6 +149,16 @@ https://developer.gnome.org/glib/stable/gvariant-text.html
       <default>true</default>
       <summary>Warn if volume levels are below threshold</summary>
     </key>
+    <key name="theme-variant" type="s">
+      <default>"default"</default>
+      <summary>UI theme variant</summary>
+      <description>Choose between default, dark, and light themes for the extension UI</description>
+    </key>
+    <key name="menu-max-width" type="i">
+      <default>400</default>
+      <summary>Maximum width of the panel menu</summary>
+      <range min="200" max="1000"/>
+    </key>
     <key name="debug" type="b">
       <default>false</default>
       <summary>Turn on debugging</summary>

@@ -1049,6 +1049,66 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                       <property name="top-attach">5</property>
                     </packing>-->
                   </child>
+                  <child>
+                    <object class="GtkBox">
+                      <property name="visible">True</property>
+                      <property name="orientation">horizontal</property>
+                      <property name="spacing">10</property>
+                      <child>
+                        <object class="GtkLabel">
+                          <property name="label" translatable="yes">Theme</property>
+                          <property name="visible">True</property>
+                        </object>
+                      </child>
+                      <child>
+                        <object class="GtkDropDown" id="theme_variant">
+                          <property name="visible">True</property>
+                          <property name="model">
+                            <object class="GtkStringList">
+                              <items>
+                                <item translatable="yes">default</item>
+                                <item translatable="yes">light</item>
+                                <item translatable="yes">dark</item>
+                              </items>
+                            </object>
+                          </property>
+                        </object>
+                      </child>
+                      <layout>
+                        <property name="row">7</property>
+                        <property name="column">0</property>
+                      </layout>
+                    </object>
+                  </child>
+                  <child>
+                    <object class="GtkBox">
+                      <property name="visible">True</property>
+                      <property name="orientation">horizontal</property>
+                      <property name="spacing">10</property>
+                      <child>
+                        <object class="GtkLabel">
+                          <property name="label" translatable="yes">Menu Max Width</property>
+                          <property name="visible">True</property>
+                        </object>
+                      </child>
+                      <child>
+                        <object class="GtkSpinButton" id="menu_max_width">
+                          <property name="visible">True</property>
+                          <property name="adjustment">
+                            <object class="GtkAdjustment">
+                              <property name="lower">200</property>
+                              <property name="upper">1000</property>
+                              <property name="step-increment">10</property>
+                            </object>
+                          </property>
+                        </object>
+                      </child>
+                      <layout>
+                        <property name="row">7</property>
+                        <property name="column">1</property>
+                      </layout>
+                    </object>
+                  </child>
                 </object>
                 <!--<packing>
                   <property name="name">options</property>

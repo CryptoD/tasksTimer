@@ -58,3 +58,13 @@
   vertical-align: middle;
 }
 
+.kitchentimer-dark-theme {
+  background-color: #2e3436;
+  color: #eeeeec;
+}
+
+.kitchentimer-light-theme {
+  background-color: #eeeeec;
+  color: #2e3436;
+}
+

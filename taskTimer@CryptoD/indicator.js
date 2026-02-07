@@ -123,6 +123,12 @@ class KitchenTimerIndicator extends PanelMenu.Button {
       this._pmbuilder = new Menus.PanelMenuBuilder(this.menu, this._timers);
       this._pmbuilder.build();
 
+      this._applyTheme();
+      this._applyMaxWidth();
+
+      this.settings.settings.connect('changed::theme-variant', () => this._applyTheme());
+      this.settings.settings.connect('changed::menu-max-width', () => this._applyMaxWidth());
+
       this.connect('destroy', () => {
         this.logger.debug("Panel indicator button being destroyed");
         this._panel_label = undefined;
@@ -141,6 +147,25 @@ class KitchenTimerIndicator extends PanelMenu.Button {
 
     rebuild_menu() {
       this._pmbuilder.build();
+    }
+
+    _applyTheme() {
+      const themeVariant = this.settings.settings.get_string('theme-variant');
+      if (themeVariant === 'dark') {
+        this.menu.actor.add_style_class_name('kitchentimer-dark-theme');
+        this.menu.actor.remove_style_class_name('kitchentimer-light-theme');
+      } else if (themeVariant === 'light') {
+        this.menu.actor.add_style_class_name('kitchentimer-light-theme');
+        this.menu.actor.remove_style_class_name('kitchentimer-dark-theme');
+      } else {
+        this.menu.actor.remove_style_class_name('kitchentimer-dark-theme');
+        this.menu.actor.remove_style_class_name('kitchentimer-light-theme');
+      }
+    }
+
+    _applyMaxWidth() {
+      const maxWidth = this.settings.settings.get_int('menu-max-width');
+      this.menu.actor.set_style(`max-width: ${maxWidth}px;`);
     }
 });
 

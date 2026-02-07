@@ -143,7 +143,7 @@ class PreferencesBuilder {
         'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
         'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
         'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
-        'accel_enable','notification','notification_sticky'
+        'accel_enable','notification','notification_sticky','theme_variant','menu_max_width'
       ];
 
       let missing = [];
@@ -890,6 +890,8 @@ class PreferencesBuilder {
     let volume_threshold = this._bo('volume_threshold');
     this._ssb('volume-threshold', volume_threshold, 'value');
 
+    this._bo_ssb('theme_variant', 'selected');
+    this._bo_ssb('menu_max_width', 'value');
   }
 }
 
