@@ -143,7 +143,7 @@ class PreferencesBuilder {
         'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
         'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
         'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
-        'accel_enable','notification','notification_sticky','theme_variant','menu_max_width'
+        'accel_enable','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label'
       ];
 
       let missing = [];
@@ -261,20 +261,24 @@ class PreferencesBuilder {
     this.timers_add = this._bo('timers_add');
     this.timers_remove = this._bo('timers_remove');
     this.timer_enabled = this._bo('timer_enabled');
+    this.timer_validation_label = this._bo('timer_validation_label');
 
     this.spin_hours.connect('value-changed', (spin) => {
+      this._validate_timer_form();
       if (this._update_active_liststore_from_tab()) {
         this._save_liststore();
       }
      });
 
     this.spin_mins.connect('value-changed', (spin) => {
+      this._validate_timer_form();
       if (this._update_active_liststore_from_tab()) {
         this._save_liststore();
       }
     });
 
     this.spin_secs.connect('value-changed', (spin) => {
+      this._validate_timer_form();
       if (this._update_active_liststore_from_tab()) {
         this._save_liststore();
       }
@@ -290,8 +294,70 @@ class PreferencesBuilder {
       this._populate_liststore();
     });
 
+    // Connect timer name entry for validation
+    try {
+      let entry = this.timers_combo.get_child();
+      if (entry) {
+        entry.connect('changed', () => {
+          this._validate_timer_form();
+        });
+      }
+    } catch (e) {
+      this.logger.debug('Could not connect to timer combo entry: %s', e);
+    }
+
     this._populate_liststore();
+    this._validate_timer_form();
     return this._widget;
+  }
+
+  /**
+   * Validate the timer form and display inline error messages.
+   * Returns true if valid, false otherwise.
+   */
+  _validate_timer_form() {
+    let hours = this.spin_hours.get_value_as_int();
+    let mins = this.spin_mins.get_value_as_int();
+    let secs = this.spin_secs.get_value_as_int();
+    let totalSeconds = hours * 3600 + mins * 60 + secs;
+
+    let errors = [];
+
+    if (totalSeconds <= 0) {
+      errors.push(_("Timer duration must be greater than 0"));
+    }
+
+    // Check timer name is not empty
+    try {
+      let entry = this.timers_combo.get_child();
+      if (entry) {
+        let name = entry.get_text();
+        if (!name || name.trim() === '') {
+          errors.push(_("Timer name cannot be empty"));
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Update validation label
+    if (this.timer_validation_label && this.timer_validation_label.set_markup) {
+      if (errors.length > 0) {
+        let errorText = errors.map(e => "• " + e).join("\n");
+        this.timer_validation_label.set_markup('<span color="#e74c3c">' + errorText + '</span>');
+        this.timer_validation_label.show();
+      } else {
+        this.timer_validation_label.set_markup('<span color="#27ae60">' + _("Timer configuration is valid") + '</span>');
+        this.timer_validation_label.show();
+      }
+    }
+
+    // Enable/disable the add button based on validation
+    if (this.timers_add && this.timers_add.set_sensitive) {
+      this.timers_add.set_sensitive(errors.length === 0);
+    }
+
+    return errors.length === 0;
   }
 
   _spawn_dconf_config(clicks) {
