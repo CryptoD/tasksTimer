@@ -27,9 +27,13 @@ The repository now also contains a **standalone GTK application entry point** in
 
 - **File**: `main.js` (repository root)
 - **Type**: GJS `Gtk.Application` with `Gio.ApplicationFlags.HANDLES_COMMAND_LINE`
+- **Application class**: `TaskTimerApplication` (extends `Gtk.Application`)
 - **Current behavior**:
-  - Starts a minimal GTK window titled `taskTimer`.
-  - Logs any command-line arguments that are passed (for future routing).
+  - Implements the GTK application lifecycle:
+    - `vfunc_startup()` – one-time initialization hook (currently logs startup; future home for wiring timers, storage, settings, etc.).
+    - `vfunc_activate()` – creates/presents the main `Gtk.ApplicationWindow` and placeholder content.
+    - `vfunc_shutdown()` – final cleanup hook (destroys the window and logs shutdown; future home for “save all timers” and other teardown work).
+  - Handles command-line arguments via `vfunc_command_line()` and `_handleCommandLine(args)` (currently only logs arguments for debugging/future routing).
 - **Planned behavior (future phases)**:
   - Initialize the shared timer core (currently used by the GNOME Shell extension).
   - Provide a GTK-based UI (menu, timers list, controls) mapped to the existing timer logic.

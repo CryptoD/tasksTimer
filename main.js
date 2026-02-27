@@ -31,7 +31,12 @@ class TaskTimerApplication extends Gtk.Application {
     }
 
     vfunc_startup() {
+        // Place one-time application initialization here.
+        // This runs before the first window is shown and is the right place
+        // to initialize shared services (timers, storage, settings, etc.)
+        // in future phases.
         super.vfunc_startup();
+        log('taskTimer: application startup');
     }
 
     vfunc_activate() {
@@ -56,6 +61,22 @@ class TaskTimerApplication extends Gtk.Application {
         }
 
         this._window.present();
+    }
+
+    vfunc_shutdown() {
+        // This method is called once when the application is exiting.
+        // Use it to flush state (e.g. save timers) and clean up resources.
+        //
+        // Future work: integrate with the shared timer manager and invoke a
+        // "save all timers" operation here so that standalone runs can
+        // persist their state similarly to the GNOME Shell extension.
+        if (this._window) {
+            this._window.destroy();
+            this._window = null;
+        }
+
+        log('taskTimer: application shutdown');
+        super.vfunc_shutdown();
     }
 
     vfunc_command_line(commandLine) {
