@@ -21,6 +21,44 @@
 
 Alternative: package and upload to extensions.gnome.org following their packaging guidelines (ensure the UUID in metadata.json is unique and matches the directory/package name).
 
+## Standalone GTK application entry point (`main.js`)
+
+The repository now also contains a **standalone GTK application entry point** in `main.js`. This is intended to gradually replace `extension.js` as the primary entry for non-GNOME Shell environments while reusing the same timer logic.
+
+- **File**: `main.js` (repository root)
+- **Type**: GJS `Gtk.Application` with `Gio.ApplicationFlags.HANDLES_COMMAND_LINE`
+- **Current behavior**:
+  - Starts a minimal GTK window titled `taskTimer`.
+  - Logs any command-line arguments that are passed (for future routing).
+- **Planned behavior (future phases)**:
+  - Initialize the shared timer core (currently used by the GNOME Shell extension).
+  - Provide a GTK-based UI (menu, timers list, controls) mapped to the existing timer logic.
+  - Support CLI operations such as starting timers directly from the terminal.
+
+### Running the GTK application
+
+From the repository root:
+
+```bash
+gjs main.js [arguments...]
+```
+
+Examples:
+
+- Run with no arguments (just opens the window):
+
+  ```bash
+  gjs main.js
+  ```
+
+- Run with placeholder arguments (currently only logged for debugging/future use):
+
+  ```bash
+  gjs main.js --start-timer 25m "Write report"
+  ```
+
+Developers extending CLI behavior should add parsing and dispatching logic inside `_handleCommandLine(args)` in `main.js`, keeping all CLI handling in that single location.
+
 ## Implementation details
 
 Theme customization is handled via the `theme-variant` and `menu-max-width` GSettings keys.
