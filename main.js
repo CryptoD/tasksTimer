@@ -28,6 +28,12 @@ class TaskTimerApplication extends Gtk.Application {
             application_id: APP_ID,
             flags: Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         });
+
+        // Placeholders for future shared services; these will be
+        // initialized properly in vfunc_startup() in later phases.
+        this._context = null;       // Will hold environment-specific paths, metadata, config provider, etc.
+        this._timers = null;        // Will be the shared Timers manager instance.
+        this._services = Object.create(null); // Generic bag for other shared services (notifier, inhibitor, tray, etc.).
     }
 
     vfunc_startup() {
@@ -35,6 +41,11 @@ class TaskTimerApplication extends Gtk.Application {
         // This runs before the first window is shown and is the right place
         // to initialize shared services (timers, storage, settings, etc.)
         // in future phases.
+        //
+        // Later phases will:
+        // - Construct a StandaloneContext instance and assign it to this._context.
+        // - Create the Timers manager and assign it to this._timers.
+        // - Populate this._services with helpers like notifier, inhibitor, tray, etc.
         super.vfunc_startup();
         log('taskTimer: application startup');
     }
