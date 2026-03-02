@@ -19,7 +19,7 @@ imports.gi.versions.Gtk = '3.0';
 
 const { Gio, GLib, GObject, Gtk } = imports.gi;
 
-const APP_ID = 'org.cryptod.tasktimer';
+const APP_ID = 'com.github.cryptod.tasktimer';
 
 var TaskTimerApplication = GObject.registerClass(
 class TaskTimerApplication extends Gtk.Application {
