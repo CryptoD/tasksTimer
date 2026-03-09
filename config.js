@@ -28,6 +28,51 @@ const CONFIG_PATH = GLib.build_filenamev([
 
 const CURRENT_SCHEMA_VERSION = 1;
 
+// Basic schema description for validation and defaulting. This mirrors the
+// current GSettings layout used in taskTimer as closely as possible.
+const SCHEMA = {
+    'accel-enable':           { type: 'boolean', default: false },
+    'accel-show-endtime':     { type: 'string',  default: '' },
+    'accel-stop-next':        { type: 'string',  default: '' },
+
+    'debug':                  { type: 'boolean', default: false },
+    'detect-dupes':           { type: 'boolean', default: true },
+    'inhibit':                { type: 'int',     default: 0 },
+    'inhibit-max':            { type: 'int',     default: 0 },
+
+    'notification':           { type: 'boolean', default: true },
+    'notification-sticky':    { type: 'boolean', default: false },
+    'notification-longtimeout': { type: 'int',   default: 10000 },
+
+    'play-sound':             { type: 'boolean', default: true },
+    'sound-file':             { type: 'string',  default: 'tasktimer-default.ogg' },
+    'sound-loops':            { type: 'int',     default: 1 },
+
+    'prefer-presets':         { type: 'int',     default: 0 },
+    'save-quick-timers':      { type: 'boolean', default: true },
+
+    'show-endtime':           { type: 'boolean', default: false },
+    'show-label':             { type: 'boolean', default: true },
+    'show-progress':          { type: 'boolean', default: true },
+    'show-time':              { type: 'boolean', default: true },
+
+    'sort-by-duration':       { type: 'boolean', default: false },
+    'sort-descending':        { type: 'boolean', default: false },
+
+    'volume-level-warn':      { type: 'boolean', default: true },
+    'volume-threshold':       { type: 'int',     default: 20 },
+
+    'theme-variant':          { type: 'string',  default: 'system' },
+    'menu-max-width':         { type: 'int',     default: 400 },
+
+    // Running timers JSON; currently stored as a JSON-encoded string.
+    'running':                { type: 'string',  default: '[]' },
+
+    // Timer presets and quick timers (arrays of plain objects).
+    'timers':                 { type: 'array',   default: [] },
+    'quick-timers':           { type: 'array',   default: [] },
+};
+
 function _ensureConfigDir() {
     try {
         GLib.mkdir_with_parents(CONFIG_DIR, 0o755);
@@ -45,13 +90,10 @@ function _loadRawConfig() {
         const decoder = new TextDecoder('utf-8');
         const text = decoder.decode(contents);
         const data = JSON.parse(text);
-        if (typeof data.version !== 'number') {
-            data.version = CURRENT_SCHEMA_VERSION;
-        }
-        return data;
+        return _applyDefaultsAndMigrate(data);
     } catch (e) {
         // File does not exist or cannot be parsed; start with defaults.
-        return { version: CURRENT_SCHEMA_VERSION };
+        return _applyDefaultsAndMigrate({});
     }
 }
 
@@ -74,6 +116,59 @@ function _saveRawConfig(data) {
     } catch (e) {
         logError(e, `taskTimer: failed to write config file ${CONFIG_PATH}`);
     }
+}
+
+function _coerceValue(schemaEntry, value) {
+    if (value === undefined || value === null) {
+        return schemaEntry.default;
+    }
+
+    switch (schemaEntry.type) {
+        case 'boolean':
+            return Boolean(value);
+        case 'string':
+            return String(value);
+        case 'int': {
+            const n = parseInt(value, 10);
+            return Number.isNaN(n) ? schemaEntry.default : n | 0;
+        }
+        case 'array':
+            return Array.isArray(value) ? value : schemaEntry.default;
+        default:
+            return value;
+    }
+}
+
+function _migrateSchema(data) {
+    // Placeholder for future schema migrations. For now, we only ensure that
+    // the version field is present and bump it to CURRENT_SCHEMA_VERSION.
+    if (typeof data.version !== 'number') {
+        data.version = CURRENT_SCHEMA_VERSION;
+    }
+    if (data.version < CURRENT_SCHEMA_VERSION) {
+        // Future migration steps for older versions would go here.
+        data.version = CURRENT_SCHEMA_VERSION;
+    }
+}
+
+function _applyDefaultsAndMigrate(raw) {
+    const data = (raw && typeof raw === 'object') ? raw : {};
+
+    if (typeof data.version !== 'number') {
+        data.version = CURRENT_SCHEMA_VERSION;
+    }
+
+    _migrateSchema(data);
+
+    // Apply defaults and simple type coercion based on SCHEMA entries.
+    for (let [key, schemaEntry] of Object.entries(SCHEMA)) {
+        const current = Object.prototype.hasOwnProperty.call(data, key)
+            ? data[key]
+            : undefined;
+        data[key] = _coerceValue(schemaEntry, current);
+    }
+
+    return data;
 }
 
 var JSONSettingsProvider = class JSONSettingsProvider extends Platform.ConfigProvider {
