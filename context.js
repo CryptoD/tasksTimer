@@ -11,6 +11,7 @@
  */
 
 const { Gio, GLib } = imports.gi;
+const Config = imports.config;
 
 // Path to the extension metadata, used as a source of name/description/version
 // information until a dedicated standalone metadata file is introduced.
@@ -78,6 +79,11 @@ var StandaloneContext = class StandaloneContext extends Context {
         this._ensureDirectory(this._configDir);
         this._ensureDirectory(this._dataDir);
         this._ensureDirectory(this.logDir);
+
+        // JSON-backed settings provider for the standalone application. This
+        // can be passed to higher-level settings managers so they use the
+        // same ConfigProvider interface as the extension path.
+        this._configProvider = params.configProvider || new Config.JSONSettingsProvider();
     }
 
     _ensureDirectory(path) {
@@ -112,6 +118,10 @@ var StandaloneContext = class StandaloneContext extends Context {
 
     get application() {
         return this._application;
+    }
+
+    get configProvider() {
+        return this._configProvider;
     }
 };
 

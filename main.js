@@ -26,6 +26,7 @@ imports.searchPath.unshift(GLib.get_current_dir());
 
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
+const ExtSettings = imports['taskTimer@CryptoD'].settings;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
 
@@ -59,6 +60,11 @@ class TaskTimerApplication extends Gtk.Application {
             appId: APP_ID,
             application: this,
         });
+
+        // Create a Settings instance backed by the standalone JSON
+        // configuration provider so that the standalone app and the
+        // extension share the same Settings API.
+        this._services.settings = new ExtSettings.Settings(this._context.configProvider);
 
         // Create the standalone GTK platform implementation that will own
         // the main window and (in later phases) tray, shortcuts, and
