@@ -18,6 +18,7 @@
 imports.gi.versions.Gtk = '3.0';
 
 const { Gio, GLib, GObject, Gtk } = imports.gi;
+const Context = imports.context;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
 
@@ -41,12 +42,19 @@ class TaskTimerApplication extends Gtk.Application {
         // This runs before the first window is shown and is the right place
         // to initialize shared services (timers, storage, settings, etc.)
         // in future phases.
-        //
+        super.vfunc_startup();
+
+        // Initialize the standalone Context so that other modules can
+        // discover application metadata and common paths (config/data/logs)
+        // without re-calculating them.
+        this._context = new Context.StandaloneContext({
+            appId: APP_ID,
+            application: this,
+        });
+
         // Later phases will:
-        // - Construct a StandaloneContext instance and assign it to this._context.
         // - Create the Timers manager and assign it to this._timers.
         // - Populate this._services with helpers like notifier, inhibitor, tray, etc.
-        super.vfunc_startup();
         log('taskTimer: application startup');
     }
 
