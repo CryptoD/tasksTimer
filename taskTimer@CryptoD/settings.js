@@ -33,12 +33,25 @@ const Logger = Me.imports.logger.Logger;
 
 // adapted from Bluetooth-quick-connect extension by Bartosz Jaroszewski
 var Settings = class Settings {
-  constructor() {
+  /**
+   * @param {Object} provider - Optional ConfigProvider-like object. When
+   *   supplied (e.g. JSONSettingsProvider), all scalar reads/writes are
+   *   delegated to it. When omitted, a Gio.Settings instance is created
+   *   and used directly (current extension behavior).
+   */
+  constructor(provider = null) {
     // try to recompile the schema
     let compile_schemas = [ Me.path+"/bin/compile_schemas.sh" ];
     let [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas, undefined, GLib);
 
-    this.settings = ExtensionUtils.getSettings();
+    this.settings = provider && provider._settings
+      ? provider._settings
+      : ExtensionUtils.getSettings();
+
+    // Internal provider used for scalar keys. If none is supplied, fall back
+    // to using the underlying Gio.Settings instance directly.
+    this._provider = provider;
+
     this.logger = new Logger('kt settings', this.settings);
 
     if (exit_status !== 0) {
@@ -53,6 +66,56 @@ var Settings = class Settings {
       duration: 120,
       enabled: true,
       quick: false
+    }
+  }
+
+  // Internal helpers to read/write scalar settings via the provider when
+  // available, or via Gio.Settings otherwise. This is a minimal adaptation
+  // to allow the standalone app to inject a JSONSettingsProvider without
+  // disrupting the extension's existing behavior.
+
+  _getBoolean(key) {
+    if (this._provider && typeof this._provider.get_boolean === 'function') {
+      return this._provider.get_boolean(key);
+    }
+    return this.settings.get_boolean(key);
+  }
+
+  _setBoolean(key, value) {
+    if (this._provider && typeof this._provider.set_boolean === 'function') {
+      this._provider.set_boolean(key, value);
+    } else {
+      this.settings.set_boolean(key, value);
+    }
+  }
+
+  _getString(key) {
+    if (this._provider && typeof this._provider.get_string === 'function') {
+      return this._provider.get_string(key);
+    }
+    return this.settings.get_string(key);
+  }
+
+  _setString(key, value) {
+    if (this._provider && typeof this._provider.set_string === 'function') {
+      this._provider.set_string(key, value);
+    } else {
+      this.settings.set_string(key, value);
+    }
+  }
+
+  _getInt(key) {
+    if (this._provider && typeof this._provider.get_int === 'function') {
+      return this._provider.get_int(key);
+    }
+    return this.settings.get_int(key);
+  }
+
+  _setInt(key, value) {
+    if (this._provider && typeof this._provider.set_int === 'function') {
+      this._provider.set_int(key, value);
+    } else {
+      this.settings.set_int(key, value);
     }
   }
 
@@ -242,115 +305,115 @@ var Settings = class Settings {
   }
 
   get accel_enable() {
-    return this.settings.get_boolean('accel-enable');
+    return this._getBoolean('accel-enable');
   }
 
   set accel_enable(bool) {
-    this.settings.set_boolean('accel-enable', bool);
+    this._setBoolean('accel-enable', bool);
   }
 
   get accel_show_endtime() {
-    return this.settings.get_string('accel-show-endtime');
+    return this._getString('accel-show-endtime');
   }
 
   set accel_show_endtime(val) {
-    this.settings.set_string('accel-show-endtime', val);
+    this._setString('accel-show-endtime', val);
   }
 
   get accel_stop_next() {
-    return this.settings.get_string('accel-stop-next');
+    return this._getString('accel-stop-next');
   }
 
   set accel_stop_next(val) {
-    this.settings.set_string('accel-stop-next', val);
+    this._setString('accel-stop-next', val);
   }
 
   get inhibit() {
-    return this.settings.get_int('inhibit');
+    return this._getInt('inhibit');
   }
 
   set inhibit(val) {
-    this.settings.set_int('inhibit', val);
+    this._setInt('inhibit', val);
   }
 
   get inhibit_max() {
-    return this.settings.get_int('inhibit-max');
+    return this._getInt('inhibit-max');
   }
 
   set inhibit_max(val) {
-    this.settings.set_int('inhibit-max', val);
+    this._setInt('inhibit-max', val);
   }
 
   get notification() {
-    return this.settings.get_boolean('notification');
+    return this._getBoolean('notification');
   }
 
   set notification(bool) {
-    this.settings.set_boolean(bool);
+    this._setBoolean('notification', bool);
   }
 
   get notification_sticky() {
-    return this.settings.get_boolean('notification-sticky');
+    return this._getBoolean('notification-sticky');
   }
 
   set notification_sticky(bool) {
-    this.settings.set_boolean(bool);
+    this._setBoolean('notification-sticky', bool);
   }
 
   get notification_longtimeout() {
-    return this.settings.get_int('notification-longtimeout');
+    return this._getInt('notification-longtimeout');
   }
 
   set notification_longtimeout(val) {
-    this.settings.set_int('notification-longtimeout', val);
+    this._setInt('notification-longtimeout', val);
   }
 
   get show_time() {
-    return this.settings.get_boolean('show-time');
+    return this._getBoolean('show-time');
   }
 
   set show_time(bool) {
-    this.settings.set_boolean('show-time', bool);
+    this._setBoolean('show-time', bool);
   }
 
   get show_endtime() {
-    return this.settings.get_boolean('show-endtime');
+    return this._getBoolean('show-endtime');
   }
 
   set show_endtime(bool) {
-    this.settings.set_boolean('show-endtime', bool);
+    this._setBoolean('show-endtime', bool);
   }
 
   get show_label() {
-    return this.settings.get_boolean('show-label');
+    return this._getBoolean('show-label');
   }
 
   set show_label(bool) {
-    return this.settings.set_boolean('show-label', bool);
+    this._setBoolean('show-label', bool);
   }
 
   get show_progress() {
-    return this.settings.get_boolean('show-progress');
+    return this._getBoolean('show-progress');
   }
 
   set show_progress(bool) {
-    this.settings.set_boolean('show-progress', bool);
+    this._setBoolean('show-progress', bool);
   }
 
   get play_sound() {
-    return this.settings.get_boolean('play-sound');
+    return this._getBoolean('play-sound');
   }
 
   set play_sound(bool) {
-    this.settings.set_boolean('play-sound', bool);
+    this._setBoolean('play-sound', bool);
   }
 
   get sound_loops() {
-    return this.settings.get_int('sound-loops');
+    return this._getInt('sound-loops');
   }
 
   set sound_loops(loops) {
-    this.settings.set_int('sound-loops', loops);
+    this._setInt('sound-loops', loops);
   }
 
   get sound_file() {
@@ -366,51 +429,51 @@ var Settings = class Settings {
   }
 
   get default_timer() {
-    return this.settings.get_int('default-timer');
+    return this._getInt('default-timer');
   }
 
   set default_timer(val) {
-    this.settings.set_int('default-timer', val);
+    this._setInt('default-timer', val);
   }
 
   get sort_by_duration() {
-    return this.settings.get_boolean('sort-by-duration');
+    return this._getBoolean('sort-by-duration');
   }
 
   set sort_by_duration(bool) {
-    this.settings.set_boolean('sort-by-duration', bool);
+    this._setBoolean('sort-by-duration', bool);
   }
 
   get sort_descending() {
-    return this.settings.get_boolean('sort-descending');
+    return this._getBoolean('sort-descending');
   }
 
   set sort_descending(bool) {
-    this.settings.set_boolean('sort-descending', bool);
+    this._setBoolean('sort-descending', bool);
   }
 
   get save_quick_timers() {
-    return this.settings.get_boolean('save-quick-timers');
+    return this._getBoolean('save-quick-timers');
   }
 
   set save_quick_timers(bool) {
-    this.settings.set_boolean('save-quick-timers', bool);
+    this._setBoolean('save-quick-timers', bool);
   }
 
   get detect_dupes() {
-    return this.settings.get_boolean('detect-dupes');
+    return this._getBoolean('detect-dupes');
   }
 
   set detect_dupes(bool) {
-    this.settings.set_boolean('detect-dupes', bool);
+    this._setBoolean('detect-dupes', bool);
   }
 
   get running() {
-    return this.settings.get_string('running');
+    return this._getString('running');
   }
 
   set running(json) {
-    this.settings.set_string('running', json);
+    this._setString('running', json);
   }
 
   get run_states() {
@@ -427,37 +490,37 @@ var Settings = class Settings {
   }
 
   get volume_level_warn() {
-    return this.settings.get_boolean('volume-level-warn');
+    return this._getBoolean('volume-level-warn');
   }
 
   set volume_level_warn(bool) {
-    this.settings.set_boolean('volume-level-warn', bool);
+    this._setBoolean('volume-level-warn', bool);
   }
 
   get volume_threshold() {
-    return this.settings.get_int('volume-threshold');
+    return this._getInt('volume-threshold');
   }
 
   set volume_threshold(val) {
-    this.settings.set_int('volume-threshold', val);
+    this._setInt('volume-threshold', val);
   }
 
   get prefer_presets() {
-    return this.settings.get_int('prefer-presets');
+    return this._getInt('prefer-presets');
   }
 
   set prefer_presets(val) {
     if (val > 10) { val = 10; }
     else if (val < -10) { val = -10; }
-    this.settings.set_int('prefer-presets', val);
+    this._setInt('prefer-presets', val);
   }
 
   get debug() {
-    return this.settings.get_boolean('debug');
+    return this._getBoolean('debug');
   }
 
   set debug(bool) {
-    this.settings.set_boolean('debug', bool);
+    this._setBoolean('debug', bool);
   }
 
 };
