@@ -44,8 +44,13 @@ const Model = {
 }
 
 class PreferencesBuilder {
-  constructor() {
-    this._settings = new Settings();
+  /**
+   * @param {Settings} settings - Optional Settings instance. When provided
+   *   (e.g. from the standalone application), this builder will use it
+   *   directly instead of constructing its own via ExtensionUtils.
+   */
+  constructor(settings = null) {
+    this._settings = settings || new Settings();
     this._builder = new Gtk.Builder();
     this.logger = new Logger('kt prefs', this._settings);
 
