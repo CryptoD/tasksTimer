@@ -243,3 +243,125 @@ var JSONSettingsProvider = class JSONSettingsProvider extends Platform.ConfigPro
     }
 };
 
+/**
+ * GSettingsProvider
+ *
+ * Wrapper around Gio.Settings that conforms to the same ConfigProvider
+ * interface as JSONSettingsProvider. This allows existing code in
+ * taskTimer@CryptoD/settings.js to be migrated to a provider pattern
+ * without changing its public API.
+ */
+var GSettingsProvider = class GSettingsProvider extends Platform.ConfigProvider {
+    /**
+     * @param {Gio.Settings} gioSettings - existing Gio.Settings instance
+     */
+    constructor(gioSettings) {
+        super();
+        this._settings = gioSettings;
+    }
+
+    // Base get/set use the appropriate Gio.Settings typed accessors when
+    // possible. For compatibility, only keys present in SCHEMA are handled
+    // here; others will fall back to string lookups.
+
+    get(key) {
+        const schemaEntry = SCHEMA[key];
+        if (!schemaEntry) {
+            // Fall back to a generic string representation if the key is not
+            // known to this schema description.
+            try {
+                return this._settings.get_string(key);
+            } catch (e) {
+                return undefined;
+            }
+        }
+
+        switch (schemaEntry.type) {
+            case 'boolean':
+                return this._settings.get_boolean(key);
+            case 'string':
+                return this._settings.get_string(key);
+            case 'int':
+                return this._settings.get_int(key);
+            case 'array': {
+                // For arrays we use get_strv; callers can interpret as needed.
+                return this._settings.get_strv(key);
+            }
+            default:
+                return undefined;
+        }
+    }
+
+    set(key, value) {
+        const schemaEntry = SCHEMA[key];
+        if (!schemaEntry) {
+            // Fall back to storing as string when schema information is missing.
+            this._settings.set_string(key, String(value));
+            return;
+        }
+
+        switch (schemaEntry.type) {
+            case 'boolean':
+                this._settings.set_boolean(key, Boolean(value));
+                break;
+            case 'string':
+                this._settings.set_string(key, value === undefined || value === null ? '' : String(value));
+                break;
+            case 'int': {
+                const n = parseInt(value, 10);
+                this._settings.set_int(key, Number.isNaN(n) ? 0 : n);
+                break;
+            }
+            case 'array': {
+                const arr = Array.isArray(value) ? value : [];
+                this._settings.set_strv(key, arr.map(v => String(v)));
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    // Typed getters simply delegate to the underlying Gio.Settings when
+    // possible, preserving existing semantics.
+
+    get_boolean(key) {
+        return this._settings.get_boolean(key);
+    }
+
+    get_string(key) {
+        return this._settings.get_string(key);
+    }
+
+    get_int(key) {
+        return this._settings.get_int(key);
+    }
+
+    get_strv(key) {
+        return this._settings.get_strv(key);
+    }
+
+    // Typed setters
+
+    set_boolean(key, value) {
+        this._settings.set_boolean(key, Boolean(value));
+    }
+
+    set_string(key, value) {
+        this._settings.set_string(key, value === undefined || value === null ? '' : String(value));
+    }
+
+    set_int(key, value) {
+        const n = parseInt(value, 10);
+        this._settings.set_int(key, Number.isNaN(n) ? 0 : n);
+    }
+
+    set_strv(key, value) {
+        if (!Array.isArray(value)) {
+            value = [];
+        }
+        this._settings.set_strv(key, value.map(v => String(v)));
+    }
+};
+
+
