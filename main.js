@@ -19,6 +19,7 @@ imports.gi.versions.Gtk = '3.0';
 
 const { Gio, GLib, GObject, Gtk } = imports.gi;
 const Context = imports.context;
+const Standalone = imports.platform.standalone.gtk_platform;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
 
@@ -35,6 +36,7 @@ class TaskTimerApplication extends Gtk.Application {
         this._context = null;       // Will hold environment-specific paths, metadata, config provider, etc.
         this._timers = null;        // Will be the shared Timers manager instance.
         this._services = Object.create(null); // Generic bag for other shared services (notifier, inhibitor, tray, etc.).
+        this._platform = null;      // Will be the active PlatformUI implementation (StandaloneGtkPlatform).
     }
 
     vfunc_startup() {
@@ -52,6 +54,16 @@ class TaskTimerApplication extends Gtk.Application {
             application: this,
         });
 
+        // Create the standalone GTK platform implementation that will own
+        // the main window and (in later phases) tray, shortcuts, and
+        // notifications. This keeps UI wiring separate from core logic.
+        this._platform = new Standalone.StandaloneGtkPlatform({
+            application: this,
+            context: this._context,
+            appId: APP_ID,
+        });
+        this._platform.init();
+
         // Later phases will:
         // - Create the Timers manager and assign it to this._timers.
         // - Populate this._services with helpers like notifier, inhibitor, tray, etc.
@@ -59,27 +71,11 @@ class TaskTimerApplication extends Gtk.Application {
     }
 
     vfunc_activate() {
-        if (!this._window) {
-            this._window = new Gtk.ApplicationWindow({
-                application: this,
-                title: 'taskTimer',
-                default_width: 480,
-                default_height: 320,
-            });
-
-            const label = new Gtk.Label({
-                label: 'taskTimer GTK application (WIP)',
-                margin_top: 24,
-                margin_bottom: 24,
-                margin_start: 24,
-                margin_end: 24,
-            });
-
-            this._window.add(label);
-            this._window.show_all();
+        // Delegate activation to the platform implementation so that all
+        // window management goes through a single surface.
+        if (this._platform) {
+            this._platform.showMainWindow();
         }
-
-        this._window.present();
     }
 
     vfunc_shutdown() {
