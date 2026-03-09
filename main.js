@@ -18,6 +18,12 @@
 imports.gi.versions.Gtk = '3.0';
 
 const { Gio, GLib, GObject, Gtk } = imports.gi;
+
+// Ensure the directory containing this script (and its submodules) is in the
+// GJS search path so that standalone modules like `context` and `platform/*`
+// can be imported when running `gjs main.js` directly.
+imports.searchPath.unshift(GLib.get_current_dir());
+
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
 
@@ -73,6 +79,7 @@ class TaskTimerApplication extends Gtk.Application {
     vfunc_activate() {
         // Delegate activation to the platform implementation so that all
         // window management goes through a single surface.
+        log('taskTimer: application activate');
         if (this._platform) {
             this._platform.showMainWindow();
         }
