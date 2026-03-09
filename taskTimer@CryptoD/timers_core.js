@@ -21,15 +21,27 @@ const HMS = Me.imports.hms.HMS;
 const AlarmTimer = Me.imports.alarm_timer.AlarmTimer;
 const Storage = Me.imports.storage.Storage;
 
-const TIMERS_SAVE_PATH = GLib.get_user_data_dir() + '/tasksTimer@CryptoD/timers.json';
+const DEFAULT_DATA_DIR = GLib.build_filenamev([GLib.get_user_data_dir(), 'tasktimer']);
+const DEFAULT_TIMERS_FILE = 'timers.json';
+
+function _timersPathFor(timers) {
+    const services = timers && timers._services ? timers._services : {};
+    if (services.storage && services.storage.timersPath) {
+        return services.storage.timersPath;
+    }
+    const dataDir = services.dataDir || DEFAULT_DATA_DIR;
+    return GLib.build_filenamev([dataDir, DEFAULT_TIMERS_FILE]);
+}
 
 function saveAllTimersCore(timers) {
     const timersData = timers.map(timer => (typeof timer.toJSON === 'function' ? timer.toJSON() : timer));
-    Storage.saveJSON(TIMERS_SAVE_PATH, timersData);
+    const path = _timersPathFor(timers);
+    Storage.saveJSON(path, timersData);
 }
 
 function loadAllTimersCore(TimerCore) {
-    const timersData = Storage.loadJSON(TIMERS_SAVE_PATH);
+    const path = _timersPathFor(null);
+    const timersData = Storage.loadJSON(path);
     if (!timersData) return [];
 
     return timersData.map(timerData => {

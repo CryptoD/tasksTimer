@@ -37,7 +37,7 @@ const KeyboardShortcuts = Me.imports.keyboard_shortcuts.KeyboardShortcuts;
 const ProgressIcon = Me.imports.progress_icon.ProgressIcon;
 
 const Storage = Me.imports.storage.Storage;
-const TIMERS_SAVE_PATH = GLib.get_user_data_dir() + '/tasksTimer@CryptoD/timers.json';
+const TIMERS_SAVE_PATH = GLib.build_filenamev([GLib.get_user_data_dir(), 'tasktimer', 'timers.json']);
 
 // Utility to save all timers
 function saveAllTimers(timersInstance) {
