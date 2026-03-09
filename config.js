@@ -160,6 +160,14 @@ function _applyDefaultsAndMigrate(raw) {
 
     _migrateSchema(data);
 
+    // If this configuration has not yet been initialized from the legacy
+    // GSettings backend, attempt a one-time migration. This allows users
+    // upgrading from the GNOME Shell extension to keep their existing
+    // preferences in the standalone application.
+    if (!data.migrated_from_gsettings) {
+        _maybeMigrateFromGSettings(data);
+    }
+
     // Apply defaults and simple type coercion based on SCHEMA entries.
     for (let [key, schemaEntry] of Object.entries(SCHEMA)) {
         const current = Object.prototype.hasOwnProperty.call(data, key)
@@ -169,6 +177,34 @@ function _applyDefaultsAndMigrate(raw) {
     }
 
     return data;
+}
+
+function _maybeMigrateFromGSettings(data) {
+    try {
+        const schemaId = 'org.gnome.shell.extensions.kitchen-timer-blackjackshellac';
+        const gioSettings = new Gio.Settings({ schema_id: schemaId });
+        const provider = new GSettingsProvider(gioSettings);
+
+        for (let [key, schemaEntry] of Object.entries(SCHEMA)) {
+            // Skip keys that are already present; user JSON wins over GSettings.
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                continue;
+            }
+            const value = provider.get(key);
+            if (value !== undefined) {
+                data[key] = _coerceValue(schemaEntry, value);
+            }
+        }
+
+        data.migrated_from_gsettings = true;
+        log('taskTimer: migrated settings from GSettings to JSON config');
+    } catch (e) {
+        // Most likely the schema is not installed, or this environment does
+        // not support GSettings for the extension. In that case we simply
+        // keep JSON defaults and mark migration as done to avoid retrying.
+        logError(e, 'taskTimer: failed to migrate settings from GSettings; continuing with JSON defaults');
+        data.migrated_from_gsettings = true;
+    }
 }
 
 var JSONSettingsProvider = class JSONSettingsProvider extends Platform.ConfigProvider {
