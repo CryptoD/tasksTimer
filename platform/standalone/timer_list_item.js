@@ -44,6 +44,26 @@ class TimerListItem extends Gtk.ListBoxRow {
 
         this._title.set_label(_safeText(t.name, 'Timer'));
         this._secondary.set_label(this._formatSecondary(t));
+
+        const settings = this._settings;
+        const showLabel = settings ? Boolean(settings.show_label) : true;
+        const showTime = settings ? Boolean(settings.show_time) : true;
+        const showProgress = settings ? Boolean(settings.show_progress) : false;
+
+        this._title.set_visible(showLabel);
+        this._secondary.set_visible(showTime);
+
+        const canProgress = Boolean(showProgress && (t.running || t.paused) && typeof t.duration === 'number' && t.duration > 0);
+        this._progress.set_visible(canProgress);
+        if (canProgress) {
+            const remaining = t.remaining_hms && typeof t.remaining_hms === 'function'
+                ? t.remaining_hms().toSeconds()
+                : 0;
+            const frac = Math.max(0, Math.min(1, 1 - (remaining / t.duration)));
+            this._progress.set_fraction(frac);
+            this._progress.set_text(`${Math.round(frac * 100)}%`);
+            this._progress.set_show_text(true);
+        }
     }
 
     _formatSecondary(timer) {
@@ -92,8 +112,14 @@ class TimerListItem extends Gtk.ListBoxRow {
         });
         this._secondary.get_style_context().add_class('dim-label');
 
+        this._progress = new Gtk.ProgressBar({
+            show_text: false,
+        });
+        this._progress.set_visible(false);
+
         textBox.pack_start(this._title, false, false, 0);
         textBox.pack_start(this._secondary, false, false, 0);
+        textBox.pack_start(this._progress, false, false, 0);
 
         const btnMenu = new Gtk.MenuButton({ label: '⋯' });
         btnMenu.set_valign(Gtk.Align.CENTER);

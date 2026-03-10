@@ -573,10 +573,27 @@ class StandaloneGtkPlatform extends GObject.Object {
                 return btn;
             };
 
+            const mkIconToggle = (iconName, tooltip) => {
+                const img = Gtk.Image.new_from_icon_name(iconName, Gtk.IconSize.BUTTON);
+                const btn = new Gtk.ToggleButton({ image: img, relief: Gtk.ReliefStyle.NONE });
+                if (tooltip) btn.set_tooltip_text(tooltip);
+                return btn;
+            };
+
             const btnQuickCreate = mkIconBtn('list-add-symbolic', 'Quick create');
             const btnPlayPause = mkIconBtn('media-playback-start-symbolic', 'Play/Pause');
             const btnReset = mkIconBtn('view-refresh-symbolic', 'Reset');
             const btnDelete = mkIconBtn('edit-delete-symbolic', 'Delete');
+
+            const settings = this._application && this._application._services ? this._application._services.settings : null;
+            const togLabel = mkIconToggle('font-x-generic-symbolic', 'Show label');
+            const togTime = mkIconToggle('preferences-system-time-symbolic', 'Show time');
+            const togProgress = mkIconToggle('view-list-symbolic', 'Show progress');
+            if (settings) {
+                try { togLabel.set_active(Boolean(settings.show_label)); } catch (e) {}
+                try { togTime.set_active(Boolean(settings.show_time)); } catch (e) {}
+                try { togProgress.set_active(Boolean(settings.show_progress)); } catch (e) {}
+            }
 
             const setPlayPauseIcon = (timer) => {
                 const img = btnPlayPause.get_image();
@@ -596,6 +613,10 @@ class StandaloneGtkPlatform extends GObject.Object {
                 btnReset.set_sensitive(Boolean(t));
                 btnDelete.set_sensitive(Boolean(t && !t.running && !t.paused));
                 setPlayPauseIcon(t);
+            };
+
+            const refreshDisplayOptions = () => {
+                try { timerWidget.refresh(); } catch (e) {}
             };
 
             btnQuickCreate.connect('clicked', () => {
@@ -666,6 +687,26 @@ class StandaloneGtkPlatform extends GObject.Object {
             actionsBar.pack_start(btnPlayPause, false, false, 0);
             actionsBar.pack_start(btnReset, false, false, 0);
             actionsBar.pack_start(btnDelete, false, false, 0);
+            actionsBar.pack_start(new Gtk.Separator({ orientation: Gtk.Orientation.VERTICAL }), false, false, 6);
+            actionsBar.pack_start(togLabel, false, false, 0);
+            actionsBar.pack_start(togTime, false, false, 0);
+            actionsBar.pack_start(togProgress, false, false, 0);
+
+            togLabel.connect('toggled', () => {
+                if (!settings) return;
+                settings.show_label = togLabel.get_active();
+                refreshDisplayOptions();
+            });
+            togTime.connect('toggled', () => {
+                if (!settings) return;
+                settings.show_time = togTime.get_active();
+                refreshDisplayOptions();
+            });
+            togProgress.connect('toggled', () => {
+                if (!settings) return;
+                settings.show_progress = togProgress.get_active();
+                refreshDisplayOptions();
+            });
 
             const bottomBar = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
