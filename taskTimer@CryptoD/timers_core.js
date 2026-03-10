@@ -21,6 +21,15 @@ const HMS = Me.imports.hms.HMS;
 const AlarmTimer = Me.imports.alarm_timer.AlarmTimer;
 const Storage = Me.imports.storage.Storage;
 
+// Localized strings; fall back to identity in environments without gettext.
+let _ = s => s;
+try {
+    const Gettext = imports.gettext.domain('tasktimer');
+    _ = Gettext.gettext;
+} catch (e) {
+    // leave _ as a no-op in non-localized runtimes
+}
+
 const DEFAULT_DATA_DIR = GLib.build_filenamev([GLib.get_user_data_dir(), 'tasktimer']);
 const DEFAULT_TIMERS_FILE = 'timers.json';
 
