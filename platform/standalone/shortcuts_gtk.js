@@ -5,6 +5,10 @@
  * Gtk.Application.set_accels_for_action() and GSimpleAction. Provides in-window
  * accelerators (e.g. Ctrl+N, Space) that trigger when the app or its windows
  * have focus.
+ *
+ * Global hotkey limitation: Truly global shortcuts (active when the app does not
+ * have focus) are limited or unavailable on Wayland and in AppImage builds.
+ * The standalone app primarily supports in-app shortcuts only. See README.
  */
 
 const { Gio, GLib } = imports.gi;

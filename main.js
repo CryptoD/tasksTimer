@@ -92,6 +92,131 @@ function _addTimerNotificationActions(app) {
 const VOLUME_LOW_MSG = 'volume level is low for running timer: %d %%';
 
 /**
+ * Register in-app keyboard shortcuts with the platform's ShortcutProvider when
+ * accel_enable is true and accelerator strings are set. Call once after _timers
+ * and _platform are initialized (TEST 5).
+ */
+function _registerShortcuts(app) {
+    if (!app._platform || !app._platform.shortcuts || !app._services.settings) {
+        return;
+    }
+    const settings = app._services.settings;
+    const provider = app._platform.shortcuts;
+    if (!settings.accel_enable) {
+        return;
+    }
+    const showEndtime = (settings.accel_show_endtime || '').trim();
+    const stopNext = (settings.accel_stop_next || '').trim();
+    if (showEndtime) {
+        provider.register(showEndtime, () => {
+            const next = !settings.show_endtime;
+            settings.show_endtime = next;
+            log('taskTimer: shortcut toggled show_endtime to ' + next);
+        });
+    }
+    if (stopNext) {
+        provider.register(stopNext, () => {
+            const running = app._timers && app._timers.sort_by_running();
+            const next = running && running[0];
+            if (next) {
+                next.stop();
+                log('taskTimer: shortcut stopped next timer: ' + next.name);
+            }
+        });
+    }
+}
+
+/**
+ * Add app.preferences action (Ctrl+,) and optional UI trigger. Opens the
+ * preferences dialog in a separate window when run from standalone (TEST 5).
+ */
+function _addPreferencesAction(app) {
+    const prefsAction = new Gio.SimpleAction.new('preferences', null);
+    prefsAction.connect('activate', () => {
+        if (!app._services.settings) {
+            return;
+        }
+        const Prefs = imports['taskTimer@CryptoD'].prefs;
+        const basePath = GLib.build_filenamev([GLib.get_current_dir(), 'taskTimer@CryptoD']);
+        const builder = new Prefs.PreferencesBuilder(app._services.settings, basePath);
+        const widget = builder.build();
+        builder.show();
+        const win = new Gtk.Window({ title: 'taskTimer Preferences' });
+        if (app._platform && app._platform._window) {
+            win.set_transient_for(app._platform._window);
+        }
+        win.set_default_size(700, 560);
+        win.add(widget);
+        win.present();
+    });
+    app.add_action(prefsAction);
+    app.set_accels_for_action('app.preferences', ['<Primary>comma']);
+}
+
+/**
+ * Add app.newTimer action used by tray and future UI.
+ * Opens a small dialog to create and start a quick timer.
+ */
+function _addNewTimerAction(app) {
+    const action = new Gio.SimpleAction.new('newTimer', null);
+    action.connect('activate', () => {
+        if (!app._platform) {
+            return;
+        }
+        app._platform.showMainWindow();
+
+        const dialog = new Gtk.Dialog({ title: 'New timer', modal: true });
+        if (app._platform._window) {
+            dialog.set_transient_for(app._platform._window);
+        }
+        dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
+        dialog.add_button('Start', Gtk.ResponseType.OK);
+
+        const box = dialog.get_content_area();
+        const grid = new Gtk.Grid({ row_spacing: 8, column_spacing: 8, margin: 12 });
+
+        const nameLabel = new Gtk.Label({ label: 'Name', halign: Gtk.Align.START });
+        const nameEntry = new Gtk.Entry({ hexpand: true });
+        nameEntry.set_text('Timer');
+
+        const minutesLabel = new Gtk.Label({ label: 'Minutes', halign: Gtk.Align.START });
+        const minutes = new Gtk.SpinButton({ adjustment: new Gtk.Adjustment({ lower: 0, upper: 999, step_increment: 1 }), numeric: true });
+        minutes.set_value(5);
+
+        const secondsLabel = new Gtk.Label({ label: 'Seconds', halign: Gtk.Align.START });
+        const seconds = new Gtk.SpinButton({ adjustment: new Gtk.Adjustment({ lower: 0, upper: 59, step_increment: 1 }), numeric: true });
+        seconds.set_value(0);
+
+        grid.attach(nameLabel, 0, 0, 1, 1);
+        grid.attach(nameEntry, 1, 0, 1, 1);
+        grid.attach(minutesLabel, 0, 1, 1, 1);
+        grid.attach(minutes, 1, 1, 1, 1);
+        grid.attach(secondsLabel, 0, 2, 1, 1);
+        grid.attach(seconds, 1, 2, 1, 1);
+
+        box.add(grid);
+        dialog.show_all();
+
+        dialog.connect('response', (_d, responseId) => {
+            if (responseId === Gtk.ResponseType.OK) {
+                const total = (minutes.get_value_as_int() * 60) + seconds.get_value_as_int();
+                const nm = nameEntry.get_text() || 'Timer';
+                if (app._timers && total > 0) {
+                    const TimerCore = TimersCoreModule.TimerCore;
+                    const timer = new TimerCore(app._timers, nm, total);
+                    timer.quick = true;
+                    if (app._timers.add(timer)) {
+                        timer.start();
+                    }
+                }
+            }
+            dialog.destroy();
+        });
+    });
+    app.add_action(action);
+}
+
+/**
  * If Gvc is available, connect to default sink volume/muted and call notifier.warning
  * when volume is below settings.volume_threshold and a timer is running (same semantics as extension).
  *
@@ -265,6 +390,9 @@ class TaskTimerApplication extends Gtk.Application {
 
         _addTimerNotificationActions(this);
         _setupVolumeWarning(this, coreNotifier);
+        _registerShortcuts(this);
+        _addPreferencesAction(this);
+        _addNewTimerAction(this);
 
         log('taskTimer: application startup');
     }

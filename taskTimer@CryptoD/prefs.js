@@ -41,24 +41,41 @@ const Model = {
   QUICK: 4,
   HMS: 5,
   TRASH: 6
-}
+};
+
+/** Shortcut actions shown in the Shortcuts preferences tab. key = settings key (e.g. accel-show-endtime). */
+const SHORTCUT_ACTIONS = [
+  { key: 'accel-show-endtime', label: _('Show end time'), tooltip: _('Toggle showing end time in the panel') },
+  { key: 'accel-stop-next', label: _('Stop next timer'), tooltip: _('Stop the next running timer') }
+];
 
 class PreferencesBuilder {
   /**
    * @param {Settings} settings - Optional Settings instance. When provided
    *   (e.g. from the standalone application), this builder will use it
    *   directly instead of constructing its own via ExtensionUtils.
+   * @param {string} [basePath] - Optional path to the extension directory (e.g. for
+   *   loading settings40.ui and icons when run from standalone, where Me may be unset).
    */
-  constructor(settings = null) {
+  constructor(settings = null, basePath = null) {
     this._settings = settings || new Settings();
+    this._basePath = basePath || (typeof Me !== 'undefined' && Me.path) || '';
     this._builder = new Gtk.Builder();
     this.logger = new Logger('kt prefs', this._settings);
 
     if (true) {
-      let iconPath = Me.dir.get_child("icons").get_path();
-      let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
-      iconTheme.add_search_path(iconPath);
+      let iconPath = this._basePath
+        ? GLib.build_filenamev([this._basePath, 'icons'])
+        : (typeof Me !== 'undefined' && Me.dir ? Me.dir.get_child('icons').get_path() : '');
+      if (iconPath) {
+        let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+        iconTheme.add_search_path(iconPath);
+      }
     }
+  }
+
+  _extensionPath() {
+    return this._basePath || (typeof Me !== 'undefined' && Me.path) || '';
   }
 
   show() {
@@ -82,12 +99,12 @@ class PreferencesBuilder {
     this._widget = new Gtk.ScrolledWindow();
 
     if (false) {
-      this._builder.add_from_file(GLib.build_filenamev([Me.path, 'settings.ui']));
+      this._builder.add_from_file(GLib.build_filenamev([this._basePath || (typeof Me !== 'undefined' && Me.path) || '', 'settings.ui']));
       this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
       this._viewport.add(this._taskTimer_settings);
       this._widget.add(this._viewport);
     } else {
-      this._builder.add_from_file(GLib.build_filenamev([Me.path, 'settings40.ui']));
+      this._builder.add_from_file(GLib.build_filenamev([this._basePath || (typeof Me !== 'undefined' ? Me.path : ''), 'settings40.ui']));
 
       // settings40.ui uses a different root ID (kitchenTimer_settings) compared to
       // the GTK3 settings.ui (taskTimer_settings). Try the GTK4 root id first
@@ -148,7 +165,8 @@ class PreferencesBuilder {
         'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
         'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
         'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
-        'accel_enable','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label'
+        'accel_enable','minimize_to_tray','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label',
+        'shortcuts_list'
       ];
 
       let missing = [];
@@ -239,8 +257,10 @@ class PreferencesBuilder {
       }
     }
 
-    this._bo('version').set_text("Version "+Me.metadata.version);
-    this._bo('description').set_text(Me.metadata.description.split(/\n/)[0]);
+    const version = (typeof Me !== 'undefined' && Me.metadata && Me.metadata.version) ? Me.metadata.version : '?';
+    const description = (typeof Me !== 'undefined' && Me.metadata && Me.metadata.description) ? Me.metadata.description.split(/\n/)[0] : 'taskTimer';
+    this._bo('version').set_text("Version " + version);
+    this._bo('description').set_text(description);
 
     // Connect Export Logs button if present (both GTK3 & GTK4 UI)
     try {
@@ -313,6 +333,9 @@ class PreferencesBuilder {
 
     this._populate_liststore();
     this._validate_timer_form();
+
+    this._build_shortcuts_tab();
+
     return this._widget;
   }
 
@@ -367,7 +390,8 @@ class PreferencesBuilder {
 
   _spawn_dconf_config(clicks) {
     if (clicks === 2) {
-      var cmd = Me.path+"/bin/dconf-editor.sh";
+      const base = this._basePath || (typeof Me !== 'undefined' && Me.path) || '';
+      var cmd = base + "/bin/dconf-editor.sh";
       this.logger.debug("spawn %s", cmd);
       Utils.spawn(cmd, undefined);
       clicks = 0;
@@ -452,17 +476,17 @@ class PreferencesBuilder {
     });
 
     if (file_dialog.current_folder == undefined) {
-       file_dialog.current_folder = Me.path;
+       file_dialog.current_folder = this._extensionPath();
     }
 
     let sound_file = this._settings.sound_file;
     if (GLib.basename(sound_file) == sound_file) {
-      sound_file = GLib.build_filenamev([ Me.path, sound_file ]);
+      sound_file = GLib.build_filenamev([ this._extensionPath(), sound_file ]);
     }
     this.logger.debug("sound_file="+sound_file);
 
     file_dialog.set_filter(this._bo('audio_files_filter'));
-    file_dialog.set_current_folder(Gio.File.new_for_path(Me.path));
+    file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
     file_dialog.set_current_name(sound_file);
     file_dialog.title = _("Sound file");
     //file_dialog.set_do_overwrite_confirmation(true);
@@ -500,7 +524,7 @@ class PreferencesBuilder {
     });
 
     if (file_dialog.current_folder == undefined) {
-       file_dialog.current_folder = Me.path;
+       file_dialog.current_folder = this._extensionPath();
     }
 
     let settings_json = 'tasktimer_settings.json';
@@ -514,11 +538,11 @@ class PreferencesBuilder {
     this.logger.debug("action=%s", ""+file_dialog.get_action());
 
     if (false) {
-      file_dialog.set_current_folder(Me.path);
+      file_dialog.set_current_folder(this._extensionPath());
       file_dialog.set_do_overwrite_confirmation(true);
       file_dialog.set_local_only(true);
     } else {
-      file_dialog.set_current_folder(Gio.File.new_for_path(Me.path));
+      file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
     }
 
     file_dialog.connect('response', (dialog, response_id) => {
@@ -569,7 +593,7 @@ class PreferencesBuilder {
     });
 
     if (file_dialog.current_folder == undefined) {
-       file_dialog.current_folder = Me.path;
+       file_dialog.current_folder = this._extensionPath();
     }
 
     let settings_json = 'tasktimer_settings.json' ;
@@ -583,10 +607,10 @@ class PreferencesBuilder {
     this.logger.debug("action=%s", ""+file_dialog.get_action());
 
     if (false) {
-      file_dialog.set_current_folder(Me.path);
+      file_dialog.set_current_folder(this._extensionPath());
       file_dialog.set_local_only(true);
     } else {
-      file_dialog.set_current_folder(Gio.File.new_for_path(Me.path));
+      file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
     }
 
     file_dialog.connect('response', (dialog, response_id) => {
@@ -851,7 +875,7 @@ class PreferencesBuilder {
       });
 
       if (file_dialog.current_folder == undefined) {
-        file_dialog.current_folder = Me.path;
+        file_dialog.current_folder = this._extensionPath();
       }
 
       let default_name = 'tasktimer_logs.txt';
@@ -860,9 +884,9 @@ class PreferencesBuilder {
       file_dialog.add_button('Export', Gtk.ResponseType.OK);
 
       if (true) {
-        file_dialog.set_current_folder(Gio.File.new_for_path(Me.path));
+        file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
       } else {
-        file_dialog.set_current_folder(Me.path);
+        file_dialog.set_current_folder(this._extensionPath());
       }
 
       file_dialog.connect('response', (dialog, response_id) => {
@@ -923,6 +947,7 @@ class PreferencesBuilder {
 
   _bind() {
     this._bo_ssb('accel_enable', 'active');
+    this._bo_ssb('minimize_to_tray', 'active');
 
     this._bo_ssb('notification', 'active');
     this._bo_ssb('notification_sticky', 'active');
@@ -963,6 +988,108 @@ class PreferencesBuilder {
 
     this._bo_ssb('theme_variant', 'selected');
     this._bo_ssb('menu_max_width', 'value');
+  }
+
+  _build_shortcuts_tab() {
+    let listBox = null;
+    try {
+      listBox = this._builder.get_object('shortcuts_list');
+    } catch (e) {
+      return;
+    }
+    if (!listBox) return;
+
+    const note = new Gtk.Label({
+      label: _('Assign key combinations below. Enable "Keyboard shortcuts" in the Options tab to use them.'),
+      wrap: true,
+      xalign: 0,
+      margin_bottom: 8
+    });
+    note.add_css_class('dim-label');
+    listBox.append(note);
+
+    const settingsKeyFromKey = (key) => key.replace(/-/g, '_');
+    const getAccel = (key) => {
+      const sk = settingsKeyFromKey(key);
+      return (this._settings[sk] !== undefined && this._settings[sk] !== null) ? String(this._settings[sk]) : '';
+    };
+    const setAccel = (key, value) => {
+      const sk = settingsKeyFromKey(key);
+      if (typeof this._settings[sk] !== 'undefined') {
+        this._settings[sk] = value || '';
+      }
+    };
+
+    for (const action of SHORTCUT_ACTIONS) {
+      const row = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, spacing: 12 });
+      const label = new Gtk.Label({ label: action.label, halign: Gtk.Align.START, hexpand: true });
+      if (action.tooltip) label.set_tooltip_text(action.tooltip);
+      const accelLabel = new Gtk.Label({ label: getAccel(action.key) || _('None'), selectable: true });
+      accelLabel.add_css_class('dim-label');
+      const setBtn = new Gtk.Button({ label: _('Set…') });
+      const clearBtn = new Gtk.Button({ label: _('Clear') });
+
+      const updateAccelDisplay = (val) => {
+        accelLabel.set_label(val || _('None'));
+      };
+
+      setBtn.connect('clicked', () => {
+        setBtn.set_sensitive(false);
+        accelLabel.set_label(_('Press a key combination…'));
+        const win = this._widget.get_root();
+        if (!win) {
+          setBtn.set_sensitive(true);
+          updateAccelDisplay(getAccel(action.key));
+          return;
+        }
+        const controller = new Gtk.EventControllerKey();
+        const done = (accel) => {
+          win.remove_controller(controller);
+          setBtn.set_sensitive(true);
+          if (accel !== null) {
+            setAccel(action.key, accel);
+            updateAccelDisplay(accel);
+          } else {
+            updateAccelDisplay(getAccel(action.key));
+          }
+        };
+        controller.connect('key-pressed', (self, keyval, keycode, state) => {
+          const accel = this._keyEventToAccelerator(keyval, state);
+          if (accel) done(accel);
+          return true;
+        });
+        controller.connect('key-released', () => { return false; });
+        win.add_controller(controller);
+      });
+
+      clearBtn.connect('clicked', () => {
+        setAccel(action.key, '');
+        updateAccelDisplay('');
+      });
+
+      row.append(label);
+      row.append(accelLabel);
+      row.append(setBtn);
+      row.append(clearBtn);
+      listBox.append(row);
+    }
+  }
+
+  /**
+   * Build an accelerator string from a keyval and modifier state (e.g. from GtkEventControllerKey).
+   * @returns {string} e.g. "<Control><Shift>a" or "" if invalid
+   */
+  _keyEventToAccelerator(keyval, state) {
+    const Gdk = imports.gi.Gdk;
+    const parts = [];
+    if (state & Gdk.ModifierType.CONTROL_MASK) parts.push('<Control>');
+    if (state & Gdk.ModifierType.SHIFT_MASK) parts.push('<Shift>');
+    if (state & Gdk.ModifierType.ALT_MASK) parts.push('<Alt>');
+    if (state & Gdk.ModifierType.SUPER_MASK) parts.push('<Super>');
+    const name = Gdk.keyval_name(keyval);
+    if (!name) return '';
+    parts.push(name);
+    return parts.join('');
   }
 }
 

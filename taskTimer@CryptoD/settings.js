@@ -328,6 +328,14 @@ var Settings = class Settings {
     this._setString('accel-stop-next', val);
   }
 
+  get minimize_to_tray() {
+    return this._getBoolean('minimize-to-tray');
+  }
+
+  set minimize_to_tray(bool) {
+    this._setBoolean('minimize-to-tray', bool);
+  }
+
   get inhibit() {
     return this._getInt('inhibit');
   }

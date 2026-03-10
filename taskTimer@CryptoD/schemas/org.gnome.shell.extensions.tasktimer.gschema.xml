@@ -175,5 +175,9 @@ https://developer.gnome.org/glib/stable/gvariant-text.html
       <default><![CDATA['<ctrl><super>K']]></default>
       <summary>Keyboard shortcut to stop the next timer to expire</summary>
     </key>
+    <key name="minimize-to-tray" type="b">
+      <default>false</default>
+      <summary>Hide to tray instead of closing the main window (standalone)</summary>
+    </key>
   </schema>
 </schemalist>

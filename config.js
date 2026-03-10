@@ -32,8 +32,9 @@ const CURRENT_SCHEMA_VERSION = 1;
 // current GSettings layout used in taskTimer as closely as possible.
 const SCHEMA = {
     'accel-enable':           { type: 'boolean', default: false },
-    'accel-show-endtime':     { type: 'string',  default: '' },
-    'accel-stop-next':        { type: 'string',  default: '' },
+    'accel-show-endtime':     { type: 'string',  default: '<Control><Super>t' },
+    'accel-stop-next':        { type: 'string',  default: '<Control><Super>k' },
+    'minimize-to-tray':       { type: 'boolean', default: false },
 
     'debug':                  { type: 'boolean', default: false },
     'detect-dupes':           { type: 'boolean', default: true },

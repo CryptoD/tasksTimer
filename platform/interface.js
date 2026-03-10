@@ -61,44 +61,68 @@ var PlatformUI = class PlatformUI {
     }
 };
 
+/**
+ * TrayProvider abstraction
+ *
+ * Decouples core logic (timers, menus) from the specific tray implementation.
+ * Callers use show(), hide(), setIcon(), setTooltip(), and setMenu() without
+ * depending on GNOME Shell status area, AppIndicator, or any other backend.
+ *
+ * Implementations:
+ *  - Extension: can wrap the panel indicator (PanelMenu.Button) and map these
+ *    calls to St.Icon, tooltip, and PopupMenu.
+ *  - Standalone: can use Gtk.StatusIcon (deprecated), AppIndicator, or a
+ *    custom placeholder until a tray backend is chosen.
+ */
 var TrayProvider = class TrayProvider {
     /**
-     * Show the tray icon.
+     * Show the tray icon. No-op if the platform has no tray or icon is already visible.
      */
     show() {
         throw new Error('TrayProvider.show() not implemented');
     }
 
     /**
-     * Hide the tray icon.
+     * Hide the tray icon. No-op if already hidden or platform has no tray.
      */
     hide() {
         throw new Error('TrayProvider.hide() not implemented');
     }
 
     /**
-     * Update the tray icon image based on an icon name or gicon handle.
+     * Update the tray icon image.
+     * @param {string|object} icon - Icon name (e.g. 'alarm-symbolic') or a GIcon-like
+     *        object (e.g. Gio.ThemedIcon, file path). Implementation may accept either.
      */
     setIcon(icon) {
         throw new Error('TrayProvider.setIcon() not implemented');
     }
 
     /**
-     * Update the tray tooltip text.
+     * Update the tray tooltip (hover text).
+     * @param {string} text - Tooltip text; empty string to clear.
      */
     setTooltip(text) {
         throw new Error('TrayProvider.setTooltip() not implemented');
     }
 
     /**
-     * Set or update the context menu model/structure backing the tray menu.
-     * The exact type is left to the implementation (e.g. GMenuModel, Gtk.Menu).
+     * Set or update the context menu shown when the user activates the tray icon.
+     * @param {object} menuModel - Menu structure. Exact type is implementation-defined:
+     *        e.g. GMenuModel for GTK, or a PopupMenu/PopupMenuManager in GNOME Shell.
+     *        Pass null/undefined to clear the menu.
      */
     setMenu(menuModel) {
         throw new Error('TrayProvider.setMenu() not implemented');
     }
 };
 
+/**
+ * Abstract provider for keyboard shortcuts. Implementations may be in-app only
+ * (e.g. standalone on Wayland/AppImage) or global (e.g. GNOME Shell extension).
+ * Truly global shortcuts are limited or unavailable on Wayland/AppImage; the app
+ * primarily supports in-app shortcuts. See README.
+ */
 var ShortcutProvider = class ShortcutProvider {
     /**
      * Register an accelerator for a named action.

@@ -14,32 +14,65 @@
 
 imports.gi.versions.Gtk = '3.0';
 
-const { GObject, Gtk, GLib, Pango } = imports.gi;
+const { GObject, Gtk, GLib, Pango, Gdk } = imports.gi;
 
 const Context = imports.context;
 const Platform = imports.platform.interface;
 const GioNotification = imports.platform.standalone.notification_gio;
 const GtkShortcuts = imports.platform.standalone.shortcuts_gtk;
 
+let AppIndicatorTrayProvider = null;
+let AppIndicatorAvailable = false;
+try {
+    const TrayAppIndicator = imports.platform.standalone.tray_appindicator;
+    AppIndicatorTrayProvider = TrayAppIndicator.AppIndicatorTrayProvider;
+    AppIndicatorAvailable = TrayAppIndicator.isAvailable && TrayAppIndicator.isAvailable();
+} catch (e) {
+    // libappindicator3 / libayatana-appindicator3 not installed or not loadable.
+}
+
+let StatusIconTrayProvider = null;
+try {
+    const TrayStatusIcon = imports.platform.standalone.tray_statusicon;
+    StatusIconTrayProvider = TrayStatusIcon.StatusIconTrayProvider;
+} catch (e) {
+    // Gtk.StatusIcon may be unavailable (e.g. GTK 4); use no-op tray.
+}
+
+/**
+ * TrayProvider: prefer AppIndicator/Ayatana (Wayland/modern), then StatusIcon
+ * (X11/legacy), else no-op. See doc/PHASE6_TRAY_DESIGN.md.
+ */
 var StandaloneTrayProvider = class StandaloneTrayProvider extends Platform.TrayProvider {
+    constructor(platform) {
+        super();
+        if (platform && AppIndicatorAvailable && AppIndicatorTrayProvider) {
+            this._impl = new AppIndicatorTrayProvider(platform);
+        } else if (platform && StatusIconTrayProvider) {
+            this._impl = new StatusIconTrayProvider(platform);
+        } else {
+            this._impl = null;
+        }
+    }
+
     show() {
-        // Placeholder: no tray icon yet.
+        if (this._impl) this._impl.show();
     }
 
     hide() {
-        // Placeholder: no tray icon yet.
+        if (this._impl) this._impl.hide();
     }
 
-    setIcon(_icon) {
-        // Placeholder: no tray icon yet.
+    setIcon(icon) {
+        if (this._impl) this._impl.setIcon(icon);
     }
 
-    setTooltip(_text) {
-        // Placeholder: no tray icon yet.
+    setTooltip(text) {
+        if (this._impl) this._impl.setTooltip(text);
     }
 
-    setMenu(_menuModel) {
-        // Placeholder: no tray context menu yet.
+    setMenu(menuModel) {
+        if (this._impl) this._impl.setMenu(menuModel);
     }
 };
 
@@ -62,7 +95,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                   application: this._application,
               });
 
-        this._tray = new StandaloneTrayProvider();
+        this._tray = new StandaloneTrayProvider(this);
         this._shortcuts = new StandaloneShortcutProvider(this._application);
         this._notifications = new StandaloneNotificationProvider(this._application, {
             fallback: (id, title, body) => this._showInAppBanner(title, body),
@@ -72,6 +105,7 @@ class StandaloneGtkPlatform extends GObject.Object {
         this._bannerRevealer = null;
         this._bannerLabel = null;
         this._bannerTimeoutId = null;
+        this._trayUpdateId = null;
     }
 
     _showInAppBanner(title, body) {
@@ -115,6 +149,38 @@ class StandaloneGtkPlatform extends GObject.Object {
                 title: 'taskTimer',
                 default_width: 480,
                 default_height: 320,
+            });
+
+            // When enabled, closing or minimizing the window hides it and keeps the
+            // app running in the tray (if a tray backend is available).
+            this._window.connect('delete-event', () => {
+                const settings = this._application && this._application._services
+                    ? this._application._services.settings
+                    : null;
+                if (settings && settings.minimize_to_tray) {
+                    this.hideMainWindow();
+                    return true; // prevent destroy/quit
+                }
+                return false;
+            });
+
+            this._window.connect('window-state-event', (_w, event) => {
+                const settings = this._application && this._application._services
+                    ? this._application._services.settings
+                    : null;
+                if (!settings || !settings.minimize_to_tray) {
+                    return false;
+                }
+                try {
+                    const changed = event.changed_mask;
+                    const state = event.new_window_state;
+                    if ((changed & Gdk.WindowState.ICONIFIED) && (state & Gdk.WindowState.ICONIFIED)) {
+                        this.hideMainWindow();
+                    }
+                } catch (e) {
+                    // ignore: different GJS/Gdk event shapes
+                }
+                return false;
             });
 
             const mainVbox = new Gtk.Box({
@@ -204,16 +270,29 @@ class StandaloneGtkPlatform extends GObject.Object {
                 }
             });
 
+            const btnPrefs = new Gtk.Button({
+                label: 'Preferences…',
+                halign: Gtk.Align.START,
+            });
+            btnPrefs.connect('clicked', () => {
+                if (this._application && this._application.activate_action) {
+                    this._application.activate_action('preferences', null);
+                }
+            });
+
             contentVbox.add(label);
             contentVbox.add(button);
             contentVbox.add(btnTestNotif);
             contentVbox.add(btnInApp);
+            contentVbox.add(btnPrefs);
             mainVbox.pack_start(contentVbox, true, true, 0);
 
             this._window.add(mainVbox);
             this._window.show_all();
         }
 
+        this._tray.show();
+        this._startTrayUpdates();
         this._window.present();
     }
 
@@ -221,6 +300,36 @@ class StandaloneGtkPlatform extends GObject.Object {
         if (this._window) {
             this._window.hide();
         }
+    }
+
+    _startTrayUpdates() {
+        if (this._trayUpdateId) {
+            return;
+        }
+        this._trayUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+            this._updateTrayFromTimers();
+            return true;
+        });
+        this._updateTrayFromTimers();
+    }
+
+    _updateTrayFromTimers() {
+        const app = this._application;
+        const timers = app && app._timers && typeof app._timers.sort_by_running === 'function'
+            ? app._timers.sort_by_running()
+            : [];
+
+        if (!timers || timers.length === 0) {
+            this._tray.setIcon('alarm-symbolic');
+            this._tray.setTooltip('taskTimer');
+            return;
+        }
+
+        const next = timers[0];
+        const hms = next.remaining_hms ? next.remaining_hms().toString(true) : '';
+        const tip = hms ? `Next: ${next.name} (${hms})` : `Next: ${next.name}`;
+        this._tray.setIcon('appointment-soon-symbolic');
+        this._tray.setTooltip(tip);
     }
 
     get tray() {

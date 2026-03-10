@@ -80,6 +80,9 @@ The max-width of the menu is set dynamically on the menu's actor using the inlin
 ### Settings
 Settings are managed in `prefs.js` and defined in `settings40.ui`. These settings are bound to the GSettings keys, ensuring changes are saved and applied in real-time.
 
+### Keyboard shortcuts
+The app supports configurable keyboard shortcuts (e.g. show end time, stop next timer). **Truly global shortcuts** (active when the app or extension menu does not have focus) are **limited or unavailable on Wayland and in AppImage/standalone builds**; they work when running as a GNOME Shell extension, which can register accelerators with the compositor. The **standalone GTK application primarily supports in-app shortcuts**—key combinations that work when the app window has focus. Configure shortcuts in the **Shortcuts** tab of the preferences.
+
 ## Notes
 - The gettext domain is `tasktimer` and schemas are under org.gnome.shell.extensions.kitchen-timer-blackjackshellac (no functional change to schema id unless you choose to rename it).
 - If you change the schemas id or gettext domain, be sure to update translations and metadata appropriately.

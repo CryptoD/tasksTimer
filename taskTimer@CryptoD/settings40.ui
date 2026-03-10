@@ -1067,6 +1067,19 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                     </packing>-->
                   </child>
                   <child>
+                    <object class="GtkCheckButton" id="minimize_to_tray">
+                      <property name="label" translatable="yes">Minimize to tray</property>
+                      <property name="visible">True</property>
+                      <property name="can-focus">True</property>
+                      <property name="receives-default">False</property>
+                      <property name="tooltip-text" translatable="yes">Hide the main window instead of closing it (requires tray support)</property>
+                      <layout>
+                        <property name="row">6</property>
+                        <property name="column">1</property>
+                      </layout>
+                    </object>
+                  </child>
+                  <child>
                     <object class="GtkBox">
                       <property name="visible">True</property>
                       <property name="orientation">horizontal</property>
@@ -1133,6 +1146,30 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                   <property name="position">1</property>
                 </packing>-->
                 </property> <!-- GtkStackPage property name="child" -->
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage"><!-- shortcuts -->
+                <property name="name">shortcuts</property>
+                <property name="title" translatable="yes">Shortcuts</property>
+                <property name="child">
+                  <object class="GtkScrolledWindow" id="shortcuts_scrolled">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="child">
+                      <object class="GtkBox" id="shortcuts_list">
+                        <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
+                        <property name="margin-start">20</property>
+                        <property name="margin-end">20</property>
+                        <property name="margin-top">10</property>
+                        <property name="margin-bottom">10</property>
+                        <property name="spacing">12</property>
+                      </object>
+                    </property>
+                  </object>
+                </property>
               </object>
             </child>
             <child>

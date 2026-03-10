@@ -21,6 +21,12 @@
  * KeyboardShortcuts accepts an optional ShortcutProvider; if none is given,
  * the default GNOME Shell implementation (global.display + Main.wm) is used.
  * Contract: provider.register(accelerator, callback), provider.unregister(accelerator), provider.clear().
+ *
+ * Global hotkey limitation: Truly global shortcuts (active when the app does not have focus)
+ * are only available when running as a GNOME Shell extension, via Shell's accelerator grab.
+ * On Wayland outside the Shell, or in the standalone AppImage/GTK build, global shortcuts
+ * are limited or unavailable; the app primarily supports in-app shortcuts (when the window
+ * or extension menu has focus). See README for user-facing documentation.
  */
 
 const Meta = imports.gi.Meta;
@@ -35,6 +41,8 @@ const Logger = Me.imports.logger.Logger;
 /**
  * GNOME Shell implementation of the shortcut provider contract.
  * Uses global.display.grab_accelerator / ungrab_accelerator and Main.wm.allowKeybinding.
+ * Provides global shortcuts only when running inside GNOME Shell; not used by the
+ * standalone app (Wayland/AppImage), where shortcuts are in-app only.
  */
 var GnomeShellShortcutProvider = class GnomeShellShortcutProvider {
     constructor() {
