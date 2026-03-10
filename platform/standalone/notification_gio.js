@@ -3,11 +3,18 @@
  *
  * NotificationProvider implementation for the standalone GTK application using
  * Gio.Notification and GApplication.send_notification() for desktop notifications.
+ * Supports timer actions (dismiss, restart, snooze) via app.timerDismiss,
+ * app.timerRestart, app.timerSnooze GActions when options.timerId is set.
  */
 
-const { Gio } = imports.gi;
+const { Gio, GLib } = imports.gi;
 
 const Platform = imports.platform.interface;
+
+/** Action names registered on GApplication (main.js); used for notification buttons. */
+const ACTION_DISMISS = 'app.timerDismiss';
+const ACTION_RESTART = 'app.timerRestart';
+const ACTION_SNOOZE = 'app.timerSnooze';
 
 var GioNotificationProvider = class GioNotificationProvider extends Platform.NotificationProvider {
     /**
@@ -21,11 +28,12 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
 
     /**
      * Show a notification via Gio.Notification and application.send_notification().
+     * If options.timerId is set, adds Restart (default), Dismiss, and Snooze 30s/5m buttons.
      *
      * @param {string} id    - stable identifier (reusing replaces previous notification).
      * @param {string} title - notification title.
      * @param {string} body  - notification body text.
-     * @param {Object} options - optional; icon (GIcon), urgency, etc. for future use.
+     * @param {Object} options - optional; icon (GIcon), timerId (string) for action buttons.
      */
     notify(id, title, body, options = {}) {
         if (!this._application) {
@@ -37,6 +45,16 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         if (options.icon && options.icon instanceof Gio.Icon) {
             notification.set_icon(options.icon);
         }
+
+        const timerId = options.timerId && String(options.timerId);
+        if (timerId) {
+            const targetId = new GLib.Variant('s', timerId);
+            notification.set_default_action_and_target_value(ACTION_RESTART, targetId);
+            notification.add_button_with_target_value('Dismiss', ACTION_DISMISS, targetId);
+            notification.add_button_with_target_value('Snooze 30s', ACTION_SNOOZE, new GLib.Variant('s', timerId + ':30'));
+            notification.add_button_with_target_value('Snooze 5m', ACTION_SNOOZE, new GLib.Variant('s', timerId + ':300'));
+        }
+
         try {
             this._application.send_notification(id || null, notification);
         } catch (e) {

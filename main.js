@@ -35,6 +35,59 @@ const Logger = imports['taskTimer@CryptoD'].logger.Logger;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
 
+/** Action IDs used by Gio.Notification buttons; must match names registered on GApplication. */
+const TIMER_ACTION_DISMISS = 'timerDismiss';
+const TIMER_ACTION_RESTART = 'timerRestart';
+const TIMER_ACTION_SNOOZE = 'timerSnooze';
+
+/**
+ * Register GActions for timer notification actions (dismiss, restart, snooze).
+ * Notifications use app.timerDismiss::<id>, app.timerRestart::<id>, app.timerSnooze::<id>:<secs>.
+ *
+ * @param {Gtk.Application} app - TaskTimerApplication instance (must have _timers and _platform).
+ */
+function _addTimerNotificationActions(app) {
+    const stringType = new GLib.VariantType('s');
+
+    const dismissAction = Gio.SimpleAction.new(TIMER_ACTION_DISMISS, stringType);
+    dismissAction.connect('activate', (_action, param) => {
+        const timerId = param.get_string()[0];
+        if (app._platform && app._platform.notifications) {
+            app._platform.notifications.close(timerId);
+        }
+    });
+    app.add_action(dismissAction);
+
+    const restartAction = Gio.SimpleAction.new(TIMER_ACTION_RESTART, stringType);
+    restartAction.connect('activate', (_action, param) => {
+        const timerId = param.get_string()[0];
+        const timer = app._timers && app._timers.lookup(timerId);
+        if (timer) {
+            timer.start();
+        }
+        if (app._platform && app._platform.notifications) {
+            app._platform.notifications.close(timerId);
+        }
+    });
+    app.add_action(restartAction);
+
+    const snoozeAction = Gio.SimpleAction.new(TIMER_ACTION_SNOOZE, stringType);
+    snoozeAction.connect('activate', (_action, param) => {
+        const target = param.get_string()[0];
+        const colon = target.indexOf(':');
+        const timerId = colon >= 0 ? target.substring(0, colon) : target;
+        const secs = colon >= 0 ? parseInt(target.substring(colon + 1), 10) : 30;
+        const timer = app._timers && app._timers.lookup(timerId);
+        if (timer && !isNaN(secs) && secs > 0) {
+            timer.snooze(secs);
+        }
+        if (app._platform && app._platform.notifications) {
+            app._platform.notifications.close(timerId);
+        }
+    });
+    app.add_action(snoozeAction);
+}
+
 var TaskTimerApplication = GObject.registerClass(
 class TaskTimerApplication extends Gtk.Application {
     _init() {
@@ -100,7 +153,7 @@ class TaskTimerApplication extends Gtk.Application {
                     ? fmt.format(...args)
                     : (fmt ? String(fmt) : '');
 
-                notifications.notify(id, title, body, {});
+                notifications.notify(id, title, body, { timerId: id });
             },
         };
 
@@ -121,6 +174,8 @@ class TaskTimerApplication extends Gtk.Application {
 
         this._timers = new TimersCore(services);
         this._services.timers = this._timers;
+
+        _addTimerNotificationActions(this);
 
         log('taskTimer: application startup');
     }
