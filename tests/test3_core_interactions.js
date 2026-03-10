@@ -6,7 +6,9 @@
 
 imports.searchPath.unshift('.');
 
+const { GLib } = imports.gi;
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+const StorageModule = imports['taskTimer@CryptoD'].storage;
 
 function assert(cond, msg) {
     if (!cond) {
@@ -34,7 +36,18 @@ class SettingsStub {
 }
 
 const settings = new SettingsStub();
-const timers = new TimersCoreModule.TimersCore({ settings, notifier: null, inhibitor: null });
+// Inject storage so the test writes inside the workspace (avoids sandbox permission noise).
+const timersPath = GLib.build_filenamev([GLib.get_current_dir(), 'tests', '.tmp_test3_timers.json']);
+const timers = new TimersCoreModule.TimersCore({
+    settings,
+    notifier: null,
+    inhibitor: null,
+    storage: {
+        timersPath,
+        saveJSON: StorageModule.saveJSON || (StorageModule.StorageModule && StorageModule.StorageModule.saveJSON),
+        loadJSON: StorageModule.loadJSON || (StorageModule.StorageModule && StorageModule.StorageModule.loadJSON),
+    },
+});
 const TimerCore = TimersCoreModule.TimerCore;
 
 // Add timers
