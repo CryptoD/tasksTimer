@@ -133,8 +133,12 @@ class TimerMenuWidget extends Gtk.Box {
             this._persistTimers();
         });
 
+        const btnCreatePreset = new Gtk.Button({ label: 'Create preset…' });
+        btnCreatePreset.connect('clicked', () => this._showCreatePresetDialog());
+
         bottom.pack_start(btnNewTimer, false, false, 0);
         bottom.pack_start(btnPrefs, false, false, 0);
+        bottom.pack_start(btnCreatePreset, false, false, 0);
         bottom.pack_end(btnStopAll, false, false, 0);
 
         this.pack_end(bottom, false, false, 0);
@@ -235,6 +239,136 @@ class TimerMenuWidget extends Gtk.Box {
         if (typeof settings.pack_timers === 'function') {
             try { settings.pack_timers(timers); } catch (e) {}
         }
+    }
+
+    _showCreatePresetDialog() {
+        const timers = this._timers;
+        if (!timers) return;
+
+        const dialog = new Gtk.Dialog({
+            title: 'Create preset',
+            modal: true,
+            use_header_bar: true,
+        });
+        const toplevel = this.get_toplevel && this.get_toplevel();
+        if (toplevel && toplevel instanceof Gtk.Window) {
+            dialog.set_transient_for(toplevel);
+        }
+
+        dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
+        const btnCreate = dialog.add_button('Create', Gtk.ResponseType.OK);
+        btnCreate.set_sensitive(false);
+
+        const area = dialog.get_content_area();
+        const grid = new Gtk.Grid({
+            column_spacing: 10,
+            row_spacing: 10,
+            margin_top: 12,
+            margin_bottom: 12,
+            margin_start: 12,
+            margin_end: 12,
+        });
+
+        const nameLabel = new Gtk.Label({ label: '_Name', use_underline: true, halign: Gtk.Align.START });
+        const nameEntry = new Gtk.Entry({ hexpand: true });
+        nameEntry.set_text('');
+        nameLabel.set_mnemonic_widget(nameEntry);
+
+        const durationLabel = new Gtk.Label({ label: 'Duration', halign: Gtk.Align.START });
+        durationLabel.get_style_context().add_class('dim-label');
+
+        const makeScaleRow = (mnemonic, max) => {
+            const label = new Gtk.Label({ label: mnemonic, use_underline: true, halign: Gtk.Align.START });
+            const adj = new Gtk.Adjustment({ lower: 0, upper: max, step_increment: 1, page_increment: 5 });
+            const scale = Gtk.Scale.new(Gtk.Orientation.HORIZONTAL, adj);
+            scale.set_digits(0);
+            scale.set_draw_value(false);
+            scale.set_hexpand(true);
+            scale.set_can_focus(true);
+            scale.set_increments(1, 5);
+
+            const value = new Gtk.Label({ label: '0', halign: Gtk.Align.END, xalign: 1 });
+            value.set_width_chars(3);
+
+            label.set_mnemonic_widget(scale);
+            return { label, scale, value };
+        };
+
+        const h = makeScaleRow('_Hours', 99);
+        const m = makeScaleRow('_Minutes', 59);
+        const s = makeScaleRow('_Seconds', 59);
+
+        const preview = new Gtk.Label({ label: '00:00:00', halign: Gtk.Align.START });
+        preview.get_style_context().add_class('dim-label');
+
+        function hmsText(hours, minutes, seconds) {
+            const hh = String(hours).padStart(2, '0');
+            const mm = String(minutes).padStart(2, '0');
+            const ss = String(seconds).padStart(2, '0');
+            return `${hh}:${mm}:${ss}`;
+        }
+
+        const update = () => {
+            const hh = h.scale.get_value_as_int();
+            const mm = m.scale.get_value_as_int();
+            const ss = s.scale.get_value_as_int();
+            h.value.set_label(String(hh));
+            m.value.set_label(String(mm));
+            s.value.set_label(String(ss));
+
+            const total = (hh * 3600) + (mm * 60) + ss;
+            preview.set_label(hmsText(hh, mm, ss));
+            btnCreate.set_sensitive(total > 0);
+        };
+
+        h.scale.connect('value-changed', update);
+        m.scale.connect('value-changed', update);
+        s.scale.connect('value-changed', update);
+
+        // Layout
+        grid.attach(nameLabel, 0, 0, 1, 1);
+        grid.attach(nameEntry, 1, 0, 2, 1);
+        grid.attach(durationLabel, 0, 1, 3, 1);
+
+        grid.attach(h.label, 0, 2, 1, 1);
+        grid.attach(h.scale, 1, 2, 1, 1);
+        grid.attach(h.value, 2, 2, 1, 1);
+
+        grid.attach(m.label, 0, 3, 1, 1);
+        grid.attach(m.scale, 1, 3, 1, 1);
+        grid.attach(m.value, 2, 3, 1, 1);
+
+        grid.attach(s.label, 0, 4, 1, 1);
+        grid.attach(s.scale, 1, 4, 1, 1);
+        grid.attach(s.value, 2, 4, 1, 1);
+
+        grid.attach(new Gtk.Label({ label: 'Preview', halign: Gtk.Align.START }), 0, 5, 1, 1);
+        grid.attach(preview, 1, 5, 2, 1);
+
+        area.add(grid);
+        dialog.show_all();
+        update();
+
+        dialog.connect('response', (_d, responseId) => {
+            if (responseId === Gtk.ResponseType.OK) {
+                const hh = h.scale.get_value_as_int();
+                const mm = m.scale.get_value_as_int();
+                const ss = s.scale.get_value_as_int();
+                const total = (hh * 3600) + (mm * 60) + ss;
+                if (total > 0) {
+                    const TimerCore = TimersCoreModule.TimerCore;
+                    const nm = (nameEntry.get_text() || '').trim();
+                    const t = new TimerCore(timers, nm, total);
+                    t.quick = false;
+                    t.enabled = true;
+                    if (timers.add(t)) {
+                        this._persistTimers();
+                        this.refresh();
+                    }
+                }
+            }
+            dialog.destroy();
+        });
     }
 
     _formatSecondary(timer) {
