@@ -88,6 +88,78 @@ function _addTimerNotificationActions(app) {
     app.add_action(snoozeAction);
 }
 
+/** Same message key as extension (notifier/timers) for volume warning. */
+const VOLUME_LOW_MSG = 'volume level is low for running timer: %d %%';
+
+/**
+ * If Gvc is available, connect to default sink volume/muted and call notifier.warning
+ * when volume is below settings.volume_threshold and a timer is running (same semantics as extension).
+ *
+ * @param {Gtk.Application} app - TaskTimerApplication with _timers, _services.settings.
+ * @param {Object} notifier - notifier with warning(timer, text, fmt, ...args).
+ */
+function _setupVolumeWarning(app, notifier) {
+    if (!app._timers || !notifier || typeof notifier.warning !== 'function') {
+        return;
+    }
+    app._volumeWarned = false;
+
+    let Gvc = null;
+    let mixerControl = null;
+    try {
+        const GIRepository = imports.gi.GIRepository;
+        if (GIRepository.Repository.prepend_search_path) {
+            GIRepository.Repository.prepend_search_path('/usr/lib/gnome-shell');
+        }
+        if (GIRepository.Repository.prepend_library_path) {
+            GIRepository.Repository.prepend_library_path('/usr/lib/gnome-shell');
+        }
+        Gvc = imports.gi.Gvc;
+        mixerControl = new Gvc.MixerControl({ name: 'taskTimer' });
+        mixerControl.open();
+    } catch (e) {
+        log('taskTimer: volume warning unavailable (Gvc not used): ' + e.message);
+        return;
+    }
+
+    function checkVolume() {
+        if (!app._services.settings || !app._services.settings.play_sound ||
+            !app._services.settings.volume_level_warn) {
+            return;
+        }
+        const stream = mixerControl.get_default_sink();
+        if (!stream) {
+            return;
+        }
+        const max = mixerControl.get_vol_max_norm();
+        const level = max > 0 ? Math.floor(stream.volume * 100 / max) : 0;
+        const muted = stream.is_muted;
+        const threshold = app._services.settings.volume_threshold || 0;
+
+        if (muted || level < threshold) {
+            const running = app._timers.sort_by_running();
+            if (running.length > 0 && !app._volumeWarned) {
+                app._volumeWarned = true;
+                const timer = running[0];
+                notifier.warning(timer, timer.name, VOLUME_LOW_MSG, level);
+            }
+        } else {
+            app._volumeWarned = false;
+        }
+    }
+
+    try {
+        const stream = mixerControl.get_default_sink();
+        if (stream) {
+            stream.connect('notify::volume', checkVolume);
+            stream.connect('notify::is-muted', checkVolume);
+            checkVolume();
+        }
+    } catch (e) {
+        log('taskTimer: volume monitor connect failed: ' + e.message);
+    }
+}
+
 var TaskTimerApplication = GObject.registerClass(
 class TaskTimerApplication extends Gtk.Application {
     _init() {
@@ -139,7 +211,7 @@ class TaskTimerApplication extends Gtk.Application {
         const TimersCore = TimersCoreModule.TimersCore;
 
         // Adapter that lets TimersCore/TimerCore use the platform's
-        // NotificationProvider while keeping their existing notify() shape.
+        // NotificationProvider while keeping their existing notify() / warning() shape.
         const coreNotifier = {
             notify: (timer, text, fmt, ...args) => {
                 const notifications = this._platform ? this._platform.notifications : null;
@@ -154,6 +226,21 @@ class TaskTimerApplication extends Gtk.Application {
                     : (fmt ? String(fmt) : '');
 
                 notifications.notify(id, title, body, { timerId: id });
+            },
+            // Same semantics as extension notifier.warning: "Timer Warning: <name>" + formatted body.
+            warning: (timer, text, fmt, ...args) => {
+                const notifications = this._platform ? this._platform.notifications : null;
+                if (!notifications) {
+                    return;
+                }
+
+                const id = timer && timer.id ? `warning-${timer.id}` : 'warning-timer';
+                const title = 'Timer Warning: ' + (text || (timer && timer.name) || '');
+                const body = fmt && typeof fmt.format === 'function'
+                    ? fmt.format(...args)
+                    : (fmt ? String(fmt) : '');
+
+                notifications.notify(id, title, body, { timerId: timer && timer.id ? String(timer.id) : undefined });
             },
         };
 
@@ -176,6 +263,7 @@ class TaskTimerApplication extends Gtk.Application {
         this._services.timers = this._timers;
 
         _addTimerNotificationActions(this);
+        _setupVolumeWarning(this, coreNotifier);
 
         log('taskTimer: application startup');
     }

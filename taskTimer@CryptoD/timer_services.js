@@ -8,7 +8,8 @@
  *
  * Expected properties:
  *   - settings:   Settings instance
- *   - notifier:   object with notify(timer, text, fmt, ...args)
+ *   - notifier:   object with notify(timer, text, fmt, ...args) and optional
+ *                 warning(timer, text, fmt, ...args) for e.g. volume-level warnings
  *   - inhibitor:  object with inhibit_timer(timer) / uninhibit(id)
  *   - logger:     optional Logger instance
  *   - storage:    optional storage helper (if not using the default JSON path)
