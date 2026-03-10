@@ -5,7 +5,8 @@
  *
  * Responsibilities:
  *  - Manage the main GTK window lifecycle (show/hide).
- *  - Expose TrayProvider, ShortcutProvider, and NotificationProvider (Gio-based
+ *  - Expose TrayProvider, ShortcutProvider (Gtk set_accels_for_action via
+ *    platform/standalone/shortcuts_gtk.js), and NotificationProvider (Gio-based
  *    desktop notifications via platform/standalone/notification_gio.js).
  *  - Bridge between the Gtk.Application (TaskTimerApplication) and the shared
  *    Context object created at startup.
@@ -18,6 +19,7 @@ const { GObject, Gtk, GLib, Pango } = imports.gi;
 const Context = imports.context;
 const Platform = imports.platform.interface;
 const GioNotification = imports.platform.standalone.notification_gio;
+const GtkShortcuts = imports.platform.standalone.shortcuts_gtk;
 
 var StandaloneTrayProvider = class StandaloneTrayProvider extends Platform.TrayProvider {
     show() {
@@ -41,26 +43,8 @@ var StandaloneTrayProvider = class StandaloneTrayProvider extends Platform.TrayP
     }
 };
 
-var StandaloneShortcutProvider = class StandaloneShortcutProvider extends Platform.ShortcutProvider {
-    constructor(application) {
-        super();
-        this._application = application;
-        this._callbacks = new Map();
-    }
-
-    register(_accelerator, _callback) {
-        // Placeholder: keyboard shortcuts will be implemented in a later phase.
-    }
-
-    unregister(_accelerator) {
-        // Placeholder.
-    }
-
-    clear() {
-        // Placeholder.
-        this._callbacks.clear();
-    }
-};
+// In-window shortcuts via Gtk.Application.set_accels_for_action().
+var StandaloneShortcutProvider = GtkShortcuts.GtkAccelShortcutProvider;
 
 // Use Gio.Notification-based provider for desktop notifications.
 var StandaloneNotificationProvider = GioNotification.GioNotificationProvider;
