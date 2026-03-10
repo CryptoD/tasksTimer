@@ -157,6 +157,7 @@ class TimerListItem extends Gtk.ListBoxRow {
         const running = t && t.running;
         const paused = t && t.paused;
         const alarm = t && t.alarm_timer;
+        const canReorder = (this._kind === 'quick' || this._kind === 'preset') && !running && !paused;
 
         if (!running && !paused) {
             addAction('Start', () => t.start(), true);
@@ -175,6 +176,9 @@ class TimerListItem extends Gtk.ListBoxRow {
         addAction(t && t.persist_alarm ? 'Disable persist' : 'Persist alarm', () => {
             if (t && typeof t.toggle_persist_alarm === 'function') t.toggle_persist_alarm();
         }, running || paused);
+
+        addAction('Move up', () => this._move(-1), canReorder);
+        addAction('Move down', () => this._move(1), canReorder);
 
         addAction('Delete', () => this._deleteTimer(), !running && !paused);
 
@@ -203,6 +207,25 @@ class TimerListItem extends Gtk.ListBoxRow {
         if (!t) return;
         if (this._timers && typeof this._timers.remove === 'function') {
             this._timers.remove(t);
+        }
+    }
+
+    _move(delta) {
+        const t = this._timer;
+        const timers = this._timers;
+        if (!t || !timers || typeof timers.moveWithin !== 'function') return;
+
+        const filterFn = (x) => {
+            if (!x) return false;
+            if (x.running || x.paused) return false;
+            // Keep quick and preset ordering independent.
+            if (this._kind === 'quick') return Boolean(x.quick && x.enabled);
+            if (this._kind === 'preset') return Boolean(!x.quick && x.enabled);
+            return false;
+        };
+
+        if (timers.moveWithin(t, delta, filterFn)) {
+            if (this._onChanged) this._onChanged();
         }
     }
 });

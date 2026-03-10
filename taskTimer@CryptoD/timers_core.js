@@ -27,7 +27,9 @@ const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
 const HMS = Me.imports.hms.HMS;
 const AlarmTimer = Me.imports.alarm_timer.AlarmTimer;
-const Storage = Me.imports.storage.Storage;
+// Storage module may export either a StorageModule object or individual functions.
+// Prefer injected storage (services.storage.saveJSON/loadJSON) when available.
+const StorageModule = Me.imports.storage;
 
 // Localized strings; fall back to identity in environments without gettext.
 let _ = s => s;
@@ -50,15 +52,42 @@ function _timersPathFor(timers) {
     return GLib.build_filenamev([dataDir, DEFAULT_TIMERS_FILE]);
 }
 
+function _storageFnsFor(timers) {
+    const services = timers && timers._services ? timers._services : {};
+    if (services.storage) {
+        const saveJSON = services.storage.saveJSON;
+        const loadJSON = services.storage.loadJSON;
+        if (typeof saveJSON === 'function' && typeof loadJSON === 'function') {
+            return { saveJSON, loadJSON };
+        }
+    }
+    // Fallback to module-level exports.
+    if (StorageModule) {
+        if (typeof StorageModule.saveJSON === 'function' && typeof StorageModule.loadJSON === 'function') {
+            return { saveJSON: StorageModule.saveJSON, loadJSON: StorageModule.loadJSON };
+        }
+        if (StorageModule.StorageModule &&
+            typeof StorageModule.StorageModule.saveJSON === 'function' &&
+            typeof StorageModule.StorageModule.loadJSON === 'function') {
+            return { saveJSON: StorageModule.StorageModule.saveJSON, loadJSON: StorageModule.StorageModule.loadJSON };
+        }
+    }
+    return { saveJSON: null, loadJSON: null };
+}
+
 function saveAllTimersCore(timers) {
     const timersData = timers.map(timer => (typeof timer.toJSON === 'function' ? timer.toJSON() : timer));
     const path = _timersPathFor(timers);
-    Storage.saveJSON(path, timersData);
+    const { saveJSON } = _storageFnsFor(timers);
+    if (typeof saveJSON === 'function') {
+        saveJSON(path, timersData);
+    }
 }
 
 function loadAllTimersCore(TimerCore) {
     const path = _timersPathFor(null);
-    const timersData = Storage.loadJSON(path);
+    const { loadJSON } = _storageFnsFor(null);
+    const timersData = typeof loadJSON === 'function' ? loadJSON(path) : null;
     if (!timersData) return [];
 
     return timersData.map(timerData => {
@@ -322,6 +351,38 @@ var TimersCore = class TimersCore extends Array {
         if (timer.id && this._lookup[timer.id]) {
             delete this._lookup[timer.id];
         }
+        return true;
+    }
+
+    /**
+     * Move a timer within this array by delta positions, constrained by a filter.
+     * Useful for UI-driven manual ordering (e.g. reorder presets/quick timers).
+     *
+     * @param {TimerCore} timer
+     * @param {number} delta - typically -1 (up) or +1 (down)
+     * @param {Function} filterFn - (t) => boolean for which timers participate in ordering
+     */
+    moveWithin(timer, delta, filterFn) {
+        if (!timer || !Number.isFinite(delta) || delta === 0) return false;
+        const fn = typeof filterFn === 'function' ? filterFn : (() => true);
+
+        const eligible = [];
+        for (let i = 0; i < this.length; i++) {
+            const t = this[i];
+            if (fn(t)) eligible.push(i);
+        }
+        const curIndex = this.indexOf(timer);
+        const pos = eligible.indexOf(curIndex);
+        if (pos < 0) return false;
+
+        const newPos = pos + (delta < 0 ? -1 : 1);
+        if (newPos < 0 || newPos >= eligible.length) return false;
+
+        const swapIndex = eligible[newPos];
+        // Swap in-place.
+        const tmp = this[curIndex];
+        this[curIndex] = this[swapIndex];
+        this[swapIndex] = tmp;
         return true;
     }
 };
