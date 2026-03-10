@@ -44,6 +44,13 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         if (!this._application) {
             return;
         }
+        // For TEST 6: force in-app fallback (env or per-call option).
+        const forceInAppEnv = GLib.getenv('TASKTIMER_FORCE_INAPP_NOTIFICATIONS');
+        const forceInApp = options.forceInApp || (forceInAppEnv === '1' || forceInAppEnv === 'true');
+        if (forceInApp && this._fallback) {
+            this._fallback(id, title, body);
+            return;
+        }
         const notification = new Gio.Notification();
         notification.set_title(title || '');
         notification.set_body(body || '');

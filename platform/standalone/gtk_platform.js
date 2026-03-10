@@ -200,8 +200,30 @@ class StandaloneGtkPlatform extends GObject.Object {
                 }
             });
 
+            const btnTestNotif = new Gtk.Button({
+                label: 'Send test notification',
+                halign: Gtk.Align.START,
+            });
+            btnTestNotif.connect('clicked', () => {
+                if (this._application && typeof this._application._sendTestNotification === 'function') {
+                    this._application._sendTestNotification();
+                }
+            });
+
+            const btnInApp = new Gtk.Button({
+                label: 'Test in-app banner',
+                halign: Gtk.Align.START,
+            });
+            btnInApp.connect('clicked', () => {
+                if (this._application && typeof this._application.testInAppBanner === 'function') {
+                    this._application.testInAppBanner();
+                }
+            });
+
             contentVbox.add(label);
             contentVbox.add(button);
+            contentVbox.add(btnTestNotif);
+            contentVbox.add(btnInApp);
             mainVbox.pack_start(contentVbox, true, true, 0);
 
             this._window.add(mainVbox);

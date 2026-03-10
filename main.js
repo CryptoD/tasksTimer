@@ -174,6 +174,7 @@ class TaskTimerApplication extends Gtk.Application {
         this._timers = null;        // Will be the shared Timers manager instance.
         this._services = Object.create(null); // Generic bag for other shared services (notifier, inhibitor, tray, etc.).
         this._platform = null;      // Will be the active PlatformUI implementation (StandaloneGtkPlatform).
+        this._testNotification = false; // Set by --test-notification for TEST 6.
     }
 
     vfunc_startup() {
@@ -293,7 +294,36 @@ class TaskTimerApplication extends Gtk.Application {
         log('taskTimer: application activate');
         if (this._platform) {
             this._platform.showMainWindow();
+            if (this._testNotification) {
+                this._sendTestNotification();
+                this._testNotification = false;
+            }
         }
+    }
+
+    _sendTestNotification() {
+        if (!this._platform || !this._platform.notifications) {
+            return;
+        }
+        this._platform.notifications.notify(
+            'test-notification',
+            'Test notification',
+            'If you see this, notifications work. Use "Test in-app banner" button or TASKTIMER_FORCE_INAPP_NOTIFICATIONS=1 to test the in-app banner.',
+            { timerId: 'test-id' }
+        );
+    }
+
+    /** For TEST 6: show in-app banner only (simulates no notification daemon). */
+    testInAppBanner() {
+        if (!this._platform || !this._platform.notifications) {
+            return;
+        }
+        this._platform.notifications.notify(
+            'test-inapp',
+            'In-app banner test',
+            'This is the fallback banner when system notifications are unavailable.',
+            { forceInApp: true }
+        );
     }
 
     vfunc_shutdown() {
@@ -322,14 +352,10 @@ class TaskTimerApplication extends Gtk.Application {
     }
 
     _handleCommandLine(args) {
-        // Placeholder implementation for now: just log arguments.
-        //
-        // Future developers can extend this method to support flags such as:
-        //   --start-timer 25m "Write report"
-        //   --list-timers
-        //   --stop-all
-        //
-        // This keeps all CLI behavior centralized and testable.
+        // --test-notification: show one test notification (for TEST 6).
+        if (args.indexOf('--test-notification') >= 0) {
+            this._testNotification = true;
+        }
         if (args.length > 0) {
             log(`taskTimer CLI arguments: ${JSON.stringify(args)}`);
         }
