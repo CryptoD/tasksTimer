@@ -10,8 +10,16 @@
  *  - Notification and inhibition via injected services
  */
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+// In GNOME Shell we can use ExtensionUtils to locate sibling modules.
+// In standalone `gjs` runs, `imports.misc` may not exist; fall back to
+// importing from the extension directory directly.
+let Me = null;
+try {
+    const ExtensionUtils = imports.misc.extensionUtils;
+    Me = ExtensionUtils.getCurrentExtension();
+} catch (e) {
+    Me = { imports: imports['taskTimer@CryptoD'] };
+}
 
 const { GLib } = imports.gi;
 

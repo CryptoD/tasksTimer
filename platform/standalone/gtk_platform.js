@@ -21,6 +21,8 @@ const Platform = imports.platform.interface;
 const GioNotification = imports.platform.standalone.notification_gio;
 const GtkShortcuts = imports.platform.standalone.shortcuts_gtk;
 
+const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+
 let AppIndicatorTrayProvider = null;
 let AppIndicatorAvailable = false;
 try {
@@ -136,6 +138,245 @@ class StandaloneGtkPlatform extends GObject.Object {
         }
     }
 
+    _formatTimerSecondary(timer) {
+        // Prefer end time vs remaining time depending on settings.
+        const settings = this._application && this._application._services
+            ? this._application._services.settings
+            : null;
+        const showEnd = settings && settings.show_endtime;
+        if (timer && timer.running) {
+            if (showEnd && typeof timer.end_time === 'function') {
+                return `Ends at ${timer.end_time()}`;
+            }
+            if (typeof timer.remaining_hms === 'function') {
+                return timer.remaining_hms().toString(true);
+            }
+        }
+        if (timer && typeof timer.remaining_hms === 'function') {
+            return timer.remaining_hms().toString(true);
+        }
+        return '';
+    }
+
+    _addHeaderBar(win) {
+        const hb = new Gtk.HeaderBar({
+            title: 'taskTimer',
+            show_close_button: true,
+        });
+
+        const btnNew = new Gtk.Button({ label: 'New' });
+        btnNew.connect('clicked', () => {
+            if (this._application && this._application.activate_action) {
+                this._application.activate_action('newTimer', null);
+            }
+        });
+        hb.pack_start(btnNew);
+
+        const btnPrefs = new Gtk.Button({ label: 'Preferences' });
+        btnPrefs.connect('clicked', () => {
+            if (this._application && this._application.activate_action) {
+                this._application.activate_action('preferences', null);
+            }
+        });
+        hb.pack_end(btnPrefs);
+
+        win.set_titlebar(hb);
+    }
+
+    _buildSidebarSection(title, rows) {
+        const box = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 6,
+        });
+
+        const label = new Gtk.Label({
+            label: title,
+            halign: Gtk.Align.START,
+            xalign: 0,
+        });
+        label.get_style_context().add_class('dim-label');
+
+        const list = new Gtk.ListBox({
+            selection_mode: Gtk.SelectionMode.NONE,
+        });
+        list.set_activate_on_single_click(true);
+
+        list.connect('row-activated', (_lb, row) => {
+            if (!row || !row._timer) return;
+            try {
+                row._timer.start();
+            } catch (e) {
+                log('taskTimer: failed to start timer from sidebar: ' + (e && e.message ? e.message : e));
+            }
+        });
+
+        rows.forEach(r => list.add(r));
+
+        const scroller = new Gtk.ScrolledWindow({
+            vexpand: true,
+            hscrollbar_policy: Gtk.PolicyType.NEVER,
+        });
+        scroller.add(list);
+
+        box.pack_start(label, false, false, 0);
+        box.pack_start(scroller, true, true, 0);
+
+        return { box, list };
+    }
+
+    _createTimerRow(timer, options = {}) {
+        const row = new Gtk.ListBoxRow();
+        row._timer = timer;
+
+        const outer = new Gtk.Box({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            spacing: 12,
+            margin_start: 12,
+            margin_end: 12,
+            margin_top: 8,
+            margin_bottom: 8,
+        });
+
+        const textBox = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 2,
+            hexpand: true,
+        });
+
+        const title = new Gtk.Label({
+            label: timer.name || 'Timer',
+            halign: Gtk.Align.START,
+            xalign: 0,
+            wrap: true,
+        });
+
+        const secondary = new Gtk.Label({
+            label: this._formatTimerSecondary(timer),
+            halign: Gtk.Align.START,
+            xalign: 0,
+        });
+        secondary.get_style_context().add_class('dim-label');
+
+        row._secondaryLabel = secondary;
+        textBox.pack_start(title, false, false, 0);
+        textBox.pack_start(secondary, false, false, 0);
+
+        const controls = new Gtk.Box({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            spacing: 6,
+            halign: Gtk.Align.END,
+            valign: Gtk.Align.CENTER,
+        });
+
+        // Running timer controls: +/-30s and Stop (best-effort parity with panel UI).
+        if (options.showControls) {
+            const btnMinus = new Gtk.Button({ label: '−30s' });
+            btnMinus.connect('clicked', () => this._adjustTimer(timer, -30));
+            controls.pack_start(btnMinus, false, false, 0);
+
+            const btnStop = new Gtk.Button({ label: 'Stop' });
+            btnStop.connect('clicked', () => {
+                try {
+                    timer.stop();
+                } catch (e) {
+                    log('taskTimer: stop failed: ' + (e && e.message ? e.message : e));
+                }
+            });
+            controls.pack_start(btnStop, false, false, 0);
+
+            const btnPlus = new Gtk.Button({ label: '+30s' });
+            btnPlus.connect('clicked', () => this._adjustTimer(timer, 30));
+            controls.pack_start(btnPlus, false, false, 0);
+        }
+
+        outer.pack_start(textBox, true, true, 0);
+        outer.pack_start(controls, false, false, 0);
+        row.add(outer);
+
+        return row;
+    }
+
+    _adjustTimer(timer, deltaSecs) {
+        if (!timer || !timer.running || timer.alarm_timer) {
+            return;
+        }
+        try {
+            const deltaMs = deltaSecs * 1000;
+            const now = Date.now();
+            // If _end isn't set yet, initialize from now + duration.
+            if (!timer._end || timer._end <= 0) {
+                timer._end = now + (timer.duration_ms ? timer.duration_ms() : 0);
+            }
+            timer._end += deltaMs;
+            // Ensure end stays at least 1s in the future.
+            if (timer._end < now + 1000) {
+                timer._end = now + 1000;
+            }
+        } catch (e) {
+            log('taskTimer: adjust timer failed: ' + (e && e.message ? e.message : e));
+        }
+    }
+
+    _rebuildSidebarLists() {
+        if (!this._ui) return;
+        const timers = this._application && this._application._timers
+            ? this._application._timers
+            : null;
+        if (!timers) return;
+
+        const quick = timers.sorted({ running: false }).filter(t => t.quick && t.enabled);
+        const presets = timers.sorted({ running: false }).filter(t => !t.quick && t.enabled);
+
+        const rebuild = (listBox, arr) => {
+            const children = listBox.get_children ? listBox.get_children() : [];
+            children.forEach(child => listBox.remove(child));
+            arr.forEach(t => listBox.add(this._createTimerRow(t, { showControls: false })));
+            listBox.show_all();
+        };
+
+        rebuild(this._ui.quickList, quick);
+        rebuild(this._ui.presetList, presets);
+    }
+
+    _rebuildRunningList() {
+        if (!this._ui) return;
+        const timers = this._application && this._application._timers
+            ? this._application._timers
+            : null;
+        if (!timers) return;
+
+        const running = timers.sort_by_running();
+        const list = this._ui.runningList;
+
+        // Remove all rows; this is simple and robust for now.
+        const children = list.get_children ? list.get_children() : [];
+        children.forEach(child => list.remove(child));
+        running.forEach(t => list.add(this._createTimerRow(t, { showControls: true })));
+        list.show_all();
+    }
+
+    _startUiRefreshLoop() {
+        if (this._uiUpdateId) return;
+        this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+            try {
+                // Fast path: update secondary labels if they exist.
+                if (this._ui && this._ui.runningList) {
+                    this._ui.runningList.foreach(row => {
+                        if (row && row._timer && row._secondaryLabel) {
+                            row._secondaryLabel.set_label(this._formatTimerSecondary(row._timer));
+                        }
+                    });
+                }
+                // Rebuild lists to keep membership correct when timers start/stop.
+                this._rebuildRunningList();
+                this._rebuildSidebarLists();
+            } catch (e) {
+                log('taskTimer: UI refresh failed: ' + (e && e.message ? e.message : e));
+            }
+            return true;
+        });
+    }
+
     // PlatformUI-like API
 
     init() {
@@ -147,9 +388,10 @@ class StandaloneGtkPlatform extends GObject.Object {
             this._window = new Gtk.ApplicationWindow({
                 application: this._application,
                 title: 'taskTimer',
-                default_width: 480,
-                default_height: 320,
+                default_width: 900,
+                default_height: 560,
             });
+            this._addHeaderBar(this._window);
 
             // When enabled, closing or minimizing the window hides it and keeps the
             // app running in the tray (if a tray backend is available).
@@ -225,67 +467,172 @@ class StandaloneGtkPlatform extends GObject.Object {
             bannerRevealer.add(bannerBox);
             mainVbox.pack_start(bannerRevealer, false, false, 0);
 
-            const contentVbox = new Gtk.Box({
+            const root = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 0,
+                vexpand: true,
+                hexpand: true,
+            });
+
+            const paned = new Gtk.Paned({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                wide_handle: true,
+            });
+
+            // Sidebar: quick start + quick timers + presets.
+            const sidebar = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 12,
-                margin_top: 24,
-                margin_bottom: 24,
-                margin_start: 24,
-                margin_end: 24,
+                margin_top: 12,
+                margin_bottom: 12,
+                margin_start: 12,
+                margin_end: 12,
+                width_request: 260,
             });
 
-            const label = new Gtk.Label({
-                label: 'taskTimer GTK application (standalone platform WIP)',
+            const quickStartFrame = new Gtk.Frame({ label: 'Quick start' });
+            const quickStartBox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 8,
+                margin_top: 12,
+                margin_bottom: 12,
+                margin_start: 12,
+                margin_end: 12,
+            });
+
+            const entryName = new Gtk.Entry({ placeholder_text: 'Name (optional)' });
+            entryName.set_text('Timer');
+
+            const grid = new Gtk.Grid({ column_spacing: 8, row_spacing: 8 });
+            const adjMin = new Gtk.Adjustment({ lower: 0, upper: 999, step_increment: 1 });
+            const adjSec = new Gtk.Adjustment({ lower: 0, upper: 59, step_increment: 1 });
+            const spinMin = new Gtk.SpinButton({ adjustment: adjMin, numeric: true });
+            const spinSec = new Gtk.SpinButton({ adjustment: adjSec, numeric: true });
+            spinMin.set_value(5);
+            spinSec.set_value(0);
+
+            grid.attach(new Gtk.Label({ label: 'Minutes', halign: Gtk.Align.START }), 0, 0, 1, 1);
+            grid.attach(spinMin, 1, 0, 1, 1);
+            grid.attach(new Gtk.Label({ label: 'Seconds', halign: Gtk.Align.START }), 0, 1, 1, 1);
+            grid.attach(spinSec, 1, 1, 1, 1);
+
+            const btnStart = new Gtk.Button({ label: 'Start' });
+            btnStart.connect('clicked', () => {
+                const total = (spinMin.get_value_as_int() * 60) + spinSec.get_value_as_int();
+                if (total <= 0) return;
+                const nm = (entryName.get_text() || 'Timer').trim() || 'Timer';
+                const timers = this._application && this._application._timers ? this._application._timers : null;
+                if (!timers) return;
+
+                const TimerCore = TimersCoreModule.TimerCore;
+                const t = new TimerCore(timers, nm, total);
+                t.quick = true;
+                if (timers.add(t)) {
+                    t.start();
+                    // Persist to settings when quick timers are enabled.
+                    const settings = this._application._services ? this._application._services.settings : null;
+                    if (settings && typeof settings.pack_timers === 'function') {
+                        try { settings.pack_timers(timers); } catch (e) {}
+                    }
+                }
+            });
+
+            quickStartBox.pack_start(entryName, false, false, 0);
+            quickStartBox.pack_start(grid, false, false, 0);
+            quickStartBox.pack_start(btnStart, false, false, 0);
+            quickStartFrame.add(quickStartBox);
+            sidebar.pack_start(quickStartFrame, false, false, 0);
+
+            const quickSection = this._buildSidebarSection('Quick timers', []);
+            const presetSection = this._buildSidebarSection('Preset timers', []);
+
+            sidebar.pack_start(quickSection.box, true, true, 0);
+            sidebar.pack_start(presetSection.box, true, true, 0);
+
+            // Main content: running timers list + bottom controls.
+            const main = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 12,
+                margin_top: 12,
+                margin_bottom: 12,
+                margin_start: 12,
+                margin_end: 12,
+            });
+
+            const runningLabel = new Gtk.Label({
+                label: 'Running timers',
                 halign: Gtk.Align.START,
+                xalign: 0,
+            });
+            runningLabel.get_style_context().add_class('title-3');
+
+            const runningList = new Gtk.ListBox({
+                selection_mode: Gtk.SelectionMode.NONE,
+            });
+            runningList.set_activate_on_single_click(false);
+
+            const runningScroller = new Gtk.ScrolledWindow({
+                vexpand: true,
+                hexpand: true,
+                hscrollbar_policy: Gtk.PolicyType.NEVER,
+            });
+            runningScroller.add(runningList);
+
+            const bottomBar = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 8,
+                halign: Gtk.Align.FILL,
+            });
+            bottomBar.get_style_context().add_class('toolbar');
+
+            const btnNewTimer = new Gtk.Button({ label: 'New timer…' });
+            btnNewTimer.connect('clicked', () => {
+                if (this._application && this._application.activate_action) {
+                    this._application.activate_action('newTimer', null);
+                }
             });
 
-            const button = new Gtk.Button({
-                label: 'Start 10-second test timer',
-                halign: Gtk.Align.START,
+            const btnStopAll = new Gtk.Button({ label: 'Stop all' });
+            btnStopAll.connect('clicked', () => {
+                const timers = this._application && this._application._timers ? this._application._timers : null;
+                if (!timers) return;
+                try {
+                    timers.sort_by_running().forEach(t => t.stop());
+                } catch (e) {
+                    log('taskTimer: stop all failed: ' + (e && e.message ? e.message : e));
+                }
             });
 
-            button.connect('clicked', () => {
+            const btnTest10 = new Gtk.Button({ label: 'Start 10s test' });
+            btnTest10.connect('clicked', () => {
                 if (this._application && typeof this._application.startSmokeTestTimer === 'function') {
                     this._application.startSmokeTestTimer();
                 }
             });
 
-            const btnTestNotif = new Gtk.Button({
-                label: 'Send test notification',
-                halign: Gtk.Align.START,
-            });
-            btnTestNotif.connect('clicked', () => {
-                if (this._application && typeof this._application._sendTestNotification === 'function') {
-                    this._application._sendTestNotification();
-                }
-            });
+            bottomBar.pack_start(btnNewTimer, false, false, 0);
+            bottomBar.pack_start(btnStopAll, false, false, 0);
+            bottomBar.pack_end(btnTest10, false, false, 0);
 
-            const btnInApp = new Gtk.Button({
-                label: 'Test in-app banner',
-                halign: Gtk.Align.START,
-            });
-            btnInApp.connect('clicked', () => {
-                if (this._application && typeof this._application.testInAppBanner === 'function') {
-                    this._application.testInAppBanner();
-                }
-            });
+            main.pack_start(runningLabel, false, false, 0);
+            main.pack_start(runningScroller, true, true, 0);
+            main.pack_end(bottomBar, false, false, 0);
 
-            const btnPrefs = new Gtk.Button({
-                label: 'Preferences…',
-                halign: Gtk.Align.START,
-            });
-            btnPrefs.connect('clicked', () => {
-                if (this._application && this._application.activate_action) {
-                    this._application.activate_action('preferences', null);
-                }
-            });
+            paned.add1(sidebar);
+            paned.add2(main);
+            root.pack_start(paned, true, true, 0);
 
-            contentVbox.add(label);
-            contentVbox.add(button);
-            contentVbox.add(btnTestNotif);
-            contentVbox.add(btnInApp);
-            contentVbox.add(btnPrefs);
-            mainVbox.pack_start(contentVbox, true, true, 0);
+            mainVbox.pack_start(root, true, true, 0);
+
+            // Keep references for refresh.
+            this._ui = {
+                quickList: quickSection.list,
+                presetList: presetSection.list,
+                runningList,
+            };
+            this._rebuildSidebarLists();
+            this._rebuildRunningList();
+            this._startUiRefreshLoop();
 
             this._window.add(mainVbox);
             this._window.show_all();

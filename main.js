@@ -24,6 +24,15 @@ const { Gio, GLib, GObject, Gtk } = imports.gi;
 // can be imported when running `gjs main.js` directly.
 imports.searchPath.unshift(GLib.get_current_dir());
 
+// Some shared modules still rely on GNOME Shell's JS runtime modules
+// (e.g. `imports.misc.extensionUtils`). When GNOME Shell is installed, make
+// those modules discoverable for plain `gjs main.js` runs.
+try {
+    imports.searchPath.unshift('/usr/share/gnome-shell/js');
+} catch (e) {
+    // ignore; standalone builds may not have GNOME Shell installed
+}
+
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
 
@@ -387,6 +396,15 @@ class TaskTimerApplication extends Gtk.Application {
 
         this._timers = new TimersCore(services);
         this._services.timers = this._timers;
+
+        // Load preset/quick timers from settings and restore any running state.
+        try {
+            const settingsTimers = this._services.settings.unpack_timers();
+            this._timers.refreshFrom(settingsTimers);
+            this._timers.restoreRunningTimers();
+        } catch (e) {
+            log('taskTimer: failed to load timers from settings: ' + (e && e.message ? e.message : e));
+        }
 
         _addTimerNotificationActions(this);
         _setupVolumeWarning(this, coreNotifier);

@@ -22,12 +22,22 @@ const GETTEXT_DOMAIN = 'tasktimer';
 const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
 const _ = Gettext.gettext;
 
-const ExtensionUtils = imports.misc.extensionUtils;
+let ExtensionUtils = null;
+try {
+  ExtensionUtils = imports.misc.extensionUtils;
+} catch (e) {
+  ExtensionUtils = null;
+}
 const Gio = imports.gi.Gio;
 const GioSSS = Gio.SettingsSchemaSource;
 const GLib = imports.gi.GLib;
 
-const Me = ExtensionUtils.getCurrentExtension();
+const Me = ExtensionUtils && typeof ExtensionUtils.getCurrentExtension === 'function'
+  ? ExtensionUtils.getCurrentExtension()
+  : {
+      path: GLib.build_filenamev([GLib.get_current_dir(), 'taskTimer@CryptoD']),
+      imports: imports['taskTimer@CryptoD'],
+    };
 const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
 
@@ -40,13 +50,28 @@ var Settings = class Settings {
    *   and used directly (current extension behavior).
    */
   constructor(provider = null) {
-    // try to recompile the schema
-    let compile_schemas = [ Me.path+"/bin/compile_schemas.sh" ];
-    let [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas, undefined, GLib);
+    // If running as the GNOME Shell extension, schemas and GSettings are available.
+    // In standalone mode we typically use a JSONSettingsProvider, so we skip schema compilation.
+    let exit_status = 0;
+    let stdout = '';
+    let stderr = '';
+    if (!provider) {
+      try {
+        // try to recompile the schema
+        let compile_schemas = [ Me.path + "/bin/compile_schemas.sh" ];
+        [ exit_status, stdout, stderr ] = Utils.execute(compile_schemas, undefined, GLib);
+      } catch (e) {
+        exit_status = 1;
+        stderr = e && e.message ? e.message : String(e);
+      }
+    }
 
+    // Under standalone, we don't have Gio.Settings; keep a reference only when available.
     this.settings = provider && provider._settings
       ? provider._settings
-      : ExtensionUtils.getSettings();
+      : (ExtensionUtils && typeof ExtensionUtils.getSettings === 'function'
+        ? ExtensionUtils.getSettings()
+        : null);
 
     // Internal provider used for scalar keys. If none is supplied, fall back
     // to using the underlying Gio.Settings instance directly.
@@ -54,9 +79,9 @@ var Settings = class Settings {
 
     this.logger = new Logger('kt settings', this.settings);
 
-    if (exit_status !== 0) {
+    if (!provider && exit_status !== 0) {
       this.logger.warn("Failed to compile schemas: %s\n%s", stdout, stderr);
-    } else {
+    } else if (!provider) {
       this.logger.debug("compile_schemas: %s", stdout);
     }
 
@@ -120,20 +145,26 @@ var Settings = class Settings {
   }
 
   unpack_preset_timers(settings_timers=[]) {
+    if (this._provider && typeof this._provider.get === 'function') {
+      const timers = this._provider.get('timers') || [];
+      timers.forEach(timerObj => settings_timers.push(this.unpack_timer(timerObj, false)));
+      return settings_timers;
+    }
+
     var timers = this.settings.get_value('timers').deep_unpack();
-    timers.forEach( (timer) => {
-      var timer_h = this.unpack_timer(timer, false);
-      settings_timers.push(timer_h);
-    });
+    timers.forEach(timer => settings_timers.push(this.unpack_timer(timer, false)));
     return settings_timers;
   }
 
   unpack_quick_timers(settings_timers=[]) {
+    if (this._provider && typeof this._provider.get === 'function') {
+      const timers = this._provider.get('quick-timers') || [];
+      timers.forEach(timerObj => settings_timers.push(this.unpack_timer(timerObj, true)));
+      return settings_timers;
+    }
+
     var timers = this.settings.get_value('quick-timers').deep_unpack();
-    timers.forEach( (timer) => {
-      var timer_h = this.unpack_timer(timer, true);
-      settings_timers.push(timer_h);
-    });
+    timers.forEach(timer => settings_timers.push(this.unpack_timer(timer, true)));
     return settings_timers;
   }
 
@@ -148,8 +179,9 @@ var Settings = class Settings {
 
   unpack_timer(timer_settings, quick) {
     var h={};
-    for (const [key, value] of Object.entries(timer_settings)) {
-      h[key]=value.unpack();
+    // timer_settings is either a GVariant dict (GNOME Shell extension) or a plain object (standalone JSON provider).
+    for (const [key, value] of Object.entries(timer_settings || {})) {
+      h[key] = value && typeof value.unpack === 'function' ? value.unpack() : value;
     }
     h.quick = quick;
 
@@ -163,8 +195,24 @@ var Settings = class Settings {
   }
 
   pack_preset_timers(timers) {
+    if (this._provider && typeof this._provider.set === 'function') {
+      const out = [];
+      timers.forEach(timer => {
+        if (!timer.quick && timer.duration > 0) {
+          out.push({
+            id: timer.id,
+            name: timer.name,
+            duration: timer.duration,
+            enabled: timer.enabled,
+          });
+        }
+      });
+      this._provider.set('timers', out);
+      return;
+    }
+
     var atimers = [];
-    timers.forEach( (timer) => {
+    timers.forEach(timer => {
       if (!timer.quick && timer.duration > 0) {
         this.logger.debug(`Saving preset timer ${timer.name}`);
         var atimer = GLib.Variant.new('a{sv}', this.pack_timer(timer, false));
@@ -178,8 +226,24 @@ var Settings = class Settings {
 
   pack_quick_timers(timers) {
     this.logger.debug(`Saving quick timers`);
+    if (this._provider && typeof this._provider.set === 'function') {
+      const out = [];
+      timers.forEach(timer => {
+        if (timer.quick && timer.duration > 0) {
+          out.push({
+            id: timer.id,
+            name: timer.name,
+            duration: timer.duration,
+            enabled: timer.enabled,
+          });
+        }
+      });
+      this._provider.set('quick-timers', out);
+      return;
+    }
+
     var atimers = [];
-    timers.forEach( (timer) => {
+    timers.forEach(timer => {
       if (timer.quick && timer.duration > 0) {
         this.logger.debug(`Saving quick timer ${timer.name}`);
         var atimer = GLib.Variant.new('a{sv}', this.pack_timer(timer, true));
@@ -193,6 +257,27 @@ var Settings = class Settings {
 
   // aa{sv}
   pack_timers(timers) {
+    if (this._provider && typeof this._provider.set === 'function') {
+      const presets = [];
+      const quick = [];
+      timers.forEach(timer => {
+        if (timer.duration <= 0) return;
+        const obj = {
+          id: timer.id,
+          name: timer.name,
+          duration: timer.duration,
+          enabled: timer.enabled,
+        };
+        if (timer.quick) quick.push(obj);
+        else presets.push(obj);
+      });
+      this._provider.set('timers', presets);
+      if (this.save_quick_timers) {
+        this._provider.set('quick-timers', quick);
+      }
+      return;
+    }
+
     // create and array of GLib.Variant dicts with string key and GVariant values
     var atimers = [];
     timers.forEach( (timer) => {
@@ -433,7 +518,10 @@ var Settings = class Settings {
   }
 
   get timers() {
-    this.settings.get_value('timers').deep_unpack();
+    if (this._provider && typeof this._provider.get === 'function') {
+      return this._provider.get('timers') || [];
+    }
+    return this.settings.get_value('timers').deep_unpack();
   }
 
   get default_timer() {
