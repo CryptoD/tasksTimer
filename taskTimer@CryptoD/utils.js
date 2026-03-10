@@ -49,8 +49,6 @@ function spawn(command, callback) {
 
   if (callback)
     GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, callback);
-  var clearTimeout = GLib.Source.remove;
-  var clearInterval = GLib.Source.remove;
 }
 
 function bytesToString(data) {
@@ -126,21 +124,6 @@ function addSignalsHelperMethods(prototype) {
     this._signals = [];
   };
 }
-
-const moduleExports = {
-  isGnome3x,
-  isGnome40,
-  logObjectPretty,
-  clearTimeout,
-  clearInterval,
-  setTimeout,
-  setInterval,
-  spawn,
-  bytesToString,
-  execute,
-  uuid,
-  addSignalsHelperMethods,
-};
 
 this.isGnome3x = isGnome3x;
 this.isGnome40 = isGnome40;

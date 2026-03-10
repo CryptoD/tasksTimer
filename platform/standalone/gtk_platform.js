@@ -67,8 +67,10 @@ var StandaloneNotificationProvider = class StandaloneNotificationProvider extend
         this._application = application;
     }
 
-    notify(_id, _title, _body, _options = {}) {
-        // Placeholder: will be replaced with Gio.Notification-based implementation.
+    notify(id, title, body, _options = {}) {
+        // Temporary smoke-test implementation: just log notifications so
+        // we can verify that core timer abstractions are calling through.
+        log(`Standalone notification [${id}]: ${title} — ${body}`);
     }
 
     close(_id) {
@@ -111,15 +113,35 @@ class StandaloneGtkPlatform extends GObject.Object {
                 default_height: 320,
             });
 
-            const label = new Gtk.Label({
-                label: 'taskTimer GTK application (standalone platform WIP)',
+            const vbox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 12,
                 margin_top: 24,
                 margin_bottom: 24,
                 margin_start: 24,
                 margin_end: 24,
             });
 
-            this._window.add(label);
+            const label = new Gtk.Label({
+                label: 'taskTimer GTK application (standalone platform WIP)',
+                halign: Gtk.Align.START,
+            });
+
+            const button = new Gtk.Button({
+                label: 'Start 10-second test timer',
+                halign: Gtk.Align.START,
+            });
+
+            button.connect('clicked', () => {
+                if (this._application && typeof this._application.startSmokeTestTimer === 'function') {
+                    this._application.startSmokeTestTimer();
+                }
+            });
+
+            vbox.add(label);
+            vbox.add(button);
+
+            this._window.add(vbox);
             this._window.show_all();
         }
 

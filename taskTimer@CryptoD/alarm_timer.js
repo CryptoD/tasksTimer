@@ -18,12 +18,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+// Pure utility: no GNOME Shell imports here. A pluggable logger is used
+// so this module works both inside the extension and in standalone code.
 
-const Utils = Me.imports.utils;
-const Logger = Me.imports.logger.Logger;
-const HMS = Me.imports.hms.HMS;
+var _alarmTimerLogger = {
+  debug() {},
+  info() {},
+  warn() {},
+  error() {},
+};
+
+function setAlarmTimerLogger(logger) {
+  if (!logger) {
+    return;
+  }
+  _alarmTimerLogger = logger;
+}
 
 var AmPm = {
   H24: 0,
@@ -31,8 +41,6 @@ var AmPm = {
   PM: 2,
   RE: /(p\.?m\.?)|(a\.?m\.?)/i
 }
-
-var logger = new Logger('tt alarm timer');
 
 // var alarm_time={
 //   hour: Number(g.h),
@@ -55,7 +63,9 @@ var AlarmTimer = class AlarmTimer {
   }
 
   set debug(settings) {
-    logger.settings = settings;
+    if (_alarmTimerLogger && 'settings' in _alarmTimerLogger) {
+      _alarmTimerLogger.settings = settings;
+    }
   }
 
   get hour() { return this._hour; }
@@ -91,7 +101,7 @@ var AlarmTimer = class AlarmTimer {
     if (m === undefined) { return; }
     this._minute = Number(m);
     if (this._minute > 59) {
-      logger.warn("AlarmTimer minute %d > 59", this._minute);
+      _alarmTimerLogger.warn("AlarmTimer minute %d > 59", this._minute);
       this._minute = 59;
     }
   }
@@ -102,7 +112,7 @@ var AlarmTimer = class AlarmTimer {
     if (s === undefined) { return; }
     this._second = Number(s);
     if (this._second > 59) {
-      logger.warn("AlarmTimer second %d > 59", this._second);
+      _alarmTimerLogger.warn("AlarmTimer second %d > 59", this._second);
       this._second = 59;
     }
   }
@@ -112,7 +122,7 @@ var AlarmTimer = class AlarmTimer {
     if (msecs === undefined) { return; }
     this._ms = Number(msecs);
     if (this._ms > 999) {
-      logger.warn("AlarmTimer milliseconds > 999", this._ms);
+      _alarmTimerLogger.warn("AlarmTimer milliseconds > 999", this._ms);
       this._ms = 999;
     }
   }
@@ -132,13 +142,6 @@ var AlarmTimer = class AlarmTimer {
   }
 
   static matchRegex(entry) {
-    //var named_re = /^(?<name>[^@]+)?@\s*(?<h>\d+):?(?<m>\d+)?:?(?<s>\d+)?[.]?(?<ms>\d+)?\s*(?<ampm>a\.?m\.?|p\.?m\.?)?$/i;
-    // name g1
-    // hour g2
-    // minute g3
-    // second g4
-    // ms g5
-    // ampm g6
     //         name?  @    HH  :? MM?  :? SS?  .?  ms?       (a.?m.?|p.?m.?)?
     var re= /^([^@]+)?@\s*(\d+)[:h]?(\d+)?[m:]?(\d+)?[.]?(\d+)?\s*(a\.?m\.?|p\.?m\.?)?$/i;
     let m=re.exec(entry);
@@ -149,11 +152,10 @@ var AlarmTimer = class AlarmTimer {
     var alarm_timer = new AlarmTimer();
 
     try {
-      //alarm_timer.fromRegexNamedGroups(m.groups);
       alarm_timer.fromRegexMatches(m);
       alarm_timer.alarm_date;
     } catch (e) {
-      logger.error("%s: %s", e, entry);
+      _alarmTimerLogger.error("%s: %s", e, entry);
       return undefined;
     }
     return alarm_timer;
@@ -173,7 +175,7 @@ var AlarmTimer = class AlarmTimer {
   }
 
   fromRegexMatches(m) {
-    logger.debug("match = %s", JSON.stringify(m));
+    _alarmTimerLogger.debug("match = %s", JSON.stringify(m));
     if (m[6]) {
       this.ampm = this.matchAmPm(m[6]);
     }
@@ -182,17 +184,6 @@ var AlarmTimer = class AlarmTimer {
     this.minute = m[3];
     this.second = m[4];
     this.ms = m[5];
-  }
-
-  fromRegexNamedGroups(g) {
-    if (g.ampm) {
-      this.ampm = this.matchAmPm(g.ampm);
-    }
-    this.name = g.name;
-    this.hour = g.h;
-    this.minute = g.m;
-    this.second = g.s;
-    this.ms = g.ms;
   }
 
   toString() {
@@ -289,7 +280,7 @@ var AlarmTimer = class AlarmTimer {
   }
 
   forward(end, delta) {
-    logger.debug("alarm timer end=%d (delta=%d)", end, delta);
+    _alarmTimerLogger.debug("alarm timer end=%d (delta=%d)", end, delta);
     this.alarm_date.setTime(this.alarm_date.getTime()+delta*1000);
     this._hour = this.alarm_date.getHours();
     this._minute = this.alarm_date.getMinutes();

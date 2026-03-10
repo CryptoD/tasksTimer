@@ -25,8 +25,3 @@ var TimerServices = class TimerServices {
         this.volumeMonitor = params.volumeMonitor || null;
     }
 };
-
-var exports = {
-    TimerServices,
-};
-

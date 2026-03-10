@@ -147,7 +147,7 @@ var TimersCore = class TimersCore extends Array {
         for (const run_state of run_states) {
             const timer = this.lookup(run_state.id);
             if (!timer) {
-                this.logger.warning(
+                this.logger.warn(
                     'Timer with id %s not found during restoreRunningTimers.',
                     run_state.id
                 );
@@ -270,7 +270,9 @@ var TimerCore = class TimerCore {
     constructor(timersCore, name, duration_secs, id = undefined) {
         this._timersCore = timersCore;
 
-        const debug = timersCore.settings.debug;
+        const debug = timersCore && timersCore.settings
+            ? timersCore.settings.debug
+            : false;
         this._enabled = true;
         this._quick = false;
         this._interval_ms = debug ? 500 : 250;

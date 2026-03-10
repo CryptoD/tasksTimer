@@ -26,7 +26,12 @@ imports.searchPath.unshift(GLib.get_current_dir());
 
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
+
 const ExtSettings = imports['taskTimer@CryptoD'].settings;
+const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+const TimerServicesModule = imports['taskTimer@CryptoD'].timer_services;
+const StorageModule = imports['taskTimer@CryptoD'].storage;
+const Logger = imports['taskTimer@CryptoD'].logger.Logger;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
 
@@ -76,10 +81,67 @@ class TaskTimerApplication extends Gtk.Application {
         });
         this._platform.init();
 
-        // Later phases will:
-        // - Create the Timers manager and assign it to this._timers.
-        // - Populate this._services with helpers like notifier, inhibitor, tray, etc.
+        // Core timer services and TimersCore instance
+        const TimerServices = TimerServicesModule.TimerServices;
+        const TimersCore = TimersCoreModule.TimersCore;
+
+        // Adapter that lets TimersCore/TimerCore use the platform's
+        // NotificationProvider while keeping their existing notify() shape.
+        const coreNotifier = {
+            notify: (timer, text, fmt, ...args) => {
+                const notifications = this._platform ? this._platform.notifications : null;
+                if (!notifications) {
+                    return;
+                }
+
+                const id = timer && timer.id ? String(timer.id) : 'timer';
+                const title = text;
+                const body = fmt && typeof fmt.format === 'function'
+                    ? fmt.format(...args)
+                    : (fmt ? String(fmt) : '');
+
+                notifications.notify(id, title, body, {});
+            },
+        };
+
+        // JSON-backed storage: timers file lives under the standalone dataDir.
+        const timersPath = GLib.build_filenamev([this._context.dataDir, 'timers.json']);
+
+        const services = new TimerServices({
+            settings: this._services.settings,
+            notifier: coreNotifier,
+            // No inhibitor wiring for now; can be added later.
+            logger: new Logger('kt standalone timers-core', this._services.settings),
+            storage: {
+                timersPath,
+                saveJSON: StorageModule.saveJSON,
+                loadJSON: StorageModule.loadJSON,
+            },
+        });
+
+        this._timers = new TimersCore(services);
+        this._services.timers = this._timers;
+
         log('taskTimer: application startup');
+    }
+
+    startSmokeTestTimer() {
+        if (!this._timers) {
+            log('taskTimer: TimersCore not initialized; cannot start smoke-test timer');
+            return;
+        }
+
+        const TimerCore = TimersCoreModule.TimerCore;
+        const timer = new TimerCore(this._timers, 'Smoke test 10s', 10);
+        timer.quick = true;
+
+        // Add to the shared TimersCore so it participates in persistence.
+        if (this._timers.add(timer)) {
+            log('taskTimer: starting 10-second smoke-test timer');
+            timer.start();
+        } else {
+            log('taskTimer: failed to add smoke-test timer (invalid configuration)');
+        }
     }
 
     vfunc_activate() {
@@ -98,11 +160,6 @@ class TaskTimerApplication extends Gtk.Application {
         // Future work: integrate with the shared timer manager and invoke a
         // "save all timers" operation here so that standalone runs can
         // persist their state similarly to the GNOME Shell extension.
-        if (this._window) {
-            this._window.destroy();
-            this._window = null;
-        }
-
         log('taskTimer: application shutdown');
         super.vfunc_shutdown();
     }

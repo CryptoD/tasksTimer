@@ -95,11 +95,11 @@ var Timers = class Timers extends Array {
         }
       }
       if (!iconFound) {
-        this.logger.warning('Failed to load icons');
+        this.logger.warn('Failed to load icons');
         this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
       }
     } catch (e2) {
-      this.logger.warning('Failed to load icons: ' + e2.message);
+      this.logger.warn('Failed to load icons: ' + e2.message);
       this._fullIcon = Gio.icon_new_for_string('image-missing-symbolic');
     }
 
@@ -323,7 +323,7 @@ var Timers = class Timers extends Array {
     for (let run_state of run_states) {
       let timer = this.lookup(run_state.id);
       if (!timer) {
-        this.logger.warning(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
+        this.logger.warn(`Timer with id ${run_state.id} not found during restoreRunningTimers.`);
         continue;
       }
 
@@ -1189,9 +1189,4 @@ var Timer = class Timer {
     timersInstance.inhibitor.uninhibit(this.id);
   }
 }
-
-var exports = {
-  Timers: Timers,
-  Timer: Timer
-};
 

@@ -16,10 +16,41 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const GLib = imports.gi.GLib;
+// Environment-agnostic logger:
+// - Avoids direct GNOME Shell imports so it can run in standalone JS.
+// - Uses GNOME/GJS facilities when available, otherwise falls back to
+//   standard JS APIs (console, Node's fs when present).
+
+let GLib = null;
+if (typeof imports !== 'undefined' && imports.gi && imports.gi.GLib) {
+  GLib = imports.gi.GLib;
+}
+
 const LOGID = 'logger';
 
-String.prototype.format = imports.format.format;
+if (typeof String.prototype.format !== 'function') {
+  if (typeof imports !== 'undefined' && imports.format && imports.format.format) {
+    String.prototype.format = imports.format.format;
+  } else {
+    // Basic %s / %d formatter as a fallback.
+    String.prototype.format = function (...args) {
+      let idx = 0;
+      return this.replace(/%[sd]/g, () => {
+        const val = idx < args.length ? args[idx++] : '';
+        return String(val);
+      });
+    };
+  }
+}
+
+const _log = (typeof log === 'function')
+  ? log
+  : (...args) => {
+      // Fallback for non-GNOME environments.
+      if (typeof console !== 'undefined' && console.log) {
+        console.log(...args);
+      }
+    };
 
 var Logger = class Logger {
     constructor(logid=undefined, settings=undefined) {
@@ -33,7 +64,7 @@ var Logger = class Logger {
     _log(level, format, ...args) {
       var msg = (Array.isArray(args) && args.length > 0) ? format.format(...args) : format;
       var full = `${level}: [${this._logid}] ${msg}`;
-      log(full);
+      _log(full);
       try {
         // keep a limited buffer (e.g. last 200 messages)
         this._buffer.push(full);
@@ -77,8 +108,24 @@ var Logger = class Logger {
     exportToFile(path) {
       try {
         let contents = this._buffer.join('\n');
-        GLib.file_set_contents(path, contents);
-        return true;
+        if (GLib) {
+          GLib.file_set_contents(path, contents);
+          return true;
+        }
+
+        // Try Node.js fs when available.
+        if (typeof require === 'function') {
+          try {
+            const fs = require('fs');
+            fs.writeFileSync(path, contents, 'utf8');
+            return true;
+          } catch (e) {
+            // Fall through to generic error handling below.
+          }
+        }
+
+        // If neither GLib nor fs is available, signal failure.
+        throw new Error('No suitable file API available to export logs');
       } catch (e) {
         this.error('Failed to write logs to %s: %s', path, e);
         return false;

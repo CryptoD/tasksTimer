@@ -16,6 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Provide minimal, environment-agnostic defaults so this utility
+// can be safely used outside of GNOME Shell/GJS.
+if (typeof _ === 'undefined') {
+  // Simple no-op translation function for non-GNOME environments.
+  var _ = function (s) { return s; };
+}
+
+if (typeof String.prototype.format !== 'function') {
+  // Very small subset of %s / %d formatting used in this project.
+  String.prototype.format = function (...args) {
+    let idx = 0;
+    return this.replace(/%[sd]/g, () => {
+      const val = idx < args.length ? args[idx++] : '';
+      return String(val);
+    });
+  };
+}
+
 var HMS = class HMS {
   constructor(secs=0) {
     if (isNaN(secs)) {
@@ -67,18 +85,6 @@ var HMS = class HMS {
       return "0"+v;
     }
     return ""+v;
-  }
-
-  h2s() {
-    return HMS.to_s(this._hours);
-  }
-
-  m2s() {
-    return HMS.to_s(this._minutes);
-  }
-
-  s2s() {
-    return HMS.to_s(this._seconds);
   }
 
   adjust_minutes(mins) {
