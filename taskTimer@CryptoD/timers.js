@@ -406,7 +406,7 @@ var Timers = class Timers extends Array {
     for (let i=0; i < this.length; i++) {
       var t=this[i];
       if (t.id == id) {
-        this.logger.warning("adding timer to lookup hash %s:%s", t.name, t.id);
+        this.logger.warn("adding timer to lookup hash %s:%s", t.name, t.id);
         this._lookup[id] = t;
         return t;
       }
