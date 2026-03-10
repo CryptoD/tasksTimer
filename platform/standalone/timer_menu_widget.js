@@ -15,6 +15,8 @@ imports.gi.versions.Gtk = '3.0';
 const { GObject, Gtk, GLib, Pango, Gdk } = imports.gi;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+const Parser = imports['taskTimer@CryptoD'].timer_entry_parser;
+const TimerListItemModule = imports.platform.standalone.timer_list_item;
 
 function _safeText(v, fallback = '') {
     if (v === undefined || v === null) return fallback;
@@ -173,14 +175,11 @@ class TimerMenuWidget extends Gtk.Box {
         const entry = (this._quickEntry && this._quickEntry.get_text) ? this._quickEntry.get_text().trim() : '';
         if (!entry) return;
 
-        // Best-effort parsing: reuse the GNOME Shell parser if available.
-        // This keeps input parity with the existing extension.
         let parse = null;
         try {
-            const Mitem = imports['taskTimer@CryptoD'].menuitem;
-            if (Mitem && Mitem.KitchenTimerMenuItem && typeof Mitem.KitchenTimerMenuItem.parseTimerEntry === 'function') {
-                parse = Mitem.KitchenTimerMenuItem.parseTimerEntry(entry, true);
-            }
+            parse = Parser && typeof Parser.parseTimerEntry === 'function'
+                ? Parser.parseTimerEntry(entry, true)
+                : null;
         } catch (e) {
             parse = null;
         }
@@ -269,60 +268,13 @@ class TimerMenuWidget extends Gtk.Box {
     }
 
     _makeRow(timer, kind) {
-        const row = new Gtk.ListBoxRow();
-        row._timer = timer;
-
-        const outer = new Gtk.Box({
-            orientation: Gtk.Orientation.HORIZONTAL,
-            spacing: 10,
-            margin_start: 10,
-            margin_end: 10,
-            margin_top: 6,
-            margin_bottom: 6,
+        return new TimerListItemModule.TimerListItem({
+            timer,
+            timers: this._timers,
+            settings: this._settings,
+            kind,
+            onChanged: () => this._persistTimers(),
         });
-
-        const textBox = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            spacing: 2,
-            hexpand: true,
-        });
-
-        const title = new Gtk.Label({
-            label: _safeText(timer.name, 'Timer'),
-            halign: Gtk.Align.START,
-            xalign: 0,
-            wrap: true,
-            wrap_mode: Pango.WrapMode.WORD_CHAR,
-        });
-
-        const secondary = new Gtk.Label({
-            label: this._formatSecondary(timer),
-            halign: Gtk.Align.START,
-            xalign: 0,
-        });
-        secondary.get_style_context().add_class('dim-label');
-
-        row._secondaryLabel = secondary;
-
-        textBox.pack_start(title, false, false, 0);
-        textBox.pack_start(secondary, false, false, 0);
-
-        const btnMenu = new Gtk.MenuButton({ label: '⋯' });
-        btnMenu.set_valign(Gtk.Align.CENTER);
-
-        const pop = this._buildPopoverForTimer(timer, kind);
-        btnMenu.set_popover(pop);
-
-        outer.pack_start(textBox, true, true, 0);
-        outer.pack_start(btnMenu, false, false, 0);
-        row.add(outer);
-
-        // Left click starts non-running timers (quick/preset sections).
-        if (kind === 'quick' || kind === 'preset') {
-            row.set_activatable(true);
-        }
-
-        return row;
     }
 
     _buildPopoverForTimer(timer, kind) {
@@ -419,15 +371,6 @@ class TimerMenuWidget extends Gtk.Box {
         if (this._uiUpdateId) return;
         this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
             try {
-                // Update just the secondary labels for running timers.
-                const list = this._runningSection && this._runningSection.list;
-                if (list) {
-                    list.foreach(row => {
-                        if (row && row._timer && row._secondaryLabel) {
-                            row._secondaryLabel.set_label(this._formatSecondary(row._timer));
-                        }
-                    });
-                }
                 // Rebuild to keep membership accurate if timers start/stop.
                 this.refresh();
             } catch (e) {
