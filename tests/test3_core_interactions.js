@@ -36,8 +36,8 @@ class SettingsStub {
 }
 
 const settings = new SettingsStub();
-// Inject storage so the test writes inside the workspace (avoids sandbox permission noise).
-const timersPath = GLib.build_filenamev([GLib.get_current_dir(), 'tests', '.tmp_test3_timers.json']);
+// Inject storage so the test writes to a temp path (avoids sandbox noise and repo untracked files).
+const timersPath = GLib.build_filenamev([GLib.get_tmp_dir(), `tasktimer-test3-${GLib.uuid_string_random()}.json`]);
 const timers = new TimersCoreModule.TimersCore({
     settings,
     notifier: null,
