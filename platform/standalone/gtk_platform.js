@@ -13,7 +13,7 @@
 
 imports.gi.versions.Gtk = '3.0';
 
-const { GObject, Gtk } = imports.gi;
+const { GObject, Gtk, GLib, Pango } = imports.gi;
 
 const Context = imports.context;
 const Platform = imports.platform.interface;
@@ -80,9 +80,42 @@ class StandaloneGtkPlatform extends GObject.Object {
 
         this._tray = new StandaloneTrayProvider();
         this._shortcuts = new StandaloneShortcutProvider(this._application);
-        this._notifications = new StandaloneNotificationProvider(this._application);
+        this._notifications = new StandaloneNotificationProvider(this._application, {
+            fallback: (id, title, body) => this._showInAppBanner(title, body),
+        });
 
         this._window = null;
+        this._bannerRevealer = null;
+        this._bannerLabel = null;
+        this._bannerTimeoutId = null;
+    }
+
+    _showInAppBanner(title, body) {
+        if (!this._window || !this._bannerRevealer || !this._bannerLabel) {
+            return;
+        }
+        if (this._bannerTimeoutId) {
+            GLib.Source.remove(this._bannerTimeoutId);
+            this._bannerTimeoutId = null;
+        }
+        const text = body ? `${title}\n${body}` : (title || '');
+        this._bannerLabel.set_label(text);
+        this._bannerRevealer.set_reveal_child(true);
+        this._bannerTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
+            this._bannerRevealer.set_reveal_child(false);
+            this._bannerTimeoutId = null;
+            return false;
+        });
+    }
+
+    _hideInAppBanner() {
+        if (this._bannerTimeoutId) {
+            GLib.Source.remove(this._bannerTimeoutId);
+            this._bannerTimeoutId = null;
+        }
+        if (this._bannerRevealer) {
+            this._bannerRevealer.set_reveal_child(false);
+        }
     }
 
     // PlatformUI-like API
@@ -100,7 +133,49 @@ class StandaloneGtkPlatform extends GObject.Object {
                 default_height: 320,
             });
 
-            const vbox = new Gtk.Box({
+            const mainVbox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 0,
+            });
+
+            const bannerRevealer = new Gtk.Revealer({
+                transition_type: Gtk.RevealerTransitionType.SLIDE_DOWN,
+                transition_duration: 200,
+                reveal_child: false,
+            });
+            this._bannerRevealer = bannerRevealer;
+
+            const bannerBox = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 12,
+                margin_start: 12,
+                margin_end: 12,
+                margin_top: 8,
+                margin_bottom: 8,
+            });
+            bannerBox.get_style_context().add_class('toolbar');
+
+            const bannerLabel = new Gtk.Label({
+                label: '',
+                wrap: true,
+                wrap_mode: Pango.WrapMode.WORD_CHAR,
+                hexpand: true,
+                halign: Gtk.Align.START,
+            });
+            this._bannerLabel = bannerLabel;
+
+            const bannerClose = new Gtk.Button({
+                label: '×',
+                relief: Gtk.ReliefStyle.NONE,
+            });
+            bannerClose.connect('clicked', () => this._hideInAppBanner());
+
+            bannerBox.add(bannerLabel);
+            bannerBox.add(bannerClose);
+            bannerRevealer.add(bannerBox);
+            mainVbox.pack_start(bannerRevealer, false, false, 0);
+
+            const contentVbox = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 12,
                 margin_top: 24,
@@ -125,10 +200,11 @@ class StandaloneGtkPlatform extends GObject.Object {
                 }
             });
 
-            vbox.add(label);
-            vbox.add(button);
+            contentVbox.add(label);
+            contentVbox.add(button);
+            mainVbox.pack_start(contentVbox, true, true, 0);
 
-            this._window.add(vbox);
+            this._window.add(mainVbox);
             this._window.show_all();
         }
 

@@ -5,6 +5,8 @@
  * Gio.Notification and GApplication.send_notification() for desktop notifications.
  * Supports timer actions (dismiss, restart, snooze) via app.timerDismiss,
  * app.timerRestart, app.timerSnooze GActions when options.timerId is set.
+ * If send_notification fails (e.g. no notification daemon), calls optional
+ * fallback(id, title, body) for in-app display.
  */
 
 const { Gio, GLib } = imports.gi;
@@ -20,10 +22,13 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
     /**
      * @param {Gtk.Application} application - Gtk.Application (or any GApplication)
      *        with send_notification() and withdraw_notification().
+     * @param {Object} options - optional; fallback(id, title, body) called when
+     *        send_notification throws (e.g. no notification daemon).
      */
-    constructor(application) {
+    constructor(application, options = {}) {
         super();
         this._application = application;
+        this._fallback = typeof options.fallback === 'function' ? options.fallback : null;
     }
 
     /**
@@ -59,6 +64,9 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
             this._application.send_notification(id || null, notification);
         } catch (e) {
             logError(e, 'GioNotificationProvider: send_notification failed');
+            if (this._fallback) {
+                this._fallback(id, title, body);
+            }
         }
     }
 
