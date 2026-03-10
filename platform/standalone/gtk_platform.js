@@ -5,8 +5,8 @@
  *
  * Responsibilities:
  *  - Manage the main GTK window lifecycle (show/hide).
- *  - Expose placeholder TrayProvider, ShortcutProvider, and NotificationProvider
- *    instances that will be fleshed out in later phases.
+ *  - Expose TrayProvider, ShortcutProvider, and NotificationProvider (Gio-based
+ *    desktop notifications via platform/standalone/notification_gio.js).
  *  - Bridge between the Gtk.Application (TaskTimerApplication) and the shared
  *    Context object created at startup.
  */
@@ -17,6 +17,7 @@ const { GObject, Gtk } = imports.gi;
 
 const Context = imports.context;
 const Platform = imports.platform.interface;
+const GioNotification = imports.platform.standalone.notification_gio;
 
 var StandaloneTrayProvider = class StandaloneTrayProvider extends Platform.TrayProvider {
     show() {
@@ -61,22 +62,8 @@ var StandaloneShortcutProvider = class StandaloneShortcutProvider extends Platfo
     }
 };
 
-var StandaloneNotificationProvider = class StandaloneNotificationProvider extends Platform.NotificationProvider {
-    constructor(application) {
-        super();
-        this._application = application;
-    }
-
-    notify(id, title, body, _options = {}) {
-        // Temporary smoke-test implementation: just log notifications so
-        // we can verify that core timer abstractions are calling through.
-        log(`Standalone notification [${id}]: ${title} — ${body}`);
-    }
-
-    close(_id) {
-        // Placeholder.
-    }
-};
+// Use Gio.Notification-based provider for desktop notifications.
+var StandaloneNotificationProvider = GioNotification.GioNotificationProvider;
 
 var StandaloneGtkPlatform = GObject.registerClass(
 class StandaloneGtkPlatform extends GObject.Object {
