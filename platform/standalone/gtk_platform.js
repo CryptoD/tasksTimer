@@ -20,6 +20,7 @@ const Context = imports.context;
 const Platform = imports.platform.interface;
 const GioNotification = imports.platform.standalone.notification_gio;
 const GtkShortcuts = imports.platform.standalone.shortcuts_gtk;
+const TimerMenuWidgetModule = imports.platform.standalone.timer_menu_widget;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 
@@ -359,16 +360,11 @@ class StandaloneGtkPlatform extends GObject.Object {
         if (this._uiUpdateId) return;
         this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
             try {
-                // Fast path: update secondary labels if they exist.
-                if (this._ui && this._ui.runningList) {
-                    this._ui.runningList.foreach(row => {
-                        if (row && row._timer && row._secondaryLabel) {
-                            row._secondaryLabel.set_label(this._formatTimerSecondary(row._timer));
-                        }
-                    });
+                // Refresh embedded timer widget when present.
+                if (this._ui && this._ui.timerWidget && typeof this._ui.timerWidget.refresh === 'function') {
+                    this._ui.timerWidget.setTimers(this._application ? this._application._timers : null);
+                    this._ui.timerWidget.refresh();
                 }
-                // Rebuild lists to keep membership correct when timers start/stop.
-                this._rebuildRunningList();
                 this._rebuildSidebarLists();
             } catch (e) {
                 log('taskTimer: UI refresh failed: ' + (e && e.message ? e.message : e));
@@ -559,24 +555,10 @@ class StandaloneGtkPlatform extends GObject.Object {
                 margin_end: 12,
             });
 
-            const runningLabel = new Gtk.Label({
-                label: 'Running timers',
-                halign: Gtk.Align.START,
-                xalign: 0,
+            const timerWidget = new TimerMenuWidgetModule.TimerMenuWidget({
+                application: this._application,
+                timers: this._application ? this._application._timers : null,
             });
-            runningLabel.get_style_context().add_class('title-3');
-
-            const runningList = new Gtk.ListBox({
-                selection_mode: Gtk.SelectionMode.NONE,
-            });
-            runningList.set_activate_on_single_click(false);
-
-            const runningScroller = new Gtk.ScrolledWindow({
-                vexpand: true,
-                hexpand: true,
-                hscrollbar_policy: Gtk.PolicyType.NEVER,
-            });
-            runningScroller.add(runningList);
 
             const bottomBar = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
@@ -614,8 +596,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             bottomBar.pack_start(btnStopAll, false, false, 0);
             bottomBar.pack_end(btnTest10, false, false, 0);
 
-            main.pack_start(runningLabel, false, false, 0);
-            main.pack_start(runningScroller, true, true, 0);
+            main.pack_start(timerWidget, true, true, 0);
             main.pack_end(bottomBar, false, false, 0);
 
             paned.add1(sidebar);
@@ -628,10 +609,9 @@ class StandaloneGtkPlatform extends GObject.Object {
             this._ui = {
                 quickList: quickSection.list,
                 presetList: presetSection.list,
-                runningList,
+                timerWidget,
             };
             this._rebuildSidebarLists();
-            this._rebuildRunningList();
             this._startUiRefreshLoop();
 
             this._window.add(mainVbox);

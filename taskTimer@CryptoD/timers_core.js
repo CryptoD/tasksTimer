@@ -281,6 +281,29 @@ var TimersCore = class TimersCore extends Array {
         this._lookup[timer.id] = timer;
         return true;
     }
+
+    /**
+     * Remove a timer from this collection.
+     * Standalone UI uses this to support "Delete" actions in GTK popovers.
+     */
+    remove(timer) {
+        if (!timer) return false;
+        const idx = this.indexOf(timer);
+        if (idx < 0) return false;
+
+        // Mark disabled (mirrors extension semantics for non-running timers).
+        try {
+            timer.enabled = false;
+        } catch (e) {
+            // ignore
+        }
+
+        this.splice(idx, 1);
+        if (timer.id && this._lookup[timer.id]) {
+            delete this._lookup[timer.id];
+        }
+        return true;
+    }
 };
 
 var TimerCore = class TimerCore {
