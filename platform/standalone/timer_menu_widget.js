@@ -24,7 +24,11 @@ function _safeText(v, fallback = '') {
     return s.length ? s : fallback;
 }
 
-var TimerMenuWidget = GObject.registerClass(
+var TimerMenuWidget = GObject.registerClass({
+    Signals: {
+        'selected-timer-changed': {},
+    },
+},
 class TimerMenuWidget extends Gtk.Box {
     _init(params = {}) {
         super._init({
@@ -38,6 +42,7 @@ class TimerMenuWidget extends Gtk.Box {
         this._settings = params.settings || (this._application && this._application._services ? this._application._services.settings : null);
 
         this._uiUpdateId = null;
+        this._selectedTimer = null;
 
         this._buildUi();
         this.refresh();
@@ -89,6 +94,15 @@ class TimerMenuWidget extends Gtk.Box {
         this._runningSection = this._buildSection('Running timers');
         this._quickSection = this._buildSection('Quick timers');
         this._presetSection = this._buildSection('Preset timers');
+
+        // Selection tracking for main-window action bar.
+        const onSelect = (_lb, row) => {
+            this._selectedTimer = row && row.timer ? row.timer : (row && row._timer ? row._timer : null);
+            this.emit('selected-timer-changed');
+        };
+        this._runningSection.list.connect('row-selected', onSelect);
+        this._quickSection.list.connect('row-selected', onSelect);
+        this._presetSection.list.connect('row-selected', onSelect);
 
         // Start timers on activation from quick/preset sections.
         const startOnActivate = (_lb, row) => {
@@ -144,6 +158,16 @@ class TimerMenuWidget extends Gtk.Box {
         this.pack_end(bottom, false, false, 0);
     }
 
+    get selected_timer() {
+        return this._selectedTimer;
+    }
+
+    focusQuickEntry() {
+        if (this._quickEntry && typeof this._quickEntry.grab_focus === 'function') {
+            this._quickEntry.grab_focus();
+        }
+    }
+
     _buildSection(title) {
         const outer = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
@@ -157,7 +181,7 @@ class TimerMenuWidget extends Gtk.Box {
         });
         label.get_style_context().add_class('dim-label');
 
-        const list = new Gtk.ListBox({ selection_mode: Gtk.SelectionMode.NONE });
+        const list = new Gtk.ListBox({ selection_mode: Gtk.SelectionMode.SINGLE });
 
         const scroller = new Gtk.ScrolledWindow({
             vexpand: true,
@@ -481,6 +505,9 @@ class TimerMenuWidget extends Gtk.Box {
             return;
         }
 
+        // Preserve selection by id when rebuilding rows.
+        const selectedId = this._selectedTimer && this._selectedTimer.id ? String(this._selectedTimer.id) : null;
+
         const running = timers.sort_by_running ? timers.sort_by_running() : [];
         const allNotRunning = timers.sorted ? timers.sorted({ running: false }) : [];
         const quick = allNotRunning.filter(t => t.quick && t.enabled);
@@ -493,6 +520,20 @@ class TimerMenuWidget extends Gtk.Box {
         running.forEach(t => this._runningSection.list.add(this._makeRow(t, 'running')));
         quick.forEach(t => this._quickSection.list.add(this._makeRow(t, 'quick')));
         presets.forEach(t => this._presetSection.list.add(this._makeRow(t, 'preset')));
+
+        if (selectedId) {
+            const reselect = (list) => {
+                const rows = list.get_children ? list.get_children() : [];
+                for (const r of rows) {
+                    if (r && r.timer && String(r.timer.id) === selectedId) {
+                        list.select_row(r);
+                        return true;
+                    }
+                }
+                return false;
+            };
+            reselect(this._runningSection.list) || reselect(this._quickSection.list) || reselect(this._presetSection.list);
+        }
 
         // (Re)enable row activation for quick/preset lists.
         this._quickSection.list.set_activate_on_single_click(true);

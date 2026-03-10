@@ -560,6 +560,113 @@ class StandaloneGtkPlatform extends GObject.Object {
                 timers: this._application ? this._application._timers : null,
             });
 
+            const actionsBar = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 6,
+            });
+            actionsBar.get_style_context().add_class('toolbar');
+
+            const mkIconBtn = (iconName, tooltip) => {
+                const img = Gtk.Image.new_from_icon_name(iconName, Gtk.IconSize.BUTTON);
+                const btn = new Gtk.Button({ image: img, relief: Gtk.ReliefStyle.NONE });
+                if (tooltip) btn.set_tooltip_text(tooltip);
+                return btn;
+            };
+
+            const btnQuickCreate = mkIconBtn('list-add-symbolic', 'Quick create');
+            const btnPlayPause = mkIconBtn('media-playback-start-symbolic', 'Play/Pause');
+            const btnReset = mkIconBtn('view-refresh-symbolic', 'Reset');
+            const btnDelete = mkIconBtn('edit-delete-symbolic', 'Delete');
+
+            const setPlayPauseIcon = (timer) => {
+                const img = btnPlayPause.get_image();
+                if (!img) return;
+                if (timer && timer.running) {
+                    img.set_from_icon_name('media-playback-pause-symbolic', Gtk.IconSize.BUTTON);
+                } else if (timer && timer.paused) {
+                    img.set_from_icon_name('media-playback-start-symbolic', Gtk.IconSize.BUTTON);
+                } else {
+                    img.set_from_icon_name('media-playback-start-symbolic', Gtk.IconSize.BUTTON);
+                }
+            };
+
+            const updateActionsState = () => {
+                const t = timerWidget.selected_timer;
+                btnPlayPause.set_sensitive(Boolean(t));
+                btnReset.set_sensitive(Boolean(t));
+                btnDelete.set_sensitive(Boolean(t && !t.running && !t.paused));
+                setPlayPauseIcon(t);
+            };
+
+            btnQuickCreate.connect('clicked', () => {
+                timerWidget.focusQuickEntry();
+            });
+
+            btnPlayPause.connect('clicked', () => {
+                const t = timerWidget.selected_timer;
+                if (!t) return;
+                try {
+                    if (t.running && typeof t.pause === 'function') {
+                        t.pause();
+                    } else if (t.paused && typeof t.resume === 'function') {
+                        t.resume();
+                    } else {
+                        t.start();
+                    }
+                } catch (e) {}
+                // Persist state changes (pause/resume/start) to settings.
+                try {
+                    const timers = this._application ? this._application._timers : null;
+                    const settings = this._application && this._application._services ? this._application._services.settings : null;
+                    if (timers && settings && typeof settings.pack_timers === 'function') {
+                        settings.pack_timers(timers);
+                    }
+                } catch (e) {}
+                updateActionsState();
+            });
+
+            btnReset.connect('clicked', () => {
+                const t = timerWidget.selected_timer;
+                if (!t) return;
+                try {
+                    if (typeof t.resetTimer === 'function') {
+                        t.resetTimer();
+                    }
+                } catch (e) {}
+                try {
+                    const timers = this._application ? this._application._timers : null;
+                    const settings = this._application && this._application._services ? this._application._services.settings : null;
+                    if (timers && settings && typeof settings.pack_timers === 'function') {
+                        settings.pack_timers(timers);
+                    }
+                    timerWidget.refresh();
+                } catch (e) {}
+                updateActionsState();
+            });
+
+            btnDelete.connect('clicked', () => {
+                const t = timerWidget.selected_timer;
+                const timers = this._application ? this._application._timers : null;
+                if (!t || !timers || t.running || t.paused) return;
+                try {
+                    if (typeof timers.remove === 'function') {
+                        timers.remove(t);
+                    }
+                    const settings = this._application && this._application._services ? this._application._services.settings : null;
+                    if (settings && typeof settings.pack_timers === 'function') {
+                        settings.pack_timers(timers);
+                    }
+                    timerWidget.refresh();
+                } catch (e) {}
+                updateActionsState();
+            });
+
+            timerWidget.connect('selected-timer-changed', updateActionsState);
+            actionsBar.pack_start(btnQuickCreate, false, false, 0);
+            actionsBar.pack_start(btnPlayPause, false, false, 0);
+            actionsBar.pack_start(btnReset, false, false, 0);
+            actionsBar.pack_start(btnDelete, false, false, 0);
+
             const bottomBar = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
                 spacing: 8,
@@ -596,6 +703,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             bottomBar.pack_start(btnStopAll, false, false, 0);
             bottomBar.pack_end(btnTest10, false, false, 0);
 
+            main.pack_start(actionsBar, false, false, 0);
             main.pack_start(timerWidget, true, true, 0);
             main.pack_end(bottomBar, false, false, 0);
 
@@ -613,6 +721,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             };
             this._rebuildSidebarLists();
             this._startUiRefreshLoop();
+            updateActionsState();
 
             this._window.add(mainVbox);
             this._window.show_all();

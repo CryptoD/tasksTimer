@@ -74,6 +74,7 @@ var TimerState = {
     RESET: 1,
     RUNNING: 2,
     EXPIRED: 3,
+    PAUSED: 4,
 };
 
 var TimersCore = class TimersCore extends Array {
@@ -132,7 +133,7 @@ var TimersCore = class TimersCore extends Array {
     saveRunningTimers() {
         const running = [];
         this.sort_by_running().forEach(timer => {
-            if (timer.running) {
+            if (timer.running || timer.paused) {
                 this.logger.debug(
                     'Saving running timer state id=%s start=%d end=%d',
                     timer.id,
@@ -144,6 +145,10 @@ var TimersCore = class TimersCore extends Array {
                     start: timer._start,
                     end: timer._end,
                     persist: timer.persist_alarm,
+                    state: timer._state,
+                    remaining: timer.paused && typeof timer.paused_remaining_secs === 'number'
+                        ? timer.paused_remaining_secs
+                        : undefined,
                 };
                 if (timer.alarm_timer) {
                     run_state.alarm_timer = timer.alarm_timer.save();
@@ -179,6 +184,21 @@ var TimersCore = class TimersCore extends Array {
             const now = Date.now();
             timer._start = run_state.start;
             timer._end = run_state.end || timer._start + timer.duration_ms();
+
+            // Restore paused timers without starting the interval.
+            if (run_state.state === TimerState.PAUSED) {
+                const rem = typeof run_state.remaining === 'number'
+                    ? run_state.remaining
+                    : Math.max(0, Math.round((timer._end - now) / 1000));
+                timer._pausedRemainingSecs = rem;
+                timer._state = TimerState.PAUSED;
+                this.logger.debug(
+                    'Restored paused timer: %s, remaining: %d seconds',
+                    timer.toString(),
+                    rem
+                );
+                continue;
+            }
 
             if (timer._end > now) {
                 timer._interval_id = Utils.setInterval(timer.timer_callback, timer._interval_ms, timer);
@@ -323,6 +343,7 @@ var TimerCore = class TimerCore {
         this._end = 0;
         this._persist_alarm = false;
         this._interval_id = undefined;
+        this._pausedRemainingSecs = null;
 
         this._alarm_timer = AlarmTimer.matchRegex(name);
         if (this._alarm_timer) {
@@ -413,6 +434,14 @@ var TimerCore = class TimerCore {
         return this._state === TimerState.RUNNING;
     }
 
+    get paused() {
+        return this._state === TimerState.PAUSED;
+    }
+
+    get paused_remaining_secs() {
+        return typeof this._pausedRemainingSecs === 'number' ? this._pausedRemainingSecs : 0;
+    }
+
     get expired() {
         return this._state === TimerState.EXPIRED;
     }
@@ -443,7 +472,9 @@ var TimerCore = class TimerCore {
 
     remaining_hms(now = undefined) {
         let delta;
-        if (this.running) {
+        if (this.paused) {
+            delta = this.paused_remaining_secs;
+        } else if (this.running) {
             if (now === undefined) now = Date.now();
             if (this.alarm_timer) {
                 this._end = this.alarm_timer.end();
@@ -529,12 +560,78 @@ var TimerCore = class TimerCore {
         this.uninhibit();
     }
 
+    /**
+     * Pause a running timer without completing it (no notifications).
+     * Stores remaining time and stops the interval.
+     */
+    pause() {
+        if (!this.running) {
+            return false;
+        }
+        const now = Date.now();
+        const rem = Math.max(0, Math.ceil((this._end - now) / 1000));
+        Utils.clearInterval(this._interval_id);
+        this._interval_id = undefined;
+        this._pausedRemainingSecs = rem;
+        this._state = TimerState.PAUSED;
+        this.timers.saveRunningTimers();
+        saveAllTimersCore(this.timers);
+        this.uninhibit();
+        return true;
+    }
+
+    /**
+     * Resume a paused timer from its stored remaining time.
+     */
+    resume() {
+        if (!this.paused) {
+            return false;
+        }
+        const now = Date.now();
+        const rem = this.paused_remaining_secs;
+        this._start = now;
+        this._end = now + (rem * 1000);
+        this._pausedRemainingSecs = null;
+        this._state = TimerState.RUNNING;
+
+        if (this.timers.inhibitor && typeof this.timers.inhibitor.inhibit_timer === 'function') {
+            this.timers.inhibitor.inhibit_timer(this);
+        }
+
+        this.timers.saveRunningTimers();
+        saveAllTimersCore(this.timers);
+        this._interval_id = Utils.setInterval(this.timer_callback, this._interval_ms, this);
+        return true;
+    }
+
+    /**
+     * Reset timer to full duration without completing it (no notifications).
+     * Leaves it not running; caller can start() after if desired.
+     */
+    resetTimer() {
+        if (this._interval_id) {
+            Utils.clearInterval(this._interval_id);
+            this._interval_id = undefined;
+        }
+        this._pausedRemainingSecs = null;
+        this._start = 0;
+        this._end = 0;
+        this._state = TimerState.RESET;
+        this.timers.saveRunningTimers();
+        saveAllTimersCore(this.timers);
+        this.uninhibit();
+        return true;
+    }
+
     start() {
         if (this._enabled || this._quick) {
             if (this.running) {
                 this.logger.info('Timer is already running, resetting');
                 this.reset = true;
                 return false;
+            }
+            if (this.paused) {
+                return this.resume();
             }
             return this.go();
         }

@@ -49,6 +49,9 @@ class TimerListItem extends Gtk.ListBoxRow {
     _formatSecondary(timer) {
         const settings = this._settings;
         const showEnd = settings && settings.show_endtime;
+        if (timer && timer.paused) {
+            return `Paused • ${timer.remaining_hms ? timer.remaining_hms().toString(true) : ''}`;
+        }
         if (timer && timer.running) {
             if (showEnd && typeof timer.end_time === 'function') {
                 return `Ends at ${timer.end_time()}`;
@@ -126,22 +129,28 @@ class TimerListItem extends Gtk.ListBoxRow {
 
         const t = this._timer;
         const running = t && t.running;
+        const paused = t && t.paused;
         const alarm = t && t.alarm_timer;
 
-        if (!running) {
+        if (!running && !paused) {
             addAction('Start', () => t.start(), true);
+        } else if (paused) {
+            addAction('Resume', () => (typeof t.resume === 'function' ? t.resume() : t.start()), true);
+            addAction('Reset', () => (typeof t.resetTimer === 'function' ? t.resetTimer() : null), true);
         } else {
+            addAction('Pause', () => (typeof t.pause === 'function' ? t.pause() : null), true);
             addAction('Stop', () => t.stop(), true);
             addAction('Snooze 30s', () => (typeof t.snooze === 'function' ? t.snooze(30) : null), true);
             addAction('−30s', () => this._adjustRunningTimer(-30), running && !alarm);
             addAction('+30s', () => this._adjustRunningTimer(30), running && !alarm);
+            addAction('Reset', () => (typeof t.resetTimer === 'function' ? t.resetTimer() : null), true);
         }
 
         addAction(t && t.persist_alarm ? 'Disable persist' : 'Persist alarm', () => {
             if (t && typeof t.toggle_persist_alarm === 'function') t.toggle_persist_alarm();
-        }, running);
+        }, running || paused);
 
-        addAction('Delete', () => this._deleteTimer(), !running);
+        addAction('Delete', () => this._deleteTimer(), !running && !paused);
 
         pop.add(box);
         box.show_all();
