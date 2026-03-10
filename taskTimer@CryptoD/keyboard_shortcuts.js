@@ -16,93 +16,124 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const Lang = imports.lang
-const Meta = imports.gi.Meta
-const Shell = imports.gi.Shell
-const Main = imports.ui.main
+/**
+ * Keyboard shortcuts: interface-based ShortcutProvider.
+ * KeyboardShortcuts accepts an optional ShortcutProvider; if none is given,
+ * the default GNOME Shell implementation (global.display + Main.wm) is used.
+ * Contract: provider.register(accelerator, callback), provider.unregister(accelerator), provider.clear().
+ */
+
+const Meta = imports.gi.Meta;
+const Shell = imports.gi.Shell;
+const Main = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
 const Logger = Me.imports.logger.Logger;
-const Utils = Me.imports.utils;
 
+/**
+ * GNOME Shell implementation of the shortcut provider contract.
+ * Uses global.display.grab_accelerator / ungrab_accelerator and Main.wm.allowKeybinding.
+ */
+var GnomeShellShortcutProvider = class GnomeShellShortcutProvider {
+    constructor() {
+        this._grabbers = {};
+        this._onAccelerator = this._onAccelerator.bind(this);
+        if (typeof global !== 'undefined' && global.display) {
+            global.display.connect('accelerator-activated', (display, action, deviceId, timestamp) => {
+                this._onAccelerator(action);
+            });
+        }
+    }
+
+    register(accelerator, callback) {
+        this.unregister(accelerator);
+
+        if (typeof global === 'undefined' || !global.display) {
+            return;
+        }
+        const action = global.display.grab_accelerator(accelerator, 0);
+        if (action === Meta.KeyBindingAction.NONE) {
+            return;
+        }
+        const name = Meta.external_binding_name_for_action(action);
+        if (typeof Main !== 'undefined' && Main.wm) {
+            Main.wm.allowKeybinding(name, Shell.ActionMode.ALL);
+        }
+        this._grabbers[action] = { name, accelerator, callback };
+    }
+
+    unregister(accelerator) {
+        for (const [action, grabber] of Object.entries(this._grabbers)) {
+            if (grabber.accelerator === accelerator) {
+                if (grabber.name && typeof global !== 'undefined' && global.display) {
+                    global.display.ungrab_accelerator(parseInt(action, 10));
+                    if (typeof Main !== 'undefined' && Main.wm) {
+                        Main.wm.allowKeybinding(grabber.name, Shell.ActionMode.NONE);
+                    }
+                }
+                delete this._grabbers[action];
+                return;
+            }
+        }
+    }
+
+    clear() {
+        const accels = [];
+        for (const grabber of Object.values(this._grabbers)) {
+            accels.push(grabber.accelerator);
+        }
+        accels.forEach(accel => this.unregister(accel));
+    }
+
+    _onAccelerator(action) {
+        const grabber = this._grabbers[action];
+        if (grabber && typeof grabber.callback === 'function') {
+            grabber.callback();
+        }
+    }
+};
+
+/**
+ * Generic keyboard shortcut manager that delegates to a ShortcutProvider.
+ * Does not assume GNOME Shell globals; pass a provider for the current environment.
+ *
+ * @param {Object} settings - Settings instance (for logger).
+ * @param {Object} [shortcutProvider] - Optional. Must have register(accelerator, callback),
+ *        unregister(accelerator), clear(). If omitted, GnomeShellShortcutProvider is used.
+ */
 var KeyboardShortcuts = class KeyboardShortcuts {
-  constructor(settings) {
-    this._settings = settings;
-    this._grabbers = {};
+    constructor(settings, shortcutProvider = null) {
+        this._settings = settings;
+        this._provider = shortcutProvider || new GnomeShellShortcutProvider();
+        this._registered = new Set();
 
-    this.logger = new Logger('kt kbshortcuts', settings);
-
-    global.display.connect('accelerator-activated', (display, action, deviceId, timestamp) => {
-      this.logger.debug("Accelerator Activated: [display=%s, action=%s, deviceId=%s, timestamp=%s]",
-        display, action, deviceId, timestamp);
-      this._onAccelerator(action);
-    });
-  }
-
-  listenFor(accelerator, callback) {
-    let [ action, grabber ] = this.lookupGrabber(accelerator);
-    if (grabber) {
-      this.remove(grabber.accelerator);
+        this.logger = new Logger('kt kbshortcuts', settings);
     }
 
-    this.logger.debug('Trying to listen for hot key [accelerator=%s]', accelerator);
-    action = global.display.grab_accelerator(accelerator, 0);
-    if (action == Meta.KeyBindingAction.NONE) {
-      this.logger.error('Unable to grab accelerator [%s]', accelerator);
-      return;
+    listenFor(accelerator, callback) {
+        if (!accelerator) {
+            return;
+        }
+        this.logger.debug('Registering shortcut [accelerator=%s]', accelerator);
+        this._provider.unregister(accelerator);
+        this._provider.register(accelerator, callback);
+        this._registered.add(accelerator);
     }
 
-    this.logger.debug('Grabbed accelerator [action=%s]', action);
-    let name = Meta.external_binding_name_for_action(action);
-    this.logger.debug('Received binding name for action [name=%s, action=%s]', name, action);
-
-    this.logger.debug('Requesting WM to allow binding [name=%s]', name);
-    Main.wm.allowKeybinding(name, Shell.ActionMode.ALL);
-
-    this._grabbers[action]={
-      name: name,
-      accelerator: accelerator,
-      callback: callback
-    };
-  }
-
-  lookupGrabber(accelerator) {
-    //Utils.logObjectPretty(this._grabbers);
-    for (const [action, grabber] of Object.entries(this._grabbers)) {
-      if (grabber.accelerator === accelerator) {
-        return [ action, grabber ];
-      }
+    remove(accelerator) {
+        if (!accelerator) {
+            return;
+        }
+        this.logger.debug('Unregistering shortcut [accelerator=%s]', accelerator);
+        this._provider.unregister(accelerator);
+        this._registered.delete(accelerator);
     }
-    return [ undefined, undefined ];
-  }
 
-  remove(accelerator) {
-    let [ action, grabber ] = this.lookupGrabber(accelerator);
-
-    if (grabber) {
-      let name=grabber.name;
-      if (name) {
-        this.logger.debug('Requesting WM to remove binding [name=%s] accelerator=%s', name, accelerator);
-        global.display.ungrab_accelerator(action);
-        Main.wm.allowKeybinding(name, Shell.ActionMode.NONE);
-        delete this._grabbers[action];
-      }
-    } else {
-      this.logger.debug('grabber not found for accelerator=%s', accelerator);
+    clear() {
+        this.logger.debug('Clearing all shortcuts');
+        this._provider.clear();
+        this._registered.clear();
     }
-  }
-
-  _onAccelerator(action) {
-    let grabber = this._grabbers[action];
-
-    if (grabber) {
-      grabber.callback();
-    } else {
-      this.logger.debug('No listeners [action=%s]', action);
-    }
-  }
-}
-
-
+};
