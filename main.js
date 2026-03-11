@@ -41,6 +41,7 @@ const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 const TimerServicesModule = imports['taskTimer@CryptoD'].timer_services;
 const StorageModule = imports['taskTimer@CryptoD'].storage;
 const Logger = imports['taskTimer@CryptoD'].logger.Logger;
+const AudioManagerModule = imports['taskTimer@CryptoD'].audio_manager;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
 
@@ -61,6 +62,10 @@ function _addTimerNotificationActions(app) {
     const dismissAction = Gio.SimpleAction.new(TIMER_ACTION_DISMISS, stringType);
     dismissAction.connect('activate', (_action, param) => {
         const timerId = param.get_string()[0];
+        // Stop any active alarm sound for this timer when user dismisses it.
+        if (app._services.audio) {
+            app._services.audio.stopTimerAlarm(timerId);
+        }
         if (app._platform && app._platform.notifications) {
             app._platform.notifications.close(timerId);
         }
@@ -73,6 +78,9 @@ function _addTimerNotificationActions(app) {
         const timer = app._timers && app._timers.lookup(timerId);
         if (timer) {
             timer.start();
+        }
+        if (app._services.audio) {
+            app._services.audio.stopTimerAlarm(timerId);
         }
         if (app._platform && app._platform.notifications) {
             app._platform.notifications.close(timerId);
@@ -89,6 +97,9 @@ function _addTimerNotificationActions(app) {
         const timer = app._timers && app._timers.lookup(timerId);
         if (timer && !isNaN(secs) && secs > 0) {
             timer.snooze(secs);
+        }
+        if (app._services.audio) {
+            app._services.audio.stopTimerAlarm(timerId);
         }
         if (app._platform && app._platform.notifications) {
             app._platform.notifications.close(timerId);
@@ -331,6 +342,12 @@ class TaskTimerApplication extends Gtk.Application {
         // extension share the same Settings API.
         this._services.settings = new ExtSettings.Settings(this._context.configProvider);
 
+        // Shared audio manager for timer alarm sounds in standalone mode.
+        this._services.audio = new AudioManagerModule.AudioManager({
+            settings: this._services.settings,
+            logger: new Logger('kt audio', this._services.settings),
+        });
+
         // Create the standalone GTK platform implementation that will own
         // the main window and (in later phases) tray, shortcuts, and
         // notifications. This keeps UI wiring separate from core logic.
@@ -361,6 +378,12 @@ class TaskTimerApplication extends Gtk.Application {
                     : (fmt ? String(fmt) : '');
 
                 notifications.notify(id, title, body, { timerId: id });
+
+                // Trigger alarm sound playback when a timer completes, honoring
+                // user settings (play_sound, sound_loops, persist_alarm).
+                if (this._services.audio && timer) {
+                    this._services.audio.playTimerAlarm(timer);
+                }
             },
             // Same semantics as extension notifier.warning: "Timer Warning: <name>" + formatted body.
             warning: (timer, text, fmt, ...args) => {

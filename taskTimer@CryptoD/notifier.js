@@ -30,15 +30,11 @@ const MessageTray = imports.ui.messageTray;
 const NotificationDestroyedReason = MessageTray.NotificationDestroyedReason;
 const PopupMenu = imports.ui.popupMenu;
 
-// szm - from tea-time
-imports.gi.versions.Gst = '1.0';
-const Gst = imports.gi.Gst;
-//const GstAudio = imports.gi.GstAudio;
-
 // for setInterval()
 const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
 const HMS = Me.imports.hms.HMS;
+const AudioManager = Me.imports.audio_manager.AudioManager;
 
 var Annoyer = class Annoyer {
   constructor(timers) {
@@ -55,6 +51,8 @@ var Annoyer = class Annoyer {
 
     this._gicon = Gio.icon_new_for_string('dialog-warning');
 
+    // Shared audio manager instance for all notifications managed by this Annoyer.
+    this._audioManager = new AudioManager({ settings: this._settings });
   }
 
   _createSource() {
@@ -87,7 +85,8 @@ var Annoyer = class Annoyer {
                                               details,
                                               false,    // no sound
                                               { gicon: timer.timers.fullIcon, bannerMarkup: true,
-                                              secondaryGIcon: this._gicon });
+                                              secondaryGIcon: this._gicon },
+                                              this._audioManager);
 
     // Track this notification
     this._activeNotifications.set(timer.id, notifier);
@@ -114,7 +113,8 @@ var Annoyer = class Annoyer {
                                               text,
                                               details,
                                               true,   // sound
-                                              { gicon: timer.timers.fullIcon, bannerMarkup: false });
+                                              { gicon: timer.timers.fullIcon, bannerMarkup: false },
+                                              this._audioManager);
 
     // Track this notification
     this._activeNotifications.set(timer.id, notifier);
@@ -128,9 +128,8 @@ var Annoyer = class Annoyer {
       this.source.showNotification(notifier);
     }
 
-    notifier.connect('destroy', (notifier) => {
-      notifier.stop_player();
-    });
+    // Sound playback is handled by AudioManager; KitchenTimerNotifier
+    // stops its own alarm when destroyed.
   }
 
   // MessageTray notification source
@@ -237,23 +236,15 @@ var Annoyer = class Annoyer {
 
 var KitchenTimerNotifier = GObject.registerClass(
 class KitchenTimerNotifier extends MessageTray.Notification {
-  _init(timer, source, title, banner, play_sound, params) {
+  _init(timer, source, title, banner, play_sound, params, audioManager) {
     super._init(source, title, banner, params);
 
     this.logger = new Logger('kt notifier', timer.timers.settings);
 
     this._settings = timer.timers.settings;
     this._timer = timer;
-    this._loops = 0;
-    this._sound_loops = timer.persist_alarm ? 0 : this.settings.sound_loops;
-    this._is_playing = false; // Tracks if sound is currently playing
+    this._audioManager = audioManager;
     this._destroyed = false; // Track if notification is being destroyed
-    // removed duplicate line
-
-    if (this.settings.notification === false && this._sound_loops == 0) {
-      // prevent infinite sound loops if notification dialog is turned off
-      this._sound_loops = 2;
-    }
 
     this._banner = new KitchenTimerNotifierBanner(this);
 
@@ -263,11 +254,8 @@ class KitchenTimerNotifier extends MessageTray.Notification {
         this.setResident(true);
         this.urgency = MessageTray.Urgency.CRITICAL;
       }
-      if (play_sound && this.sound_enabled) {
-        this._initPlayer();
-
-        // Start the first sound
-        this.playSound_callback();
+      if (play_sound && this.sound_enabled && this._audioManager) {
+        this._audioManager.playTimerAlarm(this._timer, { soundFile: this.sound_file });
       }
       this._addActions();
     } else {
@@ -277,7 +265,10 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     // Ensure notification is acknowledged when destroyed for any reason
     this.connect('destroy', () => {
       this.acknowledged = true;
-      this.stop_player();
+      if (this._audioManager) {
+        this._audioManager.stopTimerAlarm(this._timer);
+      }
+      this.timer.persist_alarm = false;
     });
 
     this._banner.connect('clicked', (banner) => {
@@ -365,81 +356,6 @@ class KitchenTimerNotifier extends MessageTray.Notification {
     return false;
   }
 
-  playSound_callback() {
-    // Only start playback if not already playing
-    if (this._is_playing) {
-      return true;
-    }
-
-    // if sound_loops == 0, play for duration of notification
-    if (this.sound_loops > 0 && this._loops >= this.sound_loops) {
-      return this.stop_player();
-    }
-
-    // play it (again), Sam
-    try {
-      this._player.set_property('uri', this._uri);
-      this._player.set_state(Gst.State.PLAYING);
-      this._loops++;
-      this._is_playing = true;
-      return true;
-    } catch (e) {
-      this.logger.error("Error playing sound: " + e.message);
-      this._is_playing = false;
-      return false;
-    }
-  }
-
-  stop_player() {
-    this.logger.debug("Stopping player after %d loops", this._loops);
-    this.timer.persist_alarm = false;
-    return false;
-  }
-
-  _initPlayer() {
-    if (this._player) {
-      this.logger.debug("Player is already initialized")
-      return;
-    }
-    this._uri="file://";
-    if (GLib.file_test(this.sound_file, GLib.FileTest.EXISTS)) {
-      this._uri += this.sound_file;
-    } else {
-      var base = GLib.path_get_basename(this.sound_file);
-      if (base !== this.sound_file) {
-        this.logger.error("Sound file not found, use default");
-        base = this.settings.get_default('sound-file');
-      }
-      this._uri += GLib.build_filenamev([ Me.path, base ]);
-    }
-
-    this.logger.debug("initPlayer with uri=%s", this._uri);
-    Gst.init(null);
-    this._player  = Gst.ElementFactory.make("playbin","player");
-    //let vol = this._player.get_volume(GstAudio.StreamVolumeFormat.LINEAR) *100;
-    //this.logger.debug("linear volume is %f", vol);
-
-    this.playBus = this._player.get_bus();
-    this.playBus.add_signal_watch();
-    this.playBus.connect('message', (playBus, message) => {
-      if (message != null) {
-        // IMPORTANT: to reuse the player, set state to READY
-        let message_type = message.type;
-        if (message_type == Gst.MessageType.EOS || message_type == Gst.MessageType.ERROR) {
-          this._player.set_state(Gst.State.READY);
-          this._is_playing = false;
-
-          // Only restart if we haven't reached the loop limit and notification is still active
-          if (!this._destroyed && (this.sound_loops == 0 || this._loops < this.sound_loops)) {
-            this.playSound_callback();
-          } else {
-            this.logger.debug("Stopping sound playback: reached limit or notification destroyed");
-          }
-        }
-      } // message handler
-    });
-  }
-
   get settings() {
     return this._settings;
   }
@@ -453,7 +369,16 @@ class KitchenTimerNotifier extends MessageTray.Notification {
   }
 
   get sound_loops() {
-    return this._sound_loops;
+    // If persist_alarm is true, allow infinite loops (0) so that the
+    // AudioManager keeps playing until the notification is acknowledged.
+    let loops = this.timer.persist_alarm ? 0 : this.settings.sound_loops;
+
+    // When notifications are disabled, guard against infinite playback by
+    // forcing a small finite loop count.
+    if (this.settings.notification === false && loops === 0) {
+      loops = 2;
+    }
+    return loops;
   }
 
   get sound_file() {
@@ -468,7 +393,10 @@ class KitchenTimerNotifier extends MessageTray.Notification {
 
     this.logger.debug("Destroying notification, reason: %d, acknowledged: %s", reason, this.acknowledged);
     this._destroyed = true;
-    this.stop_player();
+    if (this._audioManager) {
+      this._audioManager.stopTimerAlarm(this._timer);
+    }
+    this.timer.persist_alarm = false;
     super.destroy(reason);
     this.timer.uninhibit();
   }
