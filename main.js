@@ -163,7 +163,7 @@ function _registerShortcuts(app) {
  * preferences dialog in a separate window when run from standalone (TEST 5).
  */
 function _addPreferencesAction(app) {
-    const prefsAction = new Gio.SimpleAction.new('preferences', null);
+    const prefsAction = Gio.SimpleAction.new('preferences', null);
     prefsAction.connect('activate', () => {
         if (!app._services.settings) {
             return;
@@ -190,7 +190,7 @@ function _addPreferencesAction(app) {
  * Opens a small dialog to create and start a quick timer.
  */
 function _addNewTimerAction(app) {
-    const action = new Gio.SimpleAction.new('newTimer', null);
+    const action = Gio.SimpleAction.new('newTimer', null);
     action.connect('activate', () => {
         if (!app._platform) {
             return;

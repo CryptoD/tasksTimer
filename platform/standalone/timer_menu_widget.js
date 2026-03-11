@@ -34,7 +34,6 @@ class TimerMenuWidget extends Gtk.Box {
         super._init({
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 12,
-            ...params,
         });
 
         this._application = params.application || null;

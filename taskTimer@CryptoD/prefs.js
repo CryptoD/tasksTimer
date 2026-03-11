@@ -25,8 +25,19 @@ const GETTEXT_DOMAIN = 'tasktimer';
 const I18n = imports.i18n;
 const _ = I18n.init(GETTEXT_DOMAIN).gettext;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+let ExtensionUtils = null;
+try {
+  ExtensionUtils = imports.misc.extensionUtils;
+} catch (e) {
+  ExtensionUtils = null;
+}
+
+const Me = ExtensionUtils && typeof ExtensionUtils.getCurrentExtension === 'function'
+  ? ExtensionUtils.getCurrentExtension()
+  : {
+      path: GLib.build_filenamev([GLib.get_current_dir(), 'taskTimer@CryptoD']),
+      imports: imports['taskTimer@CryptoD'],
+    };
 const Settings = Me.imports.settings.Settings;
 const Utils = Me.imports.utils;
 const Logger = Me.imports.logger.Logger;
