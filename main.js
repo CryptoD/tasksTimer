@@ -36,6 +36,18 @@ try {
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
 
+// Standalone gettext initialization for the "tasktimer" domain. This avoids
+// relying on ExtensionUtils.initTranslations() so the CLI/GTK app can locate
+// translations when run outside GNOME Shell (including AppImage bundles).
+let _ = s => s;
+try {
+    const I18n = imports.i18n;
+    const domain = I18n.init('tasktimer');
+    _ = domain.gettext;
+} catch (e) {
+    // If anything goes wrong, leave _ as an identity function.
+}
+
 const ExtSettings = imports['taskTimer@CryptoD'].settings;
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 const TimerServicesModule = imports['taskTimer@CryptoD'].timer_services;
