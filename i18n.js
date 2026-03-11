@@ -23,6 +23,44 @@
 const { GLib } = imports.gi;
 const Gettext = imports.gettext;
 
+function _preferredFromGLib() {
+    try {
+        const langs = GLib.get_language_names();
+        if (langs && langs.length > 0) {
+            // GLib returns entries like "fr_FR.UTF-8", "fr_FR", "fr", "C".
+            for (let i = 0; i < langs.length; i++) {
+                const raw = langs[i];
+                if (!raw || raw === 'C' || raw === 'POSIX') {
+                    continue;
+                }
+                const noEncoding = raw.split('.')[0]; // drop .UTF-8
+                if (noEncoding && noEncoding.length > 0) {
+                    return noEncoding;
+                }
+            }
+        }
+    } catch (e) {
+        // ignore and fall through
+    }
+    return null;
+}
+
+function _preferredFromIntl() {
+    try {
+        if (typeof Intl !== 'undefined' &&
+            Intl.DateTimeFormat &&
+            typeof Intl.DateTimeFormat === 'function') {
+            const loc = Intl.DateTimeFormat().resolvedOptions().locale;
+            if (loc && loc.length > 0) {
+                return loc;
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+    return null;
+}
+
 function _candidateLocaleDirs() {
     const dirs = [];
 
@@ -75,12 +113,44 @@ function _firstExistingDir(candidates) {
 }
 
 /**
- * Initialize gettext for the given domain and return the bound domain object.
+ * Detect the user's preferred language using GLib and, as a secondary source,
+ * the JavaScript Intl API. Returns a BCP47/locale-style string such as
+ * "fr_FR" or "en-US", falling back to null if none is available.
+ */
+function getPreferredLanguage() {
+    const glibLang = _preferredFromGLib();
+    if (glibLang) {
+        return glibLang;
+    }
+    const intlLang = _preferredFromIntl();
+    if (intlLang) {
+        return intlLang;
+    }
+    return null;
+}
+
+/**
+ * Initialize gettext for the given domain and return the bound domain object,
+ * after ensuring the process locale reflects the user's preferred language.
  *
  * @param {string} domainName - gettext domain, defaults to "tasktimer".
  * @returns {Object} - imports.gettext.domain(domainName) result.
  */
 function init(domainName = 'tasktimer') {
+    // If LANGUAGE is not explicitly set, populate it from the preferred
+    // language so that gettext uses the same locale as the rest of the app.
+    try {
+        const current = GLib.getenv('LANGUAGE');
+        if (!current || current.length === 0) {
+            const lang = getPreferredLanguage();
+            if (lang && lang.length > 0) {
+                GLib.setenv('LANGUAGE', lang, true);
+            }
+        }
+    } catch (e) {
+        // ignore; locale variables will remain unchanged.
+    }
+
     const candidates = _candidateLocaleDirs();
     const loc = _firstExistingDir(candidates);
 
@@ -103,5 +173,6 @@ function init(domainName = 'tasktimer') {
 
 var exports = {
     init,
+    getPreferredLanguage,
 };
 
