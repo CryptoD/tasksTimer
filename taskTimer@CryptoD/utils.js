@@ -1,6 +1,6 @@
 const GETTEXT_DOMAIN = 'tasktimer';
-const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
-const _ = Gettext.gettext;
+const I18n = imports.i18n;
+const _ = I18n.init(GETTEXT_DOMAIN).gettext;
 
 String.prototype.format = imports.format.format;
 

@@ -26,16 +26,35 @@ const Gettext = imports.gettext;
 function _candidateLocaleDirs() {
     const dirs = [];
 
+    // 0. GNOME Shell extension locale directory, if available.
+    try {
+        const ExtensionUtils = imports.misc && imports.misc.extensionUtils;
+        if (ExtensionUtils && typeof ExtensionUtils.getCurrentExtension === 'function') {
+            const Me = ExtensionUtils.getCurrentExtension();
+            if (Me && Me.dir && Me.dir.get_child) {
+                const locDir = Me.dir.get_child('locale');
+                if (locDir && locDir.query_exists(null)) {
+                    dirs.push(locDir.get_path());
+                }
+            }
+        }
+    } catch (e) {
+        // ignore; not running as an extension.
+    }
+
+    // 1. AppImage layout: $APPDIR/usr/share/locale, then $APPDIR/share/locale.
     const appDir = GLib.getenv('APPDIR');
     if (appDir && appDir.length > 0) {
         dirs.push(GLib.build_filenamev([appDir, 'usr', 'share', 'locale']));
         dirs.push(GLib.build_filenamev([appDir, 'share', 'locale']));
     }
 
+    // 2. Project-relative prefixes for development / unpacked runs.
     const cwd = GLib.get_current_dir();
     dirs.push(GLib.build_filenamev([cwd, 'usr', 'share', 'locale']));
     dirs.push(GLib.build_filenamev([cwd, 'po']));
 
+    // 3. System default.
     dirs.push('/usr/share/locale');
 
     return dirs;

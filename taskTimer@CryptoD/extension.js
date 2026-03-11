@@ -27,8 +27,8 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
 const GETTEXT_DOMAIN = 'tasktimer';
-const Gettext = imports.gettext.domain(GETTEXT_DOMAIN);
-const _ = Gettext.gettext;
+const I18n = imports.i18n;
+const _ = I18n.init(GETTEXT_DOMAIN).gettext;
 
 const Utils = Me.imports.utils;
 const Settings = Me.imports.settings.Settings;
