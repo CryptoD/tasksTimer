@@ -59,7 +59,9 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         }
 
         const timerId = options.timerId && String(options.timerId);
-        if (timerId) {
+        if (timerId &&
+            typeof notification.set_default_action_and_target_value === 'function' &&
+            typeof notification.add_button_with_target_value === 'function') {
             const targetId = new GLib.Variant('s', timerId);
             notification.set_default_action_and_target_value(ACTION_RESTART, targetId);
             notification.add_button_with_target_value('Dismiss', ACTION_DISMISS, targetId);

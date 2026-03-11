@@ -60,7 +60,7 @@ const SHORTCUT_ACTIONS = [
   { key: 'accel-stop-next', label: _('Stop next timer'), tooltip: _('Stop the next running timer') }
 ];
 
-class PreferencesBuilder {
+var PreferencesBuilder = class PreferencesBuilder {
   /**
    * @param {Settings} settings - Optional Settings instance. When provided
    *   (e.g. from the standalone application), this builder will use it
@@ -79,8 +79,19 @@ class PreferencesBuilder {
         ? GLib.build_filenamev([this._basePath, 'icons'])
         : (typeof Me !== 'undefined' && Me.dir ? Me.dir.get_child('icons').get_path() : '');
       if (iconPath) {
-        let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
-        iconTheme.add_search_path(iconPath);
+        let iconTheme = null;
+        try {
+          if (Gtk.IconTheme.get_for_display && Gdk.Display.get_default) {
+            iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+          } else if (Gtk.IconTheme.get_default) {
+            iconTheme = Gtk.IconTheme.get_default();
+          }
+        } catch (e) {
+          iconTheme = null;
+        }
+        if (iconTheme && typeof iconTheme.add_search_path === 'function') {
+          iconTheme.add_search_path(iconPath);
+        }
       }
     }
   }
@@ -90,16 +101,18 @@ class PreferencesBuilder {
   }
 
   show() {
-    if (false) {
-      this._widget.show_all();
-    } else {
-      let window = this._widget.get_root();
-      if (window) {
-        // why is this null?
-        window.default_width = 700;
-        window.default_height = 900;
+    // In the standalone app, `main.js` is responsible for creating the
+    // window, setting size, and adding our scrolled widget. Here we only
+    // need to make sure the contents are visible and some extension-only
+    // bits are hidden when present.
+    try {
+      if (this._widget && typeof this._widget.show_all === 'function') {
+        this._widget.show_all();
+      } else if (this._widget && typeof this._widget.show === 'function') {
+        this._widget.show();
       }
-      // window.resize(700, 900);
+    } catch (e) {
+      // Ignore visibility errors; the caller will manage the window.
     }
     this._bo('timer_box').hide();
     this._bo('tv_timers').hide();
@@ -115,7 +128,28 @@ class PreferencesBuilder {
       this._viewport.add(this._taskTimer_settings);
       this._widget.add(this._viewport);
     } else {
-      this._builder.add_from_file(GLib.build_filenamev([this._basePath || (typeof Me !== 'undefined' ? Me.path : ''), 'settings40.ui']));
+      const basePath = this._basePath || (typeof Me !== 'undefined' ? Me.path : '');
+      let loaded = false;
+      try {
+        // Prefer GTK4 settings UI when supported
+        this._builder.add_from_file(GLib.build_filenamev([basePath, 'settings40.ui']));
+        loaded = true;
+        this._layoutKind = 'gtk4';
+      } catch (e) {
+        // On GTK3 systems this will fail with a Gtk.BuilderError; fall back to GTK3 UI.
+        try {
+          this.logger.error('Failed to load settings40.ui, falling back to settings.ui: ' + e);
+        } catch (_e) {}
+        try {
+          this._builder.add_from_file(GLib.build_filenamev([basePath, 'settings.ui']));
+          loaded = true;
+          this._layoutKind = 'gtk3';
+        } catch (e2) {
+          try {
+            this.logger.error('Failed to load both settings40.ui and settings.ui: ' + e2);
+          } catch (_e2) {}
+        }
+      }
 
       // settings40.ui uses a different root ID (kitchenTimer_settings) compared to
       // the GTK3 settings.ui (taskTimer_settings). Try the GTK4 root id first
@@ -168,17 +202,27 @@ class PreferencesBuilder {
         else throw new Error('Unable to add child to container');
       }
 
-      // List of widget IDs that are used later in prefs.js. We'll check for their
-      // existence and show a helpful message if some are missing.
-      const requiredIds = [
-        'version','description','timers_liststore','timers_combo','spin_hours','spin_mins','spin_secs',
-        'quick_radio','timers_add','timers_remove','timer_enabled','timers_combo_entry','tv_timers',
-        'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
-        'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
-        'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
-        'accel_enable','minimize_to_tray','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label',
-        'shortcuts_list'
-      ];
+      // List of widget IDs that are used later in prefs.js. For GTK4
+      // (settings40.ui) we expect the full set of IDs; for the legacy
+      // GTK3 settings.ui we only require the core timer editor widgets.
+      let requiredIds;
+      if (this._layoutKind === 'gtk3') {
+        requiredIds = [
+          'timers_liststore','timers_combo','spin_hours','spin_mins','spin_secs',
+          'quick_radio','timers_add','timers_remove','timer_enabled','timers_combo_entry',
+          'tv_timers','timer_box'
+        ];
+      } else {
+        requiredIds = [
+          'version','description','timers_liststore','timers_combo','spin_hours','spin_mins','spin_secs',
+          'quick_radio','timers_add','timers_remove','timer_enabled','timers_combo_entry','tv_timers',
+          'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
+          'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
+          'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
+          'accel_enable','minimize_to_tray','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label',
+          'shortcuts_list'
+        ];
+      }
 
       let missing = [];
       for (let id of requiredIds) {
@@ -197,26 +241,43 @@ class PreferencesBuilder {
         // Create a visible message to inform the user about missing widgets
         let msg;
         try {
-          msg = new Gtk.Label({use_markup: true, halign: Gtk.Align.START});
+          msg = new Gtk.Label({halign: Gtk.Align.START});
         } catch (e) {
           msg = new Gtk.Label();
           try {
             msg.set_halign(Gtk.Align.START);
           } catch (e2) {
-            msg.set_xalign(0);
+            try { msg.set_xalign(0); } catch (_e3) {}
           }
         }
 
-        let text = '<b>Preferences failed to load correctly</b>\nThe following UI elements are missing from the loaded settings file:\n' + missing.map(x => '- ' + x).join('\n') + '\n\nPlease check your extension installation or the settings file.';
-        // Use markup for the heading but avoid injection for the list
-        let markup = '<b>Preferences failed to load correctly</b><br/><small>The following UI elements are missing from the loaded settings file:</small><br/>' + missing.map(x => '<tt>' + x + '</tt>').join('<br/>') + '<br/><br/><small>Please check your extension installation or the settings file.</small>';
+        const textLines = [
+          'Preferences failed to load correctly.',
+          'The following UI elements are missing from the loaded settings file:',
+          '',
+          ...missing.map(x => '- ' + x),
+          '',
+          'Please check your extension installation or the settings file.'
+        ];
         try {
-          msg.set_markup(markup);
+          msg.set_text(textLines.join('\n'));
         } catch (e) {
-          msg.set_text(text);
+          // As a last resort, ignore; the label will stay empty.
         }
-        msg.set_wrap(true);
-        msg.set_selectable(true);
+
+        try {
+          if (typeof msg.set_wrap === 'function') {
+            msg.set_wrap(true);
+          } else if (typeof msg.set_line_wrap === 'function') {
+            msg.set_line_wrap(true);
+          }
+        } catch (_e) {}
+
+        try {
+          if (typeof msg.set_selectable === 'function') {
+            msg.set_selectable(true);
+          }
+        } catch (_e) {}
 
         addChild(topWrapper, msg);
       }
@@ -1102,7 +1163,7 @@ class PreferencesBuilder {
     parts.push(name);
     return parts.join('');
   }
-}
+};
 
 function init() {
 }

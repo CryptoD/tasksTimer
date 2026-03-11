@@ -510,11 +510,11 @@ var Settings = class Settings {
   }
 
   get sound_file() {
-    return this.settings.get_string('sound-file');
+    return this._getString('sound-file');
   }
 
   set sound_file(path) {
-    this.settings.set_string('sound-file', path);
+    this._setString('sound-file', path);
   }
 
   get timers() {
