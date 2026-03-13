@@ -100,6 +100,92 @@ var PreferencesBuilder = class PreferencesBuilder {
     return this._basePath || (typeof Me !== 'undefined' && Me.path) || '';
   }
 
+  /**
+   * Helpers for remembering last-used directories in the JSON config when
+   * running under the standalone app (JSONSettingsProvider). When running
+   * as a GNOME Shell extension (GSettings), _provider is null so these are
+   * effectively no-ops and we fall back to the given defaults.
+   */
+  _getLastDir(key, fallback) {
+    try {
+      const provider = this._settings && this._settings._provider;
+      if (provider && typeof provider.get_string === 'function') {
+        const val = provider.get_string(key);
+        if (val && val.length > 0) {
+          return val;
+        }
+      }
+    } catch (e) {
+      try { this.logger.debug('Failed to read last dir for %s: %s', key, e); } catch (_e2) {}
+    }
+    return fallback;
+  }
+
+  _setLastDir(key, dir) {
+    if (!dir) {
+      return;
+    }
+    try {
+      const provider = this._settings && this._settings._provider;
+      if (provider && typeof provider.set_string === 'function') {
+        provider.set_string(key, dir);
+      }
+    } catch (e) {
+      try { this.logger.debug('Failed to store last dir for %s: %s', key, e); } catch (_e2) {}
+    }
+  }
+
+  /**
+   * Show a user-friendly error dialog (or fall back to a status label)
+   * when something goes wrong during import/export.
+   */
+  _showErrorDialog(title, message) {
+    try {
+      let parent = null;
+      try {
+        parent = this._widget && typeof this._widget.get_root === 'function'
+          ? this._widget.get_root()
+          : null;
+      } catch (_e) {
+        parent = null;
+      }
+
+      let dialog;
+      try {
+        dialog = new Gtk.MessageDialog({
+          transient_for: parent,
+          modal: true,
+          buttons: Gtk.ButtonsType.CLOSE,
+          message_type: Gtk.MessageType.ERROR,
+          text: title,
+          secondary_text: message
+        });
+      } catch (e) {
+        // GTK3-style constructor as fallback
+        dialog = new Gtk.MessageDialog(
+          parent,
+          Gtk.DialogFlags.MODAL,
+          Gtk.MessageType.ERROR,
+          Gtk.ButtonsType.CLOSE,
+          title
+        );
+        try {
+          dialog.format_secondary_text(message);
+        } catch (_e2) {}
+      }
+
+      dialog.connect('response', () => {
+        try { dialog.destroy(); } catch (_e3) {}
+      });
+      dialog.show();
+    } catch (_e) {
+      // As a last resort, surface the error in the preferences status label.
+      try {
+        this._bo('import_export_msg').set_text(message);
+      } catch (_e2) {}
+    }
+  }
+
   show() {
     // In the standalone app, `main.js` is responsible for creating the
     // window, setting size, and adding our scrolled widget. Here we only
@@ -541,14 +627,24 @@ var PreferencesBuilder = class PreferencesBuilder {
   // gnome40
   sound_file_chooser() {
     // import/export settings
-    var file_dialog = new Gtk.FileChooserDialog( {
-      action: Gtk.FileChooserAction.OPEN,
-      //local_only: false,
-      create_folders: true
-    });
-
-    if (file_dialog.current_folder == undefined) {
-       file_dialog.current_folder = this._extensionPath();
+    let file_dialog;
+    try {
+      // Prefer Gtk.FileChooserNative for portal/sandbox friendliness
+      file_dialog = new Gtk.FileChooserNative({
+        title: _("Sound file"),
+        action: Gtk.FileChooserAction.OPEN,
+        transient_for: null,
+        modal: true,
+      });
+    } catch (e) {
+      // Fallback constructor signature for older GTK versions
+      file_dialog = new Gtk.FileChooserNative(
+        _("Sound file"),
+        null,
+        Gtk.FileChooserAction.OPEN,
+        null,
+        null
+      );
     }
 
     let sound_file = this._settings.sound_file;
@@ -557,17 +653,19 @@ var PreferencesBuilder = class PreferencesBuilder {
     }
     this.logger.debug("sound_file="+sound_file);
 
-    file_dialog.set_filter(this._bo('audio_files_filter'));
-    file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
-    file_dialog.set_current_name(sound_file);
-    file_dialog.title = _("Sound file");
-    //file_dialog.set_do_overwrite_confirmation(true);
-    file_dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
-    file_dialog.add_button('Open', Gtk.ResponseType.OK);
-    this.logger.debug("action=%s", ""+file_dialog.get_action());
+    try {
+      file_dialog.set_filter(this._bo('audio_files_filter'));
+    } catch (_e) {}
+    try {
+      const baseDir = this._getLastDir('last-sound-dir', this._extensionPath());
+      file_dialog.set_current_folder(Gio.File.new_for_path(baseDir));
+    } catch (_e) {}
+    try {
+      file_dialog.set_current_name(sound_file);
+    } catch (_e) {}
 
     file_dialog.connect('response', (dialog, response_id) => {
-      if (response_id === Gtk.ResponseType.OK) {
+      if (response_id === Gtk.ResponseType.ACCEPT || response_id === Gtk.ResponseType.OK) {
         // outputs "-5"
         this.logger.debug("response_id=%d", response_id);
 
@@ -577,6 +675,10 @@ var PreferencesBuilder = class PreferencesBuilder {
 
         this._settings.sound_file = sound_file;
         this._bo('label_sound_file').set_label(GLib.basename(sound_file));
+        try {
+          const dir = GLib.path_get_dirname(sound_file);
+          this._setLastDir('last-sound-dir', dir);
+        } catch (_e) {}
       }
 
       // destroy the dialog regardless of the response when we're done.
@@ -589,36 +691,40 @@ var PreferencesBuilder = class PreferencesBuilder {
   // https://stackoverflow.com/questions/54487052/how-do-i-add-a-save-button-to-the-gtk-filechooser-dialog
   export_settings() {
     // import/export settings
-    var file_dialog = new Gtk.FileChooserDialog( {
-      title: _("Export"),
-      action: Gtk.FileChooserAction.SAVE,
-      create_folders: true
-    });
-
-    if (file_dialog.current_folder == undefined) {
-       file_dialog.current_folder = this._extensionPath();
+    let file_dialog;
+    try {
+      file_dialog = new Gtk.FileChooserNative({
+        title: _("Export"),
+        action: Gtk.FileChooserAction.SAVE,
+        transient_for: null,
+        modal: true,
+      });
+    } catch (e) {
+      file_dialog = new Gtk.FileChooserNative(
+        _("Export"),
+        null,
+        Gtk.FileChooserAction.SAVE,
+        null,
+        null
+      );
     }
 
     let settings_json = 'tasktimer_settings.json';
 
     this.logger.debug("json file=%s", settings_json);
-    file_dialog.set_filter(this._bo('json_files_filter'));
-    file_dialog.set_current_name(settings_json);
-    file_dialog.title = _("Export");
-    file_dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
-    file_dialog.add_button('Export', Gtk.ResponseType.OK);
-    this.logger.debug("action=%s", ""+file_dialog.get_action());
-
-    if (false) {
-      file_dialog.set_current_folder(this._extensionPath());
-      file_dialog.set_do_overwrite_confirmation(true);
-      file_dialog.set_local_only(true);
-    } else {
-      file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
-    }
+    try {
+      file_dialog.set_filter(this._bo('json_files_filter'));
+    } catch (_e) {}
+    try {
+      file_dialog.set_current_name(settings_json);
+    } catch (_e) {}
+    try {
+      const baseDir = this._getLastDir('last-export-dir', this._extensionPath());
+      file_dialog.set_current_folder(Gio.File.new_for_path(baseDir));
+    } catch (_e) {}
 
     file_dialog.connect('response', (dialog, response_id) => {
-      if (response_id === Gtk.ResponseType.OK) {
+      if (response_id === Gtk.ResponseType.ACCEPT || response_id === Gtk.ResponseType.OK) {
        // outputs "-5"
         this.logger.debug("response_id=%d", response_id);
 
@@ -641,6 +747,10 @@ var PreferencesBuilder = class PreferencesBuilder {
             try {
               file.replace_contents_finish(res);
               this._bo('import_export_msg').set_text(_("Exported settings to %s".format(file.get_path())));
+              try {
+                const dir = GLib.path_get_dirname(file.get_path());
+                this._setLastDir('last-export-dir', dir);
+              } catch (_e) {}
             } catch (e) {
               this.logger.debug("Failed to export settings to %s: %s", file.get_path(), e);
             }
@@ -659,34 +769,40 @@ var PreferencesBuilder = class PreferencesBuilder {
 
   import_settings() {
     // import/export settings
-    var file_dialog = new Gtk.FileChooserDialog( {
-      action: Gtk.FileChooserAction.OPEN,
-      create_folders: true
-    });
-
-    if (file_dialog.current_folder == undefined) {
-       file_dialog.current_folder = this._extensionPath();
+    let file_dialog;
+    try {
+      file_dialog = new Gtk.FileChooserNative({
+        title: _("Import"),
+        action: Gtk.FileChooserAction.OPEN,
+        transient_for: null,
+        modal: true,
+      });
+    } catch (e) {
+      file_dialog = new Gtk.FileChooserNative(
+        _("Import"),
+        null,
+        Gtk.FileChooserAction.OPEN,
+        null,
+        null
+      );
     }
 
     let settings_json = 'tasktimer_settings.json' ;
 
     this.logger.debug("json file=%s", settings_json);
-    file_dialog.set_filter(this._bo('json_files_filter'));
-    file_dialog.set_current_name(settings_json);
-    file_dialog.title = _("Import");
-    file_dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
-    file_dialog.add_button('Import', Gtk.ResponseType.OK);
-    this.logger.debug("action=%s", ""+file_dialog.get_action());
-
-    if (false) {
-      file_dialog.set_current_folder(this._extensionPath());
-      file_dialog.set_local_only(true);
-    } else {
-      file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
-    }
+    try {
+      file_dialog.set_filter(this._bo('json_files_filter'));
+    } catch (_e) {}
+    try {
+      file_dialog.set_current_name(settings_json);
+    } catch (_e) {}
+    try {
+      const baseDir = this._getLastDir('last-import-dir', this._extensionPath());
+      file_dialog.set_current_folder(Gio.File.new_for_path(baseDir));
+    } catch (_e) {}
 
     file_dialog.connect('response', (dialog, response_id) => {
-      if (response_id === Gtk.ResponseType.OK) {
+      if (response_id === Gtk.ResponseType.ACCEPT || response_id === Gtk.ResponseType.OK) {
         // outputs "-5"
         this.logger.debug("response_id=%d", response_id);
 
@@ -700,11 +816,25 @@ var PreferencesBuilder = class PreferencesBuilder {
             var size = file.query_info("standard::size", Gio.FileQueryInfoFlags.NONE, null).get_size();
             var data = stream.read_bytes(size, null).get_data();
             var json = ByteArray.toString(data);
-            //this.logger.debug("json=%s", json);
-            this._settings.import_json(json);
+            try {
+              this._settings.import_json(json);
+            } catch (e) {
+              // Likely invalid or incompatible JSON; show a user-friendly error.
+              logError(e, "Failed to import taskTimer settings JSON");
+              const msg = _("The selected file could not be imported.\n\nDetails: %s").format(e.message || String(e));
+              this._showErrorDialog(_("Import failed"), msg);
+              return;
+            }
+
             this._bo('import_export_msg').set_text(_("Imported settings from %s".format(file.get_path())));
+            try {
+              const dir = GLib.path_get_dirname(file.get_path());
+              this._setLastDir('last-import-dir', dir);
+            } catch (_e) {}
           } catch(e) {
             logError(e, "Failed to read kitchen timer settings import file");
+            const msg = _("Failed to read the selected file.\n\nDetails: %s").format(e.message || String(e));
+            this._showErrorDialog(_("Import failed"), msg);
           }
         });
       }
@@ -940,32 +1070,57 @@ var PreferencesBuilder = class PreferencesBuilder {
   // Export logs helper: shows a file chooser and writes buffered logs to the chosen path
   _export_logs() {
     try {
-      const file_dialog = new Gtk.FileChooserDialog({
-        title: _('Export logs'),
-        action: Gtk.FileChooserAction.SAVE,
-        create_folders: true
-      });
-
-      if (file_dialog.current_folder == undefined) {
-        file_dialog.current_folder = this._extensionPath();
+      let file_dialog;
+      try {
+        file_dialog = new Gtk.FileChooserNative({
+          title: _('Export logs'),
+          action: Gtk.FileChooserAction.SAVE,
+          transient_for: null,
+          modal: true,
+        });
+      } catch (e) {
+        file_dialog = new Gtk.FileChooserNative(
+          _('Export logs'),
+          null,
+          Gtk.FileChooserAction.SAVE,
+          null,
+          null
+        );
       }
 
+      // Prefer an XDG-appropriate default directory for log exports:
+      //   ~/.local/share/tasktimer/logs/
       let default_name = 'tasktimer_logs.txt';
-      file_dialog.set_current_name(default_name);
-      file_dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
-      file_dialog.add_button('Export', Gtk.ResponseType.OK);
-
-      if (true) {
-        file_dialog.set_current_folder(Gio.File.new_for_path(this._extensionPath()));
-      } else {
-        file_dialog.set_current_folder(this._extensionPath());
+      let logsDir = null;
+      try {
+        const baseDataDir = GLib.get_user_data_dir(); // usually ~/.local/share
+        logsDir = GLib.build_filenamev([baseDataDir, 'tasktimer', 'logs']);
+        try {
+          GLib.mkdir_with_parents(logsDir, 0o755);
+        } catch (_e) {
+          // ignore mkdir errors; we still let the user pick another path
+        }
+      } catch (_e) {
+        logsDir = null;
       }
+      try {
+        file_dialog.set_current_name(default_name);
+      } catch (_e) {}
+      try {
+        const remembered = this._getLastDir('last-logs-dir', null);
+        const folderPath = remembered || logsDir || this._extensionPath();
+        file_dialog.set_current_folder(Gio.File.new_for_path(folderPath));
+      } catch (_e) {}
 
       file_dialog.connect('response', (dialog, response_id) => {
-        if (response_id === Gtk.ResponseType.OK) {
+        if (response_id === Gtk.ResponseType.ACCEPT || response_id === Gtk.ResponseType.OK) {
           try {
             let file = dialog.get_file();
             let path = file.get_path();
+            try {
+              const dir = GLib.path_get_dirname(path);
+              this._setLastDir('last-logs-dir', dir);
+            } catch (_e) {}
             // Use logger's exportToFile if available
             let logger = this.logger;
             if (logger && typeof logger.exportToFile === 'function') {

@@ -354,34 +354,53 @@ var Settings = class Settings {
 
   import_json(json) {
     this.logger.info("Import json to settings");
-    var obj = JSON.parse(json.replace( /[\r\n]+/gm, " "));
+    let obj;
+    try {
+      obj = JSON.parse(json.replace(/[\r\n]+/gm, " "));
+    } catch (e) {
+      this.logger.error("Failed to parse settings JSON: %s", e.message);
+      throw e;
+    }
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+      const err = new Error("Expected top-level JSON object when importing settings");
+      this.logger.error(err.message);
+      throw err;
+    }
+    let failedKeys = 0;
     for (let [key, value] of Object.entries(obj)) {
       key=key.replace(/_/g, '-');
       this.logger.info("Import setting %s=%s (%s)", key, value, value.constructor.name);
-      switch(key) {
-        case 'timers':
-          this.pack_preset_timers(value);
-          break;
-        case 'quick-timers':
-          this.pack_quick_timers(value);
-          break;
-        case 'accel-show-endtime':
-        case 'accel-stop-next':
-        case 'sound-file':
-          this.settings.set_string(key, value);
-          break;
-        case 'sound-loops':
-        case 'notification-longtimeout':
-        case 'prefer-presets':
-        case 'inhibit':
-        case 'inhibit-max':
-          this.settings.set_int(key, value);
-          break;
-        default:
-          this.settings.set_boolean(key, value);
-          break;
+      try {
+        switch (key) {
+          case 'timers':
+            this.pack_preset_timers(value);
+            break;
+          case 'quick-timers':
+            this.pack_quick_timers(value);
+            break;
+          case 'accel-show-endtime':
+          case 'accel-stop-next':
+          case 'sound-file':
+            this._setString(key, value);
+            break;
+          case 'sound-loops':
+          case 'notification-longtimeout':
+          case 'prefer-presets':
+          case 'inhibit':
+          case 'inhibit-max':
+            this._setInt(key, value);
+            break;
+          default:
+            this._setBoolean(key, Boolean(value));
+            break;
+        }
+      } catch (e) {
+        failedKeys++;
+        this.logger.error("Failed to import key '%s': %s", key, e.message);
       }
-
+    }
+    if (failedKeys > 0) {
+      this.logger.warn("Import completed with %d key failures", failedKeys);
     }
   }
 
