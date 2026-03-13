@@ -638,4 +638,12 @@ var Settings = class Settings {
     this._setBoolean('debug', bool);
   }
 
+  get theme_variant() {
+    return this._getInt('theme-variant');
+  }
+
+  set theme_variant(val) {
+    this._setInt('theme-variant', val);
+  }
+
 };

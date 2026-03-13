@@ -136,6 +136,30 @@ var PreferencesBuilder = class PreferencesBuilder {
   }
 
   /**
+   * Apply a settings value to a GTK widget property in a generic way.
+   */
+  _applySettingToWidget(widget, property, value) {
+    if (!widget) {
+      return;
+    }
+    try {
+      const setterName = 'set_' + property;
+      if (typeof widget[setterName] === 'function') {
+        widget[setterName](value);
+      } else if (typeof widget.set_property === 'function') {
+        widget.set_property(property, value);
+      } else {
+        // Last resort: assign directly if it looks like a plain property.
+        try {
+          widget[property] = value;
+        } catch (_e) {}
+      }
+    } catch (_e) {
+      // Ignore individual widget failures; other bindings can still work.
+    }
+  }
+
+  /**
    * Show a user-friendly error dialog (or fall back to a status label)
    * when something goes wrong during import/export.
    */
@@ -1159,10 +1183,62 @@ var PreferencesBuilder = class PreferencesBuilder {
    * Bind setting to builder object
    */
   _ssb(key, object, property, flags=Gio.SettingsBindFlags.DEFAULT) {
-    if (object) {
-      this._settings.settings.bind(key, object, property, flags);
-    } else {
+    if (!object) {
       this.logger.error(`object is null for key=${key}`);
+      return;
+    }
+
+    // When running as an extension (no JSON provider), use the existing
+    // Gio.Settings binding so that all schema defaults and types apply.
+    if (this._settings && !this._settings._provider && this._settings.settings) {
+      this._settings.settings.bind(key, object, property, flags);
+      return;
+    }
+
+    // When running under the standalone JSON provider, bind directly to the
+    // Settings wrapper's properties (which in turn write to the provider).
+    const settingProp = key.replace(/-/g, '_');
+    if (!this._settings || typeof this._settings[settingProp] === 'undefined') {
+      try {
+        this.logger.debug('No settings property found for key=%s (prop=%s)', key, settingProp);
+      } catch (_e) {}
+      return;
+    }
+
+    // Initialize widget from current value.
+    try {
+      const current = this._settings[settingProp];
+      this._applySettingToWidget(object, property, current);
+    } catch (_e) {
+      // ignore
+    }
+
+    // Watch for user changes and push back into Settings.
+    try {
+      const notifySignal = 'notify::' + property;
+      object.connect(notifySignal, () => {
+        try {
+          const getterName = 'get_' + property;
+          let v;
+          if (typeof object[getterName] === 'function') {
+            v = object[getterName]();
+          } else {
+            // Fallback: read via GObject property bag if available.
+            if (typeof object.get_property === 'function') {
+              v = object.get_property(property);
+            } else {
+              v = object[property];
+            }
+          }
+          this._settings[settingProp] = v;
+        } catch (e) {
+          try {
+            this.logger.error('Failed to propagate widget change for key=%s: %s', key, e);
+          } catch (_e2) {}
+        }
+      });
+    } catch (_e) {
+      // ignore notify connection failures
     }
   }
 

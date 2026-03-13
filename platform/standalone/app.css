@@ -1,0 +1,10 @@
+/* Basic app-specific styling for standalone taskTimer */
+
+window.tasktimer-preferences {
+  border-radius: 8px;
+}
+
+.tasktimer-header {
+  font-weight: bold;
+}
+

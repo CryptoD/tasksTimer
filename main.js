@@ -17,7 +17,7 @@
 
 imports.gi.versions.Gtk = '3.0';
 
-const { Gio, GLib, GObject, Gtk } = imports.gi;
+const { Gio, GLib, GObject, Gtk, Gdk } = imports.gi;
 
 // Ensure the directory containing this script (and its submodules) is in the
 // GJS search path so that standalone modules like `context` and `platform/*`
@@ -120,6 +120,64 @@ function _addTimerNotificationActions(app) {
     app.add_action(snoozeAction);
 }
 
+/**
+ * Apply theme variant from settings (default / light / dark) to the GTK
+ * application and install the app-specific CSS provider.
+ *
+ * - default (index 0): respect system theme, do not force dark or light
+ * - light   (index 1): force light theme
+ * - dark    (index 2): prefer dark theme
+ */
+function _applyThemeAndCss(app) {
+    try {
+        const settings = app._services && app._services.settings;
+        const gtkSettings = Gtk.Settings.get_default();
+        if (settings && gtkSettings) {
+            let variant = 0;
+            try {
+                variant = settings.theme_variant;
+            } catch (_e) {
+                variant = 0;
+            }
+            try {
+                if (variant === 2) {
+                    gtkSettings.gtk_application_prefer_dark_theme = true;
+                } else if (variant === 1) {
+                    gtkSettings.gtk_application_prefer_dark_theme = false;
+                } else {
+                    // "default": do not override; leave whatever the system uses
+                }
+            } catch (_e) {
+                // ignore theme property errors
+            }
+        }
+
+        // Load app-specific CSS
+        try {
+            const cssPath = GLib.build_filenamev([GLib.get_current_dir(), 'platform', 'standalone', 'app.css']);
+            const provider = new Gtk.CssProvider();
+            provider.load_from_path(cssPath);
+            try {
+                const display = Gdk.Display.get_default();
+                if (display && Gtk.StyleContext.add_provider_for_display) {
+                    Gtk.StyleContext.add_provider_for_display(display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+                } else {
+                    const screen = Gdk.Screen.get_default();
+                    if (screen && Gtk.StyleContext.add_provider_for_screen) {
+                        Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+                    }
+                }
+            } catch (_e) {
+                // ignore CSS provider registration errors
+            }
+        } catch (_e) {
+            // ignore CSS load errors
+        }
+    } catch (_e) {
+        // swallow everything; theme is non-critical
+    }
+}
+
 /** Same message key as extension (notifier/timers) for volume warning. */
 const VOLUME_LOW_MSG = 'volume level is low for running timer: %d %%';
 
@@ -168,17 +226,9 @@ function _addPreferencesAction(app) {
         if (!app._services.settings) {
             return;
         }
-        const Prefs = imports['taskTimer@CryptoD'].prefs;
-        const basePath = GLib.build_filenamev([GLib.get_current_dir(), 'taskTimer@CryptoD']);
-        const builder = new Prefs.PreferencesBuilder(app._services.settings, basePath);
-        const widget = builder.build();
-        builder.show();
-        const win = new Gtk.Window({ title: 'taskTimer Preferences' });
-        if (app._platform && app._platform._window) {
-            win.set_transient_for(app._platform._window);
-        }
-        win.set_default_size(700, 560);
-        win.add(widget);
+        const PrefsWin = imports.platform.standalone.preferences_window;
+        const transient = app._platform && app._platform._window ? app._platform._window : null;
+        const win = new PrefsWin.PreferencesWindow(app, { transient_for: transient });
         win.present();
     });
     app.add_action(prefsAction);
@@ -440,6 +490,9 @@ class TaskTimerApplication extends Gtk.Application {
         } catch (e) {
             log('taskTimer: failed to load timers from settings: ' + (e && e.message ? e.message : e));
         }
+
+        // Apply theme variant and app CSS once services/settings are ready.
+        _applyThemeAndCss(this);
 
         _addTimerNotificationActions(this);
         _setupVolumeWarning(this, coreNotifier);
