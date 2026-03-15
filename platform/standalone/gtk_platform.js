@@ -21,6 +21,7 @@ const Platform = imports.platform.interface;
 const GioNotification = imports.platform.standalone.notification_gio;
 const GtkShortcuts = imports.platform.standalone.shortcuts_gtk;
 const TimerMenuWidgetModule = imports.platform.standalone.timer_menu_widget;
+const PresetManagementWindowModule = imports.platform.standalone.preset_management_window;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 
@@ -117,6 +118,7 @@ class StandaloneGtkPlatform extends GObject.Object {
         this._bannerLabel = null;
         this._bannerTimeoutId = null;
         this._trayUpdateId = null;
+        this._presetManagementWindow = null;
     }
 
     _showInAppBanner(title, body) {
@@ -233,6 +235,22 @@ class StandaloneGtkPlatform extends GObject.Object {
         } catch (e) {
             log('taskTimer: start quick timer failed: ' + (e && e.message ? e.message : e));
         }
+    }
+
+    _openPresetManagement() {
+        if (this._presetManagementWindow) {
+            this._presetManagementWindow.present();
+            return;
+        }
+        const PresetManagementWindow = PresetManagementWindowModule.PresetManagementWindow;
+        this._presetManagementWindow = new PresetManagementWindow(
+            this._application,
+            this._window
+        );
+        this._presetManagementWindow._window.connect('destroy', () => {
+            this._presetManagementWindow = null;
+        });
+        this._presetManagementWindow.present();
     }
 
     _buildSidebarSection(title, rows) {
@@ -619,6 +637,10 @@ class StandaloneGtkPlatform extends GObject.Object {
 
             const quickSection = this._buildSidebarSection('Quick timers', []);
             const presetSection = this._buildSidebarSection('Preset timers', []);
+
+            const btnManagePresets = new Gtk.Button({ label: 'Manage presets…' });
+            btnManagePresets.connect('clicked', () => this._openPresetManagement());
+            presetSection.box.pack_start(btnManagePresets, false, false, 0);
 
             sidebar.pack_start(quickSection.box, true, true, 0);
             sidebar.pack_start(presetSection.box, true, true, 0);
