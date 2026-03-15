@@ -225,12 +225,15 @@ class StandaloneGtkPlatform extends GObject.Object {
             const TimerCore = TimersCoreModule.TimerCore;
             const timer = new TimerCore(app._timers, def.name, def.duration);
             timer.quick = true;
-            if (app._timers.add(timer)) {
+            const result = typeof app._timers.add_check_dupes === 'function' ? app._timers.add_check_dupes(timer) : (app._timers.add(timer) ? timer : undefined);
+            if (result === timer) {
                 timer.start();
                 const settings = app._services ? app._services.settings : null;
                 if (settings && typeof settings.pack_timers === 'function') {
                     try { settings.pack_timers(app._timers); } catch (e) {}
                 }
+            } else if (result !== undefined) {
+                this._showInAppBanner('Duplicate timer', 'A timer with this name and duration already exists.');
             }
         } catch (e) {
             log('taskTimer: start quick timer failed: ' + (e && e.message ? e.message : e));
@@ -636,13 +639,17 @@ class StandaloneGtkPlatform extends GObject.Object {
                 const TimerCore = TimersCoreModule.TimerCore;
                 const t = new TimerCore(timers, nm, total);
                 t.quick = true;
-                if (timers.add(t)) {
+                const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
+                if (result === t) {
                     t.start();
-                    // Persist to settings when quick timers are enabled.
                     const settings = this._application._services ? this._application._services.settings : null;
                     if (settings && typeof settings.pack_timers === 'function') {
                         try { settings.pack_timers(timers); } catch (e) {}
                     }
+                } else if (result !== undefined) {
+                    this._showInAppBanner('Duplicate timer', 'A timer with this name and duration already exists.');
+                } else {
+                    this._showInAppBanner('Could not add timer', 'Invalid name or duration.');
                 }
             });
 

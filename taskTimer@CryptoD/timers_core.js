@@ -342,6 +342,41 @@ var TimersCore = class TimersCore extends Array {
     }
 
     /**
+     * Return an existing timer that matches name, duration, and quick flag when
+     * detect_dupes is enabled; otherwise undefined.
+     */
+    get_dupe(timer) {
+        if (!this.settings || !this.settings.detect_dupes) {
+            return undefined;
+        }
+        for (let i = 0; i < this.length; i++) {
+            const t = this[i];
+            if (timer.duration === t.duration && timer.quick === t.quick && timer.name === t.name) {
+                return t;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Add the timer after checking for duplicates. If detect_dupes is on and a
+     * duplicate exists, returns the existing timer (and if it is running, shows
+     * a notification). Otherwise adds and returns the new timer, or undefined if add failed.
+     *
+     * @returns {TimerCore|undefined} The new timer if added, the existing duplicate if found, or undefined
+     */
+    add_check_dupes(timer) {
+        const tdupe = this.get_dupe(timer);
+        if (tdupe !== undefined) {
+            if (tdupe.running && this.notifier && typeof this.notifier.notify === 'function') {
+                this.notifier.notify(tdupe, 'Duplicate timer is already running', '%s');
+            }
+            return tdupe;
+        }
+        return this.add(timer) ? timer : undefined;
+    }
+
+    /**
      * Remove a timer from this collection.
      * Standalone UI uses this to support "Delete" actions in GTK popovers.
      */

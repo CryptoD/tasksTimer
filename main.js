@@ -280,15 +280,18 @@ function _addNewTimerAction(app) {
         dialog.show_all();
 
         dialog.connect('response', (_d, responseId) => {
-            if (responseId === Gtk.ResponseType.OK) {
+            if (responseId === Gtk.ResponseType.OK && app._timers) {
                 const total = (minutes.get_value_as_int() * 60) + seconds.get_value_as_int();
-                const nm = nameEntry.get_text() || 'Timer';
-                if (app._timers && total > 0) {
+                const nm = (nameEntry.get_text() || 'Timer').trim();
+                if (total > 0) {
                     const TimerCore = TimersCoreModule.TimerCore;
                     const timer = new TimerCore(app._timers, nm, total);
                     timer.quick = true;
-                    if (app._timers.add(timer)) {
+                    const result = typeof app._timers.add_check_dupes === 'function' ? app._timers.add_check_dupes(timer) : (app._timers.add(timer) ? timer : undefined);
+                    if (result === timer) {
                         timer.start();
+                    } else if (result !== undefined && app._platform && typeof app._platform._showInAppBanner === 'function') {
+                        app._platform._showInAppBanner('Duplicate timer', 'A timer with this name and duration already exists.');
                     }
                 }
             }

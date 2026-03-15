@@ -216,9 +216,12 @@ class TimerMenuWidget extends Gtk.Box {
             const t = new TimerCore(timers, _safeText(parse.name, 'Timer'), parse.hms.toSeconds());
             t.quick = true;
             t.alarm_timer = parse.alarm_timer;
-            if (timers.add(t)) {
+            const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
+            if (result === t) {
                 t.start();
                 this._persistTimers();
+            } else if (result !== undefined) {
+                this._showDuplicateBanner();
             }
             this._quickEntry.set_text('');
             return;
@@ -230,9 +233,12 @@ class TimerMenuWidget extends Gtk.Box {
             const TimerCore = TimersCoreModule.TimerCore;
             const t = new TimerCore(timers, 'Timer', seconds);
             t.quick = true;
-            if (timers.add(t)) {
+            const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
+            if (result === t) {
                 t.start();
                 this._persistTimers();
+            } else if (result !== undefined) {
+                this._showDuplicateBanner();
             }
             this._quickEntry.set_text('');
         }
@@ -261,6 +267,16 @@ class TimerMenuWidget extends Gtk.Box {
         if (!settings || !timers) return;
         if (typeof settings.pack_timers === 'function') {
             try { settings.pack_timers(timers); } catch (e) {}
+        }
+    }
+
+    _showDuplicateBanner(kind = 'timer') {
+        const platform = this._application && this._application._platform;
+        if (!platform || typeof platform._showInAppBanner !== 'function') return;
+        if (kind === 'preset') {
+            platform._showInAppBanner('Duplicate preset', 'A preset with this name and duration already exists.');
+        } else {
+            platform._showInAppBanner('Duplicate timer', 'A timer with this name and duration already exists.');
         }
     }
 
@@ -384,9 +400,12 @@ class TimerMenuWidget extends Gtk.Box {
                     const t = new TimerCore(timers, nm, total);
                     t.quick = false;
                     t.enabled = true;
-                    if (timers.add(t)) {
+                    const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
+                    if (result === t) {
                         this._persistTimers();
                         this.refresh();
+                    } else if (result !== undefined) {
+                        this._showDuplicateBanner('preset');
                     }
                 }
             }

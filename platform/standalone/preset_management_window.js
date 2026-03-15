@@ -248,11 +248,21 @@ var PresetManagementWindow = class PresetManagementWindow {
             const TimerCore = TimersCoreModule.TimerCore;
             const timer = new TimerCore(timers, result.name, result.duration);
             timer.quick = false;
-            if (timers.add(timer)) {
+            const added = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(timer) : (timers.add(timer) ? timer : undefined);
+            if (added === timer) {
                 this._savePresets();
                 this._refreshList();
+            } else if (added !== undefined) {
+                this._showDuplicateBanner();
             }
         });
+    }
+
+    _showDuplicateBanner() {
+        const platform = this._app && this._app._platform;
+        if (platform && typeof platform._showInAppBanner === 'function') {
+            platform._showInAppBanner('Duplicate preset', 'A preset with this name and duration already exists.');
+        }
     }
 
     _onEdit() {

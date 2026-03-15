@@ -219,8 +219,11 @@ var AppIndicatorTrayProvider = class AppIndicatorTrayProvider extends Platform.T
             const TimerCore = TimersCore.TimerCore;
             const timer = new TimerCore(app._timers, def.name, def.duration);
             timer.quick = true;
-            if (app._timers.add(timer)) {
+            const result = typeof app._timers.add_check_dupes === 'function' ? app._timers.add_check_dupes(timer) : (app._timers.add(timer) ? timer : undefined);
+            if (result === timer) {
                 timer.start();
+            } else if (result !== undefined && this._platform && typeof this._platform._showInAppBanner === 'function') {
+                this._platform._showInAppBanner('Duplicate timer', 'A timer with this name and duration already exists.');
             }
         } catch (e) {
             logError(e, 'AppIndicatorTrayProvider: start quick timer failed');
