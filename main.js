@@ -527,6 +527,16 @@ class TaskTimerApplication extends Gtk.Application {
         _addPreferencesAction(this);
         _addNewTimerAction(this);
 
+        // Autostart: sync .desktop file with setting and react to future changes
+        ExtSettings._onAutostartChange = (enabled) => {
+            if (this._platform && typeof this._platform.updateAutostartDesktop === 'function') {
+                this._platform.updateAutostartDesktop(enabled);
+            }
+        };
+        if (this._platform && typeof this._platform.updateAutostartDesktop === 'function') {
+            this._platform.updateAutostartDesktop(Boolean(this._services.settings.autostart));
+        }
+
         log('taskTimer: application startup');
     }
 

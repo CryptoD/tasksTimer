@@ -14,7 +14,7 @@
 
 imports.gi.versions.Gtk = '3.0';
 
-const { GObject, Gtk, GLib, Pango, Gdk } = imports.gi;
+const { GObject, Gtk, GLib, Gio, Pango, Gdk } = imports.gi;
 
 const Context = imports.context;
 const Platform = imports.platform.interface;
@@ -480,19 +480,126 @@ class StandaloneGtkPlatform extends GObject.Object {
         // No-op for now; main window is created on demand in showMainWindow().
     }
 
+    _saveWindowState() {
+        const win = this._window;
+        const settings = this._application && this._application._services
+            ? this._application._services.settings
+            : null;
+        if (!win || !settings || typeof settings.window_width === 'undefined') return;
+        try {
+            if (win.get_realized && win.get_realized()) {
+                const [w, h] = win.get_size ? win.get_size() : [900, 560];
+                const [x, y] = win.get_position ? win.get_position() : [-1, -1];
+                let maximized = false;
+                if (win.get_window) {
+                    const gdkWin = win.get_window();
+                    if (gdkWin && typeof gdkWin.get_state === 'function') {
+                        maximized = Boolean(gdkWin.get_state() & Gdk.WindowState.MAXIMIZED);
+                    }
+                }
+                settings.window_width = Math.max(400, w);
+                settings.window_height = Math.max(300, h);
+                settings.window_maximized = maximized;
+                settings.window_x = Number.isFinite(x) ? x : -1;
+                settings.window_y = Number.isFinite(y) ? y : -1;
+            }
+        } catch (e) {
+            log('taskTimer: save window state failed: ' + (e && e.message ? e.message : e));
+        }
+    }
+
+    _restoreWindowState() {
+        const win = this._window;
+        const settings = this._application && this._application._services
+            ? this._application._services.settings
+            : null;
+        if (!win || !settings) return;
+        try {
+            const w = settings.window_width;
+            const h = settings.window_height;
+            if (w >= 400 && h >= 300) {
+                win.resize(w, h);
+            }
+            const x = settings.window_x;
+            const y = settings.window_y;
+            if (x >= 0 && y >= 0 && typeof win.move === 'function') {
+                win.move(x, y);
+            }
+            if (settings.window_maximized && typeof win.maximize === 'function') {
+                win.maximize();
+            }
+        } catch (e) {
+            log('taskTimer: restore window state failed: ' + (e && e.message ? e.message : e));
+        }
+    }
+
+    /**
+     * Create or remove the XDG autostart .desktop file so the standalone app
+     * starts on login. Writes to ~/.config/autostart/tasktimer.desktop when
+     * enabled, removes it when disabled.
+     * @param {boolean} enabled - true to create the file, false to remove it
+     */
+    updateAutostartDesktop(enabled) {
+        const autostartDir = GLib.build_filenamev([GLib.get_user_config_dir(), 'autostart']);
+        const desktopName = 'tasktimer.desktop';
+        const desktopPath = GLib.build_filenamev([autostartDir, desktopName]);
+        const file = Gio.File.new_for_path(desktopPath);
+
+        if (!enabled) {
+            try {
+                if (file.query_exists(null)) {
+                    file.delete(null);
+                }
+            } catch (e) {
+                log('taskTimer: failed to remove autostart desktop file: ' + (e && e.message ? e.message : e));
+            }
+            return;
+        }
+
+        const appDir = GLib.get_current_dir();
+        const mainPath = GLib.build_filenamev([appDir, 'main.js']);
+        const execLine = 'gjs "' + mainPath.replace(/"/g, '\\"') + '"';
+        const lines = [
+            '[Desktop Entry]',
+            'Type=Application',
+            'Name=taskTimer',
+            'Comment=Kitchen and task timer',
+            'Exec=' + execLine,
+            'Path=' + appDir,
+            'X-GNOME-Autostart-enabled=true',
+            '',
+        ];
+        const contents = lines.join('\n');
+
+        try {
+            const parent = file.get_parent();
+            if (parent && !parent.query_exists(null)) {
+                parent.make_directory_with_parents(null);
+            }
+            const bytes = new TextEncoder().encode(contents);
+            file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+        } catch (e) {
+            log('taskTimer: failed to write autostart desktop file: ' + (e && e.message ? e.message : e));
+        }
+    }
+
     showMainWindow() {
         if (!this._window) {
+            const settings = this._application && this._application._services
+                ? this._application._services.settings
+                : null;
+            const defW = (settings && settings.window_width >= 400) ? settings.window_width : 900;
+            const defH = (settings && settings.window_height >= 300) ? settings.window_height : 560;
             this._window = new Gtk.ApplicationWindow({
                 application: this._application,
                 title: 'taskTimer',
-                default_width: 900,
-                default_height: 560,
+                default_width: defW,
+                default_height: defH,
             });
             this._addHeaderBar(this._window);
 
-            // When enabled, closing or minimizing the window hides it and keeps the
-            // app running in the tray (if a tray backend is available).
             this._window.connect('delete-event', () => {
+                this._saveWindowState();
                 const settings = this._application && this._application._services
                     ? this._application._services.settings
                     : null;
@@ -992,6 +1099,7 @@ class StandaloneGtkPlatform extends GObject.Object {
 
             this._window.add(mainVbox);
             this._window.show_all();
+            this._restoreWindowState();
 
             if (this._application._volumeWarningLow) {
                 this.setVolumeWarning(true, this._application._volumeWarningLevel, this._application._volumeWarningMuted);

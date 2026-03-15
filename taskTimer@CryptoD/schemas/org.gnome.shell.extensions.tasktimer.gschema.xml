@@ -183,5 +183,9 @@ https://developer.gnome.org/glib/stable/gvariant-text.html
       <default>false</default>
       <summary>Hide to tray instead of closing the main window (standalone)</summary>
     </key>
+    <key name="autostart" type="b">
+      <default>false</default>
+      <summary>Start taskTimer when you log in (standalone)</summary>
+    </key>
   </schema>
 </schemalist>

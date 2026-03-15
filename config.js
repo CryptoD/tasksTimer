@@ -35,6 +35,7 @@ const SCHEMA = {
     'accel-show-endtime':     { type: 'string',  default: '<Control><Super>t' },
     'accel-stop-next':        { type: 'string',  default: '<Control><Super>k' },
     'minimize-to-tray':       { type: 'boolean', default: false },
+    'autostart':              { type: 'boolean', default: false },
 
     'debug':                  { type: 'boolean', default: false },
     'detect-dupes':           { type: 'boolean', default: true },
@@ -66,6 +67,13 @@ const SCHEMA = {
 
     'theme-variant':          { type: 'string',  default: 'system' },
     'menu-max-width':         { type: 'int',     default: 400 },
+
+    // Main window state (persisted on close, restored on startup).
+    'window-width':           { type: 'int',     default: 900 },
+    'window-height':          { type: 'int',     default: 560 },
+    'window-maximized':       { type: 'boolean', default: false },
+    'window-x':               { type: 'int',     default: -1 },
+    'window-y':               { type: 'int',     default: -1 },
 
     // Running timers JSON; currently stored as a JSON-encoded string.
     'running':                { type: 'string',  default: '[]' },

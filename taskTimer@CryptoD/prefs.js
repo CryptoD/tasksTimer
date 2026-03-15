@@ -329,7 +329,7 @@ var PreferencesBuilder = class PreferencesBuilder {
           'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
           'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
           'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
-          'accel_enable','minimize_to_tray','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label',
+          'accel_enable','minimize_to_tray','autostart','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label',
           'shortcuts_list'
         ];
       }
@@ -1251,6 +1251,7 @@ var PreferencesBuilder = class PreferencesBuilder {
   _bind() {
     this._bo_ssb('accel_enable', 'active');
     this._bo_ssb('minimize_to_tray', 'active');
+    this._bo_ssb('autostart', 'active');
 
     this._bo_ssb('notification', 'active');
     this._bo_ssb('notification_sticky', 'active');

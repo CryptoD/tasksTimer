@@ -1080,6 +1080,19 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                     </object>
                   </child>
                   <child>
+                    <object class="GtkCheckButton" id="autostart">
+                      <property name="label" translatable="yes">Start when you log in</property>
+                      <property name="visible">True</property>
+                      <property name="can-focus">True</property>
+                      <property name="receives-default">False</property>
+                      <property name="tooltip-text" translatable="yes">Add taskTimer to session autostart (standalone app only)</property>
+                      <layout>
+                        <property name="row">7</property>
+                        <property name="column">1</property>
+                      </layout>
+                    </object>
+                  </child>
+                  <child>
                     <object class="GtkBox">
                       <property name="visible">True</property>
                       <property name="orientation">horizontal</property>
@@ -1105,7 +1118,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                         </object>
                       </child>
                       <layout>
-                        <property name="row">7</property>
+                        <property name="row">8</property>
                         <property name="column">0</property>
                       </layout>
                     </object>
@@ -1134,7 +1147,7 @@ along with taskTimer.  If not, see <http://www.gnu.org/licenses/>.
                         </object>
                       </child>
                       <layout>
-                        <property name="row">7</property>
+                        <property name="row">8</property>
                         <property name="column">1</property>
                       </layout>
                     </object>

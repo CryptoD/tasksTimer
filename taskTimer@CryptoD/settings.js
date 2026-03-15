@@ -440,6 +440,18 @@ var Settings = class Settings {
     this._setBoolean('minimize-to-tray', bool);
   }
 
+  get autostart() {
+    return this._getBoolean('autostart');
+  }
+
+  set autostart(bool) {
+    this._setBoolean('autostart', bool);
+    const Ctor = this.constructor;
+    if (typeof Ctor._onAutostartChange === 'function') {
+      try { Ctor._onAutostartChange(bool); } catch (e) {}
+    }
+  }
+
   get inhibit() {
     return this._getInt('inhibit');
   }
@@ -673,6 +685,37 @@ var Settings = class Settings {
     if (this.settings && typeof this.settings.set_string === 'function') {
       this.settings.set_string('theme-variant', s);
     }
+  }
+
+  get window_width() {
+    return this._getInt('window-width');
+  }
+  set window_width(val) {
+    this._setInt('window-width', val);
+  }
+  get window_height() {
+    return this._getInt('window-height');
+  }
+  set window_height(val) {
+    this._setInt('window-height', val);
+  }
+  get window_maximized() {
+    return this._getBoolean('window-maximized');
+  }
+  set window_maximized(bool) {
+    this._setBoolean('window-maximized', bool);
+  }
+  get window_x() {
+    return this._getInt('window-x');
+  }
+  set window_x(val) {
+    this._setInt('window-x', val);
+  }
+  get window_y() {
+    return this._getInt('window-y');
+  }
+  set window_y(val) {
+    this._setInt('window-y', val);
   }
 
 };
