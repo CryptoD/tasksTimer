@@ -117,8 +117,35 @@ class StandaloneGtkPlatform extends GObject.Object {
         this._bannerRevealer = null;
         this._bannerLabel = null;
         this._bannerTimeoutId = null;
+        this._volumeBannerRevealer = null;
+        this._volumeBannerLabel = null;
         this._trayUpdateId = null;
         this._presetManagementWindow = null;
+    }
+
+    /**
+     * Show or hide the volume-below-threshold indicator. Called from main.js
+     * when volume level or muted state changes (respects volume_level_warn and volume_threshold).
+     *
+     * @param {boolean} low - true when volume is below threshold or muted
+     * @param {number} [level] - current volume percent (0–100)
+     * @param {boolean} [muted] - whether the sink is muted
+     */
+    setVolumeWarning(low, level, muted) {
+        if (!this._volumeBannerRevealer || !this._volumeBannerLabel) {
+            return;
+        }
+        if (!low) {
+            this._volumeBannerRevealer.set_reveal_child(false);
+            return;
+        }
+        const msg = muted
+            ? 'Volume muted – timer alarm may not be heard.'
+            : (typeof level === 'number'
+                ? `Volume low (${level}%) – timer alarm may not be heard.`
+                : 'Volume below threshold – timer alarm may not be heard.');
+        this._volumeBannerLabel.set_label(msg);
+        this._volumeBannerRevealer.set_reveal_child(true);
     }
 
     _showInAppBanner(title, body) {
@@ -535,6 +562,44 @@ class StandaloneGtkPlatform extends GObject.Object {
             bannerRevealer.add(bannerBox);
             mainVbox.pack_start(bannerRevealer, false, false, 0);
 
+            const volumeBannerRevealer = new Gtk.Revealer({
+                transition_type: Gtk.RevealerTransitionType.SLIDE_DOWN,
+                transition_duration: 200,
+                reveal_child: false,
+            });
+            this._volumeBannerRevealer = volumeBannerRevealer;
+            const volumeBannerBox = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 12,
+                margin_start: 12,
+                margin_end: 12,
+                margin_top: 6,
+                margin_bottom: 6,
+            });
+            volumeBannerBox.get_style_context().add_class('toolbar');
+            try {
+                volumeBannerBox.get_style_context().add_class('warning');
+            } catch (_e) {}
+            const volumeBannerLabel = new Gtk.Label({
+                label: '',
+                wrap: true,
+                wrap_mode: Pango.WrapMode.WORD_CHAR,
+                hexpand: true,
+                halign: Gtk.Align.START,
+            });
+            this._volumeBannerLabel = volumeBannerLabel;
+            const volumeBannerIcon = Gtk.Image.new_from_icon_name('audio-volume-muted-symbolic', Gtk.IconSize.SMALL_TOOLBAR);
+            const volumeBannerClose = new Gtk.Button({
+                label: '×',
+                relief: Gtk.ReliefStyle.NONE,
+            });
+            volumeBannerClose.connect('clicked', () => this.setVolumeWarning(false));
+            volumeBannerBox.add(volumeBannerIcon);
+            volumeBannerBox.add(volumeBannerLabel);
+            volumeBannerBox.add(volumeBannerClose);
+            volumeBannerRevealer.add(volumeBannerBox);
+            mainVbox.pack_start(volumeBannerRevealer, false, false, 0);
+
             const root = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 0,
@@ -925,6 +990,10 @@ class StandaloneGtkPlatform extends GObject.Object {
 
             this._window.add(mainVbox);
             this._window.show_all();
+
+            if (this._application._volumeWarningLow) {
+                this.setVolumeWarning(true, this._application._volumeWarningLevel, this._application._volumeWarningMuted);
+            }
         }
 
         this._syncDisplayOptionsFromSettings();

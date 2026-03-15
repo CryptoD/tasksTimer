@@ -8,3 +8,8 @@ window.tasktimer-preferences {
   font-weight: bold;
 }
 
+/* Volume-below-threshold indicator bar */
+.toolbar.warning {
+  background-color: #f5e6c8;
+}
+
