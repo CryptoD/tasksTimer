@@ -24,6 +24,14 @@ const TimerMenuWidgetModule = imports.platform.standalone.timer_menu_widget;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 
+/** Default quick timer presets when none are stored (name, duration in seconds). */
+const DEFAULT_QUICK_TIMERS = [
+    { name: '5 min', duration: 300 },
+    { name: '10 min', duration: 600 },
+    { name: '15 min', duration: 900 },
+    { name: '25 min', duration: 1500 },
+];
+
 let AppIndicatorTrayProvider = null;
 let AppIndicatorAvailable = false;
 try {
@@ -182,6 +190,49 @@ class StandaloneGtkPlatform extends GObject.Object {
         hb.pack_end(btnPrefs);
 
         win.set_titlebar(hb);
+    }
+
+    _getQuickTimerDefs() {
+        const app = this._application;
+        if (!app || !app._services || !app._services.settings) {
+            return DEFAULT_QUICK_TIMERS;
+        }
+        const provider = app._services.settings._provider;
+        if (!provider || typeof provider.get !== 'function') {
+            return DEFAULT_QUICK_TIMERS;
+        }
+        const raw = provider.get('quick-timers');
+        if (!Array.isArray(raw) || raw.length === 0) {
+            return DEFAULT_QUICK_TIMERS;
+        }
+        return raw
+            .filter(entry => entry && (entry.duration > 0 || entry.name))
+            .map(entry => ({
+                name: String(entry.name || 'Timer'),
+                duration: parseInt(entry.duration, 10) || 60,
+            }))
+            .slice(0, 12);
+    }
+
+    _startQuickTimer(def) {
+        const app = this._application;
+        if (!app || !app._timers) {
+            return;
+        }
+        try {
+            const TimerCore = TimersCoreModule.TimerCore;
+            const timer = new TimerCore(app._timers, def.name, def.duration);
+            timer.quick = true;
+            if (app._timers.add(timer)) {
+                timer.start();
+                const settings = app._services ? app._services.settings : null;
+                if (settings && typeof settings.pack_timers === 'function') {
+                    try { settings.pack_timers(app._timers); } catch (e) {}
+                }
+            }
+        } catch (e) {
+            log('taskTimer: start quick timer failed: ' + (e && e.message ? e.message : e));
+        }
     }
 
     _buildSidebarSection(title, rows) {
@@ -538,6 +589,33 @@ class StandaloneGtkPlatform extends GObject.Object {
             quickStartBox.pack_start(btnStart, false, false, 0);
             quickStartFrame.add(quickStartBox);
             sidebar.pack_start(quickStartFrame, false, false, 0);
+
+            // One-click quick timer presets (backed by settings, same semantics as tray).
+            const presetsFrame = new Gtk.Frame({ label: 'Quick timer presets' });
+            const presetsFlow = new Gtk.FlowBox({
+                selection_mode: Gtk.SelectionMode.NONE,
+                min_children_per_line: 2,
+                max_children_per_line: 4,
+            });
+            presetsFlow.get_style_context().add_class('preset-buttons');
+            const presetsDefs = this._getQuickTimerDefs();
+            for (const def of presetsDefs) {
+                const btn = new Gtk.Button({ label: def.name });
+                btn.set_tooltip_text(def.name + ' (' + (def.duration / 60) + ' min)');
+                const d = def;
+                btn.connect('clicked', () => this._startQuickTimer(d));
+                presetsFlow.add(btn);
+            }
+            const presetsBox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                margin_top: 8,
+                margin_bottom: 8,
+                margin_start: 12,
+                margin_end: 12,
+            });
+            presetsBox.pack_start(presetsFlow, false, false, 0);
+            presetsFrame.add(presetsBox);
+            sidebar.pack_start(presetsFrame, false, false, 0);
 
             const quickSection = this._buildSidebarSection('Quick timers', []);
             const presetSection = this._buildSidebarSection('Preset timers', []);
