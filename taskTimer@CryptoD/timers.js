@@ -453,19 +453,27 @@ var Timers = class Timers extends Array {
     return this.settings.sort_descending;
   }
 
+  get sort_by_name() {
+    return this.settings.sort_by_name;
+  }
+
   // list of enabled timers sorted according to the sort properties
   sorted(params={running:true}) {
-    // const cloneSheepsES6 = [...sheeps];
     var timers_array = [...this];
     if (!params.running) {
       timers_array=timers_array.filter(timer => !timer.running);
     }
-    if (this.sort_by_duration) {
-      this.logger.debug('sort by duration');
-      var direction= this.sort_descending ? -1 : 1;
+    var direction = this.sort_descending ? -1 : 1;
+    if (this.sort_by_name) {
+      this.logger.debug('sort by name');
       timers_array.sort( (a,b) => {
-        return (a.duration-b.duration)*direction;
+        var na = (a.name || '').toLowerCase();
+        var nb = (b.name || '').toLowerCase();
+        return (na < nb ? -1 : na > nb ? 1 : 0) * direction;
       });
+    } else if (this.sort_by_duration) {
+      this.logger.debug('sort by duration');
+      timers_array.sort( (a,b) => (a.duration-b.duration)*direction);
     }
     return timers_array.filter(timer => (timer.enabled || timer.quick));
   }

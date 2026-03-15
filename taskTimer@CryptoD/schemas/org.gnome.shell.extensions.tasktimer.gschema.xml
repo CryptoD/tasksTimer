@@ -123,6 +123,10 @@ https://developer.gnome.org/glib/stable/gvariant-text.html
       <default>false</default>
       <summary>Sort from longest to shortest</summary>
     </key>
+    <key name="sort-by-name" type="b">
+      <default>false</default>
+      <summary>Sort list of timers by name</summary>
+    </key>
     <key name="save-quick-timers" type="b">
       <default>false</default>
       <summary>Save quick timers between sessions if enabled</summary>

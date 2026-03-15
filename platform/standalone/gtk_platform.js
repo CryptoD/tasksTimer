@@ -544,7 +544,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                 wide_handle: true,
             });
 
-            // Sidebar: quick start + quick timers + presets.
+            // Sidebar: sort options + quick start + quick timers + presets.
             const sidebar = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 12,
@@ -554,6 +554,50 @@ class StandaloneGtkPlatform extends GObject.Object {
                 margin_end: 12,
                 width_request: 260,
             });
+
+            const settings = this._application && this._application._services
+                ? this._application._services.settings
+                : null;
+
+            const sortFrame = new Gtk.Frame({ label: 'Sort lists' });
+            const sortBox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 8,
+                margin_top: 8,
+                margin_bottom: 8,
+                margin_start: 12,
+                margin_end: 12,
+            });
+            const sortCombo = new Gtk.ComboBoxText();
+            sortCombo.append('default', 'Default');
+            sortCombo.append('duration', 'By duration');
+            sortCombo.append('name', 'By name');
+            sortCombo.set_active_id(settings && settings.sort_by_name ? 'name'
+                : settings && settings.sort_by_duration ? 'duration'
+                : 'default');
+            const sortDescending = new Gtk.CheckButton({ label: 'Descending' });
+            if (settings) {
+                try { sortDescending.set_active(Boolean(settings.sort_descending)); } catch (e) {}
+            }
+            const sortApply = () => {
+                if (!settings) return;
+                const id = sortCombo.get_active_id();
+                settings.sort_by_duration = (id === 'duration');
+                settings.sort_by_name = (id === 'name');
+                settings.sort_descending = sortDescending.get_active();
+            };
+            sortCombo.connect('changed', sortApply);
+            sortDescending.connect('toggled', sortApply);
+            sortBox.pack_start(sortCombo, false, false, 0);
+            sortBox.pack_start(sortDescending, false, false, 0);
+            const sortNote = new Gtk.Label({
+                label: 'Running: next to expire',
+                halign: Gtk.Align.START,
+            });
+            sortNote.get_style_context().add_class('dim-label');
+            sortBox.pack_start(sortNote, false, false, 0);
+            sortFrame.add(sortBox);
+            sidebar.pack_start(sortFrame, false, false, 0);
 
             const quickStartFrame = new Gtk.Frame({ label: 'Quick start' });
             const quickStartBox = new Gtk.Box({
@@ -685,7 +729,6 @@ class StandaloneGtkPlatform extends GObject.Object {
             const btnReset = mkIconBtn('view-refresh-symbolic', 'Reset');
             const btnDelete = mkIconBtn('edit-delete-symbolic', 'Delete');
 
-            const settings = this._application && this._application._services ? this._application._services.settings : null;
             const togLabel = mkIconToggle('font-x-generic-symbolic', 'Show label');
             const togTime = mkIconToggle('preferences-system-time-symbolic', 'Show time');
             const togProgress = mkIconToggle('view-list-symbolic', 'Show progress');

@@ -567,6 +567,14 @@ var Settings = class Settings {
     this._setBoolean('sort-descending', bool);
   }
 
+  get sort_by_name() {
+    return this._getBoolean('sort-by-name');
+  }
+
+  set sort_by_name(bool) {
+    this._setBoolean('sort-by-name', bool);
+  }
+
   get save_quick_timers() {
     return this._getBoolean('save-quick-timers');
   }

@@ -292,13 +292,23 @@ var TimersCore = class TimersCore extends Array {
         return this.settings.sort_descending;
     }
 
+    get sort_by_name() {
+        return this.settings.sort_by_name;
+    }
+
     sorted(params = { running: true }) {
         let timers_array = [...this];
         if (!params.running) {
             timers_array = timers_array.filter(timer => !timer.running);
         }
-        if (this.sort_by_duration) {
-            const direction = this.sort_descending ? -1 : 1;
+        const direction = this.sort_descending ? -1 : 1;
+        if (this.sort_by_name) {
+            timers_array.sort((a, b) => {
+                const na = (a.name || '').toLowerCase();
+                const nb = (b.name || '').toLowerCase();
+                return (na < nb ? -1 : na > nb ? 1 : 0) * direction;
+            });
+        } else if (this.sort_by_duration) {
             timers_array.sort((a, b) => (a.duration - b.duration) * direction);
         }
         return timers_array.filter(timer => timer.enabled || timer.quick);

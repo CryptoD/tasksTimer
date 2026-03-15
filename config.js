@@ -58,6 +58,7 @@ const SCHEMA = {
     'show-time':              { type: 'boolean', default: true },
 
     'sort-by-duration':       { type: 'boolean', default: false },
+    'sort-by-name':           { type: 'boolean', default: false },
     'sort-descending':        { type: 'boolean', default: false },
 
     'volume-level-warn':      { type: 'boolean', default: true },
