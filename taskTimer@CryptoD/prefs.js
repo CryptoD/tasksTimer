@@ -1289,7 +1289,10 @@ var PreferencesBuilder = class PreferencesBuilder {
     let volume_threshold = this._bo('volume_threshold');
     this._ssb('volume-threshold', volume_threshold, 'value');
 
-    this._bo_ssb('theme_variant', 'selected');
+    let theme_variant = this._bo('theme_variant');
+    if (theme_variant) {
+      this._ssb('theme-variant', theme_variant, this._layoutKind === 'gtk3' ? 'active-id' : 'selected');
+    }
     this._bo_ssb('menu_max_width', 'value');
   }
 

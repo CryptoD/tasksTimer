@@ -306,6 +306,73 @@
             </child>
           </object>
         </child>
+        <packing>
+          <property name="name">timers</property>
+          <property name="title" translatable="yes">Timers</property>
+        </packing>
+
+        <!-- Options Page -->
+        <child>
+          <object class="GtkBox" id="stack_options">
+            <property name="orientation">vertical</property>
+            <property name="spacing">12</property>
+            <property name="margin">12</property>
+            <child>
+              <object class="GtkFrame">
+                <property name="label-xalign">0</property>
+                <property name="shadow-type">none</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">8</property>
+                    <child>
+                      <object class="GtkCheckButton" id="notification">
+                        <property name="label" translatable="yes">Show desktop notifications</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="notification_sticky">
+                        <property name="label" translatable="yes" context="notification_sticky">Sticky notification</property>
+                        <property name="tooltip-text" translatable="yes" context="notification-sticky-tooltip">Notification waits for user input</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">8</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Theme</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkComboBoxText" id="theme_variant">
+                            <property name="halign">start</property>
+                            <items>
+                              <item id="system">System</item>
+                              <item id="light">Light</item>
+                              <item id="dark">Dark</item>
+                            </items>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label">
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Notifications and appearance</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <packing>
+          <property name="name">options</property>
+          <property name="title" translatable="yes">Options</property>
+        </packing>
       </object>
     </child>
   </object>

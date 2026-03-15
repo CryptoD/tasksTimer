@@ -109,8 +109,10 @@ class StandaloneGtkPlatform extends GObject.Object {
 
         this._tray = new StandaloneTrayProvider(this);
         this._shortcuts = new StandaloneShortcutProvider(this._application);
+        const settings = this._application._services && this._application._services.settings;
         this._notifications = new StandaloneNotificationProvider(this._application, {
             fallback: (id, title, body) => this._showInAppBanner(title, body),
+            settings: settings || null,
         });
 
         this._window = null;

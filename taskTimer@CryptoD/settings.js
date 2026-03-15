@@ -647,11 +647,32 @@ var Settings = class Settings {
   }
 
   get theme_variant() {
-    return this._getInt('theme-variant');
+    let s = 'system';
+    if (this._provider && typeof this._provider.get_string === 'function') {
+      s = this._provider.get_string('theme-variant') || 'system';
+    } else if (this.settings && typeof this.settings.get_string === 'function') {
+      s = this.settings.get_string('theme-variant') || 'default';
+    }
+    return (s === 'default') ? 'system' : s;
   }
 
   set theme_variant(val) {
-    this._setInt('theme-variant', val);
+    let s = 'system';
+    if (val !== undefined && val !== null) {
+      const n = parseInt(val, 10);
+      if (!Number.isNaN(n) && n >= 0 && n <= 2) {
+        s = ['system', 'light', 'dark'][n];
+      } else {
+        s = String(val).toLowerCase();
+      }
+    }
+    if (this._provider && typeof this._provider.set_string === 'function') {
+      this._provider.set_string('theme-variant', s);
+      return;
+    }
+    if (this.settings && typeof this.settings.set_string === 'function') {
+      this.settings.set_string('theme-variant', s);
+    }
   }
 
 };

@@ -133,19 +133,19 @@ function _applyThemeAndCss(app) {
         const settings = app._services && app._services.settings;
         const gtkSettings = Gtk.Settings.get_default();
         if (settings && gtkSettings) {
-            let variant = 0;
+            let variant = 'system';
             try {
-                variant = settings.theme_variant;
+                variant = (settings.theme_variant || 'system').toLowerCase();
             } catch (_e) {
-                variant = 0;
+                variant = 'system';
             }
             try {
-                if (variant === 2) {
+                if (variant === 'dark') {
                     gtkSettings.gtk_application_prefer_dark_theme = true;
-                } else if (variant === 1) {
+                } else if (variant === 'light') {
                     gtkSettings.gtk_application_prefer_dark_theme = false;
                 } else {
-                    // "default": do not override; leave whatever the system uses
+                    // "system" / "default": do not override
                 }
             } catch (_e) {
                 // ignore theme property errors
@@ -519,6 +519,7 @@ class TaskTimerApplication extends Gtk.Application {
 
         // Apply theme variant and app CSS once services/settings are ready.
         _applyThemeAndCss(this);
+        this._reapplyTheme = () => _applyThemeAndCss(this);
 
         _addTimerNotificationActions(this);
         _setupVolumeWarning(this, coreNotifier);

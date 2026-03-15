@@ -23,12 +23,13 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
      * @param {Gtk.Application} application - Gtk.Application (or any GApplication)
      *        with send_notification() and withdraw_notification().
      * @param {Object} options - optional; fallback(id, title, body) called when
-     *        send_notification throws (e.g. no notification daemon).
+     *        send_notification throws; settings for notification_sticky (priority).
      */
     constructor(application, options = {}) {
         super();
         this._application = application;
         this._fallback = typeof options.fallback === 'function' ? options.fallback : null;
+        this._settings = options.settings || null;
     }
 
     /**
@@ -56,6 +57,14 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         notification.set_body(body || '');
         if (options.icon && options.icon instanceof Gio.Icon) {
             notification.set_icon(options.icon);
+        }
+        if (this._settings && this._settings.notification_sticky &&
+            typeof notification.set_priority === 'function') {
+            try {
+                const urgent = (typeof Gio.NotificationPriority !== 'undefined' && Gio.NotificationPriority.URGENT !== undefined)
+                    ? Gio.NotificationPriority.URGENT : 3;
+                notification.set_priority(urgent);
+            } catch (_e) {}
         }
 
         const timerId = options.timerId && String(options.timerId);

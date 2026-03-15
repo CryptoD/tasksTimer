@@ -50,6 +50,11 @@ var PreferencesWindow = class PreferencesWindow {
                 this._window.set_child(this._widget);
             } catch (_e2) {}
         }
+        this._window.connect('destroy', () => {
+            if (this._app && typeof this._app._reapplyTheme === 'function') {
+                this._app._reapplyTheme();
+            }
+        });
     }
 
     present() {
