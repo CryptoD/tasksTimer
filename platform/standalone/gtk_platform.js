@@ -739,10 +739,12 @@ class StandaloneGtkPlatform extends GObject.Object {
             const togLabel = mkIconToggle('font-x-generic-symbolic', 'Show label');
             const togTime = mkIconToggle('preferences-system-time-symbolic', 'Show time');
             const togProgress = mkIconToggle('view-list-symbolic', 'Show progress');
+            const togEndTime = mkIconToggle('clock-symbolic', 'Show end time');
             if (settings) {
                 try { togLabel.set_active(Boolean(settings.show_label)); } catch (e) {}
                 try { togTime.set_active(Boolean(settings.show_time)); } catch (e) {}
                 try { togProgress.set_active(Boolean(settings.show_progress)); } catch (e) {}
+                try { togEndTime.set_active(Boolean(settings.show_endtime)); } catch (e) {}
             }
 
             const setPlayPauseIcon = (timer) => {
@@ -841,6 +843,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             actionsBar.pack_start(togLabel, false, false, 0);
             actionsBar.pack_start(togTime, false, false, 0);
             actionsBar.pack_start(togProgress, false, false, 0);
+            actionsBar.pack_start(togEndTime, false, false, 0);
 
             togLabel.connect('toggled', () => {
                 if (!settings) return;
@@ -855,6 +858,11 @@ class StandaloneGtkPlatform extends GObject.Object {
             togProgress.connect('toggled', () => {
                 if (!settings) return;
                 settings.show_progress = togProgress.get_active();
+                refreshDisplayOptions();
+            });
+            togEndTime.connect('toggled', () => {
+                if (!settings) return;
+                settings.show_endtime = togEndTime.get_active();
                 refreshDisplayOptions();
             });
 
@@ -904,11 +912,12 @@ class StandaloneGtkPlatform extends GObject.Object {
 
             mainVbox.pack_start(root, true, true, 0);
 
-            // Keep references for refresh.
+            // Keep references for refresh and for syncing display toggles with preferences.
             this._ui = {
                 quickList: quickSection.list,
                 presetList: presetSection.list,
                 timerWidget,
+                displayToggles: { togLabel, togTime, togProgress, togEndTime },
             };
             this._rebuildSidebarLists();
             this._startUiRefreshLoop();
@@ -918,9 +927,24 @@ class StandaloneGtkPlatform extends GObject.Object {
             this._window.show_all();
         }
 
+        this._syncDisplayOptionsFromSettings();
         this._tray.show();
         this._startTrayUpdates();
         this._window.present();
+    }
+
+    _syncDisplayOptionsFromSettings() {
+        const settings = this._application && this._application._services
+            ? this._application._services.settings
+            : null;
+        if (!settings || !this._ui || !this._ui.displayToggles) return;
+        const t = this._ui.displayToggles;
+        try {
+            if (t.togLabel) t.togLabel.set_active(Boolean(settings.show_label));
+            if (t.togTime) t.togTime.set_active(Boolean(settings.show_time));
+            if (t.togProgress) t.togProgress.set_active(Boolean(settings.show_progress));
+            if (t.togEndTime) t.togEndTime.set_active(Boolean(settings.show_endtime));
+        } catch (e) {}
     }
 
     hideMainWindow() {
