@@ -670,6 +670,12 @@ class TaskTimerApplication extends Gtk.Application {
         // "save all timers" operation here so that standalone runs can
         // persist their state similarly to the GNOME Shell extension.
         log('taskTimer: application shutdown');
+        // Ensure GStreamer elements are released cleanly (avoid READY disposal warnings).
+        try {
+            if (this._services && this._services.audio && typeof this._services.audio.shutdown === 'function') {
+                this._services.audio.shutdown();
+            }
+        } catch (_e) {}
         super.vfunc_shutdown();
     }
 

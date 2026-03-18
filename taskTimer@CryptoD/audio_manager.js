@@ -225,12 +225,39 @@ class AudioPlayer {
         this._destroyed = true;
         if (this._player) {
             try {
+                // For normal stops we set READY so we can quickly replay.
                 this._player.set_state(Gst.State.READY);
             } catch (e) {
                 this._logger && this._logger.warn('AudioManager: failed to stop player %s: %s', this._id, e.message);
             }
         }
         this._isPlaying = false;
+    }
+
+    /**
+     * Fully tear down the player for application shutdown. This sets the
+     * element to NULL so GStreamer can clean up sinks/tees without emitting
+     * criticals on disposal.
+     */
+    destroy() {
+        this._destroyed = true;
+        this._isPlaying = false;
+        if (this._bus) {
+            try {
+                if (typeof this._bus.remove_signal_watch === 'function') {
+                    this._bus.remove_signal_watch();
+                }
+            } catch (_e) {}
+            this._bus = null;
+        }
+        if (this._player) {
+            try {
+                this._player.set_state(Gst.State.NULL);
+            } catch (e) {
+                this._logger && this._logger.warn('AudioManager: failed to destroy player %s: %s', this._id, e.message);
+            }
+            this._player = null;
+        }
     }
 }
 
@@ -335,6 +362,26 @@ var AudioManager = class AudioManager {
             return;
         }
         player.stop();
+    }
+
+    /**
+     * Stop and release all players. Call from application shutdown to avoid
+     * GStreamer criticals about disposing non-NULL elements.
+     */
+    shutdown() {
+        try {
+            for (const [_id, player] of this._players.entries()) {
+                try {
+                    if (player && typeof player.destroy === 'function') {
+                        player.destroy();
+                    } else if (player && typeof player.stop === 'function') {
+                        player.stop();
+                    }
+                } catch (_e) {}
+            }
+        } finally {
+            this._players.clear();
+        }
     }
 };
 
