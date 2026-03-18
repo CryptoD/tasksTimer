@@ -405,7 +405,11 @@ var Settings = class Settings {
   }
 
   get_default(key) {
-    return this.settings.get_default_value(key);
+    // Under the standalone app we may not have a Gio.Settings instance.
+    if (this.settings && typeof this.settings.get_default_value === 'function') {
+      return this.settings.get_default_value(key);
+    }
+    return undefined;
   }
 
   get accel_enable() {

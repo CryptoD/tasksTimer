@@ -96,15 +96,18 @@ class AudioPlayer {
 
         // 2. Determine a reasonable basename, optionally using the default.
         let base = GLib.path_get_basename(path);
-        if (this._settings && typeof this._settings.get_default === 'function') {
-            try {
-                const def = this._settings.get_default('sound-file');
-                if (def && (!base || base === path)) {
-                    base = def;
+        // Prefer the Settings wrapper value (works under JSON provider) rather
+        // than Gio.Settings default_value (not available in standalone).
+        try {
+            const configured = this._settings && this._settings.sound_file ? String(this._settings.sound_file) : '';
+            if (configured) {
+                const defBase = GLib.path_get_basename(configured);
+                if (defBase && (!base || base === path)) {
+                    base = defBase;
                 }
-            } catch (e) {
-                this._logger && this._logger.warn('AudioManager: failed to read default sound-file: %s', e.message);
             }
+        } catch (_e) {
+            // ignore; we'll fall back to the original basename
         }
 
         // 2a. If running inside an AppImage, try bundled locations first.

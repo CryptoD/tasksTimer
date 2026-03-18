@@ -279,10 +279,13 @@ var PreferencesWindow = class PreferencesWindow {
         if (!this._window)
             return;
         try {
+            // Ensure child widgets are realized/visible on GTK3. Gtk.Window.present()
+            // does not necessarily show the full widget hierarchy.
+            if (typeof this._window.show_all === 'function') {
+                this._window.show_all();
+            }
             if (typeof this._window.present === 'function') {
                 this._window.present();
-            } else if (typeof this._window.show_all === 'function') {
-                this._window.show_all();
             } else if (typeof this._window.show === 'function') {
                 this._window.show();
             }
