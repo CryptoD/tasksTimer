@@ -492,7 +492,9 @@ class StandaloneGtkPlatform extends GObject.Object {
 
     _startUiRefreshLoop() {
         if (this._uiUpdateId) return;
-        this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+        // Throttle refresh; rebuilding lists every second can cause GTK warnings
+        // on some desktops and isn't necessary for good UX.
+        this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
             try {
                 // Stop refreshing if the window is gone. Some GTK internals will
                 // emit critical warnings if widgets are queried after destroy.

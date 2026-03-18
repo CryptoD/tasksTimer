@@ -556,13 +556,22 @@ class TimerMenuWidget extends Gtk.Box {
         // (Re)enable row activation for quick/preset lists.
         this._quickSection.list.set_activate_on_single_click(true);
         this._presetSection.list.set_activate_on_single_click(true);
-
-        this.show_all();
+        // Avoid calling show_all() on the whole widget tree on every refresh.
+        // That can trigger GTK internals (including scale-factor lookups) on
+        // transient/stale widgets while lists are being rebuilt.
+        try {
+            this._runningSection.list.show_all();
+            this._quickSection.list.show_all();
+            this._presetSection.list.show_all();
+        } catch (_e) {}
     }
 
     startAutoRefresh() {
         if (this._uiUpdateId) return;
-        this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+        // Throttle periodic refresh; timers already repaint themselves when
+        // interacted with, and rebuilding the whole list every second can
+        // stress GTK on some desktops.
+        this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
             try {
                 // Stop refreshing when widget is destroyed/unrealized to avoid
                 // GTK critical warnings from operating on stale widgets.
