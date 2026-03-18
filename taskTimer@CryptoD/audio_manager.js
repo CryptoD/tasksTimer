@@ -117,9 +117,17 @@ class AudioPlayer {
         }
 
         // 3. Fallback to the extension directory (extension or unpacked tree).
-        const extPath = GLib.build_filenamev([Me.path, base]);
-        if (GLib.file_test(extPath, GLib.FileTest.EXISTS)) {
-            return 'file://' + extPath;
+        const tryBasenames = [];
+        tryBasenames.push(base);
+        // Backward-compatible mapping for older default name.
+        if (base === 'tasktimer-default.ogg') {
+            tryBasenames.push('kitchen_timer.ogg');
+        }
+        for (let i = 0; i < tryBasenames.length; i++) {
+            const extPath = GLib.build_filenamev([Me.path, tryBasenames[i]]);
+            if (GLib.file_test(extPath, GLib.FileTest.EXISTS)) {
+                return 'file://' + extPath;
+            }
         }
 
         this._logger && this._logger.error('AudioManager: could not resolve sound file for %s (base=%s)', this._id, base);

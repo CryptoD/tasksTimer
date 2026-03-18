@@ -47,7 +47,9 @@ const SCHEMA = {
     'notification-longtimeout': { type: 'int',   default: 10000 },
 
     'play-sound':             { type: 'boolean', default: true },
-    'sound-file':             { type: 'string',  default: 'tasktimer-default.ogg' },
+    // Default sound shipped in this repo (taskTimer@CryptoD/kitchen_timer.ogg).
+    // Keep AudioManager backward-compatible with older names.
+    'sound-file':             { type: 'string',  default: 'kitchen_timer.ogg' },
     'sound-loops':            { type: 'int',     default: 1 },
 
     'prefer-presets':         { type: 'int',     default: 0 },
