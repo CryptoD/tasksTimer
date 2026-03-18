@@ -613,7 +613,9 @@ var Settings = class Settings {
 
   get run_states() {
     try {
-      const runningJson = this.settings.get_string('running');
+      // In standalone mode (JSON provider), this.settings may be null. Always
+      // go through the provider-aware scalar getter.
+      const runningJson = this._getString('running');
       if (!runningJson || runningJson === '[]') {
         return [];
       }
