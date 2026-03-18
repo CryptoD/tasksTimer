@@ -19,6 +19,22 @@ imports.gi.versions.Gtk = '3.0';
 
 const { Gio, GLib, GObject, Gtk, Gdk } = imports.gi;
 
+// Some desktop environments / GTK theme stacks can emit repeated criticals like:
+//   gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET (widget)' failed
+// without a useful JS stack. Filter just this message to avoid log spam while
+// keeping other GTK warnings/criticals visible.
+try {
+    GLib.log_set_handler('Gtk', GLib.LogLevelFlags.LEVEL_CRITICAL, (_domain, _level, message) => {
+        if (typeof message === 'string' && message.indexOf('gtk_widget_get_scale_factor') >= 0) {
+            return;
+        }
+        // Fall back to default logging.
+        log('Gtk-CRITICAL: ' + message);
+    });
+} catch (_e) {
+    // Ignore if log handlers aren't supported in this runtime.
+}
+
 // Ensure the directory containing this script (and its submodules) is in the
 // GJS search path so that standalone modules like `context` and `platform/*`
 // can be imported when running `gjs main.js` directly.
