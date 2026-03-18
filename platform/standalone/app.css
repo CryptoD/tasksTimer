@@ -13,3 +13,55 @@ window.tasktimer-preferences {
   background-color: #f5e6c8;
 }
 
+/* Timer list item states: visual cues + accessibility (bold/outline, not color alone) */
+
+.timer-list-item {
+  border-radius: 4px;
+  padding: 2px 0;
+}
+
+.timer-list-item.timer-running {
+  background-color: alpha(@theme_selected_bg_color, 0.15);
+  border-left: 3px solid @theme_selected_bg_color;
+  margin-left: 2px;
+  padding-left: 4px;
+}
+
+.timer-list-item.timer-paused {
+  background-color: alpha(alpha(currentColor, 0.03), 0.5);
+  opacity: 0.9;
+}
+
+.timer-list-item.timer-expired {
+  background-color: alpha(#ef2929, 0.12);
+  border-left: 3px solid #ef2929;
+  margin-left: 2px;
+  padding-left: 4px;
+}
+
+.timer-title-emphasis {
+  font-weight: bold;
+}
+
+/* Progress bar: highlight when active, urgent when expired (GTK3 node: progressbar) */
+
+progressbar.timer-progress-active trough {
+  min-height: 8px;
+  background-color: alpha(currentColor, 0.08);
+}
+
+progressbar.timer-progress-active progress {
+  min-height: 8px;
+  background-color: @theme_selected_bg_color;
+}
+
+progressbar.timer-progress-expired trough {
+  min-height: 8px;
+  background-color: alpha(#ef2929, 0.15);
+}
+
+progressbar.timer-progress-expired progress {
+  min-height: 8px;
+  background-color: #cc0000;
+}
+

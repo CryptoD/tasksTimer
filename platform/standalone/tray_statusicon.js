@@ -86,7 +86,8 @@ var StatusIconTrayProvider = class StatusIconTrayProvider extends Platform.TrayP
         const app = this._platform && this._platform._application;
         const win = this._platform && this._platform._window;
 
-        const showHideLabel = win && win.get_visible() ? 'Hide taskTimer' : 'Show taskTimer';
+        const name = typeof this._platform.getDisplayName === 'function' ? this._platform.getDisplayName() : 'taskTimer';
+        const showHideLabel = win && win.get_visible() ? `Hide ${name}` : `Show ${name}`;
         const showHide = new Gtk.MenuItem({ label: showHideLabel });
         showHide.connect('activate', () => this._onActivate());
         menu.append(showHide);

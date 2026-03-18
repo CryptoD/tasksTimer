@@ -56,6 +56,12 @@ const Logger = imports['taskTimer@CryptoD'].logger.Logger;
 const AudioManagerModule = imports['taskTimer@CryptoD'].audio_manager;
 
 const APP_ID = 'com.github.cryptod.tasktimer';
+/** Display name for window titles, tray, and dialogs. */
+const APP_DISPLAY_NAME = 'taskTimer';
+/** Icon name for windows, tray, and notifications (theme icon, e.g. alarm-symbolic). */
+const APP_ICON_NAME = 'alarm-symbolic';
+/** Standalone app version (aligned with taskTimer@CryptoD/metadata.json). */
+const APP_VERSION = '1.1';
 
 /** Action IDs used by Gio.Notification buttons; must match names registered on GApplication. */
 const TIMER_ACTION_DISMISS = 'timerDismiss';
@@ -236,6 +242,32 @@ function _addPreferencesAction(app) {
 }
 
 /**
+ * Add app.about action. Shows a Gtk.AboutDialog with version, license (GPL-3.0),
+ * and credits, accessible from the main window menu.
+ */
+function _addAboutAction(app) {
+    const aboutAction = Gio.SimpleAction.new('about', null);
+    aboutAction.connect('activate', () => {
+        const transient = app._platform && app._platform._window ? app._platform._window : null;
+        const dialog = new Gtk.AboutDialog({ transient_for: transient });
+        dialog.set_program_name(app._displayName || APP_DISPLAY_NAME);
+        dialog.set_version(APP_VERSION);
+        dialog.set_comments(
+            'General purpose kitchen and task timer. ' +
+            'Run timers from the app or from the system tray.'
+        );
+        dialog.set_website('https://github.com/CryptoD/taskTimer');
+        dialog.set_license_type(Gtk.License.GPL_3_0);
+        dialog.set_authors(['CryptoD']);
+        dialog.set_copyright('Copyright © 2024–2025 CryptoD');
+        dialog.connect('response', () => dialog.destroy());
+        dialog.connect('close', () => dialog.destroy());
+        dialog.present();
+    });
+    app.add_action(aboutAction);
+}
+
+/**
  * Add app.newTimer action used by tray and future UI.
  * Opens a small dialog to create and start a quick timer.
  */
@@ -408,6 +440,9 @@ class TaskTimerApplication extends Gtk.Application {
         this._services = Object.create(null); // Generic bag for other shared services (notifier, inhibitor, tray, etc.).
         this._platform = null;      // Will be the active PlatformUI implementation (StandaloneGtkPlatform).
         this._testNotification = false; // Set by --test-notification for TEST 6.
+        this._startMinimized = false;   // Set by --minimized to open in tray/hidden.
+        this._displayName = APP_DISPLAY_NAME;
+        this._iconName = APP_ICON_NAME;
     }
 
     vfunc_startup() {
@@ -416,6 +451,13 @@ class TaskTimerApplication extends Gtk.Application {
         // to initialize shared services (timers, storage, settings, etc.)
         // in future phases.
         super.vfunc_startup();
+
+        // Default icon for all windows (taskbar, window decoration, dialogs).
+        if (this._iconName && typeof Gtk.Window.set_default_icon_name === 'function') {
+            try {
+                Gtk.Window.set_default_icon_name(this._iconName);
+            } catch (e) {}
+        }
 
         // Initialize the standalone Context so that other modules can
         // discover application metadata and common paths (config/data/logs)
@@ -443,6 +485,8 @@ class TaskTimerApplication extends Gtk.Application {
             application: this,
             context: this._context,
             appId: APP_ID,
+            displayName: this._displayName,
+            iconName: this._iconName,
         });
         this._platform.init();
 
@@ -525,6 +569,7 @@ class TaskTimerApplication extends Gtk.Application {
         _setupVolumeWarning(this, coreNotifier);
         _registerShortcuts(this);
         _addPreferencesAction(this);
+        _addAboutAction(this);
         _addNewTimerAction(this);
 
         // Autostart: sync .desktop file with setting and react to future changes
@@ -565,6 +610,10 @@ class TaskTimerApplication extends Gtk.Application {
         log('taskTimer: application activate');
         if (this._platform) {
             this._platform.showMainWindow();
+            if (this._startMinimized) {
+                this._platform.hideMainWindow();
+                this._startMinimized = false;
+            }
             if (this._testNotification) {
                 this._sendTestNotification();
                 this._testNotification = false;
@@ -608,22 +657,55 @@ class TaskTimerApplication extends Gtk.Application {
         super.vfunc_shutdown();
     }
 
+    /**
+     * Handle command-line arguments. Supports:
+     * - --version / -v: print version and exit
+     * - --help / -h: print usage and exit
+     * - --minimized: start with window hidden (tray if available)
+     * - --test-notification: show a test notification on startup
+     */
     vfunc_command_line(commandLine) {
-        // Raw arguments as provided by Gio.Application.
         const argv = commandLine.get_arguments();
-
-        // Drop the program name (argv[0]) for downstream consumers.
         const args = Array.prototype.slice.call(argv, 1);
+
+        // --version: print version and exit (do not activate UI).
+        if (args.indexOf('--version') >= 0 || args.indexOf('-v') >= 0) {
+            print(`${APP_DISPLAY_NAME} ${APP_VERSION}`);
+            this.quit();
+            return 0;
+        }
+
+        // --help: print usage and exit (do not activate UI).
+        if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+            this._printHelp(argv[0]);
+            this.quit();
+            return 0;
+        }
 
         this._handleCommandLine(args);
         this.activate();
-
-        // Returning 0 signals successful handling.
         return 0;
     }
 
+    _printHelp(programName) {
+        const name = typeof programName === 'string' && programName.length > 0
+            ? programName
+            : APP_DISPLAY_NAME;
+        print(`Usage: ${name} [OPTIONS]
+
+${APP_DISPLAY_NAME} – kitchen and task timer.
+
+Options:
+  -h, --help              Show this help and exit.
+  -v, --version           Show version and exit.
+  --minimized             Start with the window hidden (in tray if available).
+  --test-notification     Show a test notification on startup (for testing).`);
+    }
+
     _handleCommandLine(args) {
-        // --test-notification: show one test notification (for TEST 6).
+        if (args.indexOf('--minimized') >= 0) {
+            this._startMinimized = true;
+        }
         if (args.indexOf('--test-notification') >= 0) {
             this._testNotification = true;
         }

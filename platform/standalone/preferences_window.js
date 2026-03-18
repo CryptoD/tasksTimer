@@ -24,7 +24,8 @@ var PreferencesWindow = class PreferencesWindow {
         this._widget = this._builder.build();
         this._builder.show();
 
-        this._window = new Gtk.Window({ title: 'taskTimer Preferences' });
+        const displayName = (app._displayName && typeof app._displayName === 'string') ? app._displayName : 'taskTimer';
+        this._window = new Gtk.Window({ title: `${displayName} Preferences` });
         try {
             this._window.get_style_context().add_class('tasktimer-preferences');
         } catch (_e) {

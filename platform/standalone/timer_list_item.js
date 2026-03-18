@@ -31,6 +31,7 @@ class TimerListItem extends Gtk.ListBoxRow {
         this._onChanged = typeof params.onChanged === 'function' ? params.onChanged : null;
 
         this._buildUi();
+        this.get_style_context().add_class('timer-list-item');
         this.refresh();
     }
 
@@ -64,11 +65,58 @@ class TimerListItem extends Gtk.ListBoxRow {
             this._progress.set_text(`${Math.round(frac * 100)}%`);
             this._progress.set_show_text(true);
         }
+
+        this._updateStateClasses();
+    }
+
+    _updateStateClasses() {
+        const t = this._timer;
+        const ctx = this.get_style_context();
+        const stateClasses = ['timer-running', 'timer-paused', 'timer-expired'];
+        stateClasses.forEach(c => {
+            try { ctx.remove_class(c); } catch (_e) {}
+        });
+        const expired = t && t.expired;
+        const running = t && t.running;
+        const paused = t && t.paused;
+        if (expired) {
+            ctx.add_class('timer-expired');
+        } else if (running) {
+            ctx.add_class('timer-running');
+        } else if (paused) {
+            ctx.add_class('timer-paused');
+        }
+
+        const emphasisClass = 'timer-title-emphasis';
+        try {
+            const titleCtx = this._title.get_style_context();
+            titleCtx.remove_class(emphasisClass);
+            if (expired || running) {
+                titleCtx.add_class(emphasisClass);
+            }
+        } catch (_e) {}
+
+        const progressCtx = this._progress.get_style_context();
+        ['timer-progress-active', 'timer-progress-expired'].forEach(c => {
+            try { progressCtx.remove_class(c); } catch (_e2) {}
+        });
+        const showProgress = this._settings ? Boolean(this._settings.show_progress) : false;
+        const canProgress = Boolean(t && showProgress && (t.running || t.paused) && typeof t.duration === 'number' && t.duration > 0);
+        if (canProgress && t) {
+            if (t.expired) {
+                progressCtx.add_class('timer-progress-expired');
+            } else if (t.running || t.paused) {
+                progressCtx.add_class('timer-progress-active');
+            }
+        }
     }
 
     _formatSecondary(timer) {
         const settings = this._settings;
         const showEnd = settings && settings.show_endtime;
+        if (timer && timer.expired) {
+            return 'Time\'s up!';
+        }
         if (timer && timer.paused) {
             return `Paused • ${timer.remaining_hms ? timer.remaining_hms().toString(true) : ''}`;
         }

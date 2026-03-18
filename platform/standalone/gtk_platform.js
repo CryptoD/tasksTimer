@@ -106,13 +106,21 @@ class StandaloneGtkPlatform extends GObject.Object {
                   appId: params.appId,
                   application: this._application,
               });
+        this._displayName = typeof params.displayName === 'string' && params.displayName.length > 0
+            ? params.displayName
+            : 'taskTimer';
+        this._iconName = typeof params.iconName === 'string' && params.iconName.length > 0
+            ? params.iconName
+            : 'alarm-symbolic';
 
         this._tray = new StandaloneTrayProvider(this);
         this._shortcuts = new StandaloneShortcutProvider(this._application);
         const settings = this._application._services && this._application._services.settings;
+        const defaultIcon = Gio.ThemedIcon.new(this._iconName);
         this._notifications = new StandaloneNotificationProvider(this._application, {
             fallback: (id, title, body) => this._showInAppBanner(title, body),
             settings: settings || null,
+            defaultIcon: defaultIcon,
         });
 
         this._window = null;
@@ -123,6 +131,11 @@ class StandaloneGtkPlatform extends GObject.Object {
         this._volumeBannerLabel = null;
         this._trayUpdateId = null;
         this._presetManagementWindow = null;
+    }
+
+    /** Display name for window titles, tray tooltip, and menu labels (e.g. "taskTimer"). */
+    getDisplayName() {
+        return this._displayName || 'taskTimer';
     }
 
     /**
@@ -200,7 +213,7 @@ class StandaloneGtkPlatform extends GObject.Object {
 
     _addHeaderBar(win) {
         const hb = new Gtk.HeaderBar({
-            title: 'taskTimer',
+            title: this.getDisplayName(),
             show_close_button: true,
         });
 
@@ -219,6 +232,14 @@ class StandaloneGtkPlatform extends GObject.Object {
             }
         });
         hb.pack_end(btnPrefs);
+
+        const btnAbout = new Gtk.Button({ label: 'About' });
+        btnAbout.connect('clicked', () => {
+            if (this._application && this._application.activate_action) {
+                this._application.activate_action('about', null);
+            }
+        });
+        hb.pack_end(btnAbout);
 
         win.set_titlebar(hb);
     }
@@ -351,6 +372,9 @@ class StandaloneGtkPlatform extends GObject.Object {
             xalign: 0,
             wrap: true,
         });
+        if (timer.expired || timer.running) {
+            title.get_style_context().add_class('timer-title-emphasis');
+        }
 
         const secondary = new Gtk.Label({
             label: this._formatTimerSecondary(timer),
@@ -358,6 +382,15 @@ class StandaloneGtkPlatform extends GObject.Object {
             xalign: 0,
         });
         secondary.get_style_context().add_class('dim-label');
+
+        row.get_style_context().add_class('timer-list-item');
+        if (timer.expired) {
+            row.get_style_context().add_class('timer-expired');
+        } else if (timer.running) {
+            row.get_style_context().add_class('timer-running');
+        } else if (timer.paused) {
+            row.get_style_context().add_class('timer-paused');
+        }
 
         row._secondaryLabel = secondary;
         textBox.pack_start(title, false, false, 0);
@@ -562,7 +595,7 @@ class StandaloneGtkPlatform extends GObject.Object {
         const lines = [
             '[Desktop Entry]',
             'Type=Application',
-            'Name=taskTimer',
+            'Name=' + this.getDisplayName(),
             'Comment=Kitchen and task timer',
             'Exec=' + execLine,
             'Path=' + appDir,
@@ -592,7 +625,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             const defH = (settings && settings.window_height >= 300) ? settings.window_height : 560;
             this._window = new Gtk.ApplicationWindow({
                 application: this._application,
-                title: 'taskTimer',
+                title: this.getDisplayName(),
                 default_width: defW,
                 default_height: defH,
             });
@@ -732,10 +765,6 @@ class StandaloneGtkPlatform extends GObject.Object {
                 width_request: 260,
             });
 
-            const settings = this._application && this._application._services
-                ? this._application._services.settings
-                : null;
-
             const sortFrame = new Gtk.Frame({ label: 'Sort lists' });
             const sortBox = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
@@ -816,7 +845,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                 const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
                 if (result === t) {
                     t.start();
-                    const settings = this._application._services ? this._application._services.settings : null;
+                    const settings = this._application && this._application._services ? this._application._services.settings : null;
                     if (settings && typeof settings.pack_timers === 'function') {
                         try { settings.pack_timers(timers); } catch (e) {}
                     }
@@ -1098,6 +1127,22 @@ class StandaloneGtkPlatform extends GObject.Object {
             updateActionsState();
 
             this._window.add(mainVbox);
+
+            // Startup notification: associate this window with the launcher request
+            // (e.g. desktop file or panel) so the compositor can show feedback and
+            // focus correctly. Unset the env var after use so child processes don't inherit it.
+            const startupId = GLib.getenv('DESKTOP_STARTUP_ID');
+            if (startupId && typeof this._window.set_startup_id === 'function') {
+                try {
+                    this._window.set_startup_id(startupId);
+                } catch (e) {
+                    log('taskTimer: set_startup_id failed: ' + (e && e.message ? e.message : e));
+                }
+                try {
+                    GLib.unsetenv('DESKTOP_STARTUP_ID');
+                } catch (e2) {}
+            }
+
             this._window.show_all();
             this._restoreWindowState();
 
@@ -1150,8 +1195,8 @@ class StandaloneGtkPlatform extends GObject.Object {
             : [];
 
         if (!timers || timers.length === 0) {
-            this._tray.setIcon('alarm-symbolic');
-            this._tray.setTooltip('taskTimer');
+            this._tray.setIcon(this._iconName);
+            this._tray.setTooltip(this.getDisplayName());
             return;
         }
 

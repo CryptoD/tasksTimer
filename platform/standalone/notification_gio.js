@@ -22,14 +22,17 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
     /**
      * @param {Gtk.Application} application - Gtk.Application (or any GApplication)
      *        with send_notification() and withdraw_notification().
-     * @param {Object} options - optional; fallback(id, title, body) called when
-     *        send_notification throws; settings for notification_sticky (priority).
+     * @param {Object} options - optional; fallback(id, title, body); settings;
+     *        defaultIcon (Gio.Icon) for notifications when options.icon not set.
      */
     constructor(application, options = {}) {
         super();
         this._application = application;
         this._fallback = typeof options.fallback === 'function' ? options.fallback : null;
         this._settings = options.settings || null;
+        this._defaultIcon = options.defaultIcon && options.defaultIcon instanceof Gio.Icon
+            ? options.defaultIcon
+            : null;
     }
 
     /**
@@ -55,8 +58,11 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         const notification = new Gio.Notification();
         notification.set_title(title || '');
         notification.set_body(body || '');
-        if (options.icon && options.icon instanceof Gio.Icon) {
-            notification.set_icon(options.icon);
+        const icon = options.icon && options.icon instanceof Gio.Icon
+            ? options.icon
+            : this._defaultIcon;
+        if (icon) {
+            notification.set_icon(icon);
         }
         if (this._settings && this._settings.notification_sticky &&
             typeof notification.set_priority === 'function') {
