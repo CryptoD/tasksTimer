@@ -564,6 +564,12 @@ class TimerMenuWidget extends Gtk.Box {
         if (this._uiUpdateId) return;
         this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
             try {
+                // Stop refreshing when widget is destroyed/unrealized to avoid
+                // GTK critical warnings from operating on stale widgets.
+                if (!this.get_toplevel || !this.get_toplevel()) {
+                    this._uiUpdateId = null;
+                    return false;
+                }
                 // Rebuild to keep membership accurate if timers start/stop.
                 this.refresh();
             } catch (e) {

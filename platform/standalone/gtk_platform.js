@@ -494,6 +494,12 @@ class StandaloneGtkPlatform extends GObject.Object {
         if (this._uiUpdateId) return;
         this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
             try {
+                // Stop refreshing if the window is gone. Some GTK internals will
+                // emit critical warnings if widgets are queried after destroy.
+                if (!this._window) {
+                    this._uiUpdateId = null;
+                    return false;
+                }
                 // Refresh embedded timer widget when present.
                 if (this._ui && this._ui.timerWidget && typeof this._ui.timerWidget.refresh === 'function') {
                     this._ui.timerWidget.setTimers(this._application ? this._application._timers : null);
@@ -1182,6 +1188,11 @@ class StandaloneGtkPlatform extends GObject.Object {
             return;
         }
         this._trayUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+            // If platform/window was torn down, stop the periodic callback.
+            if (!this._window) {
+                this._trayUpdateId = null;
+                return false;
+            }
             this._updateTrayFromTimers();
             return true;
         });
