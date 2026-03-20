@@ -50,6 +50,7 @@ try {
 
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
+const Branding = imports.platform.standalone.branding;
 
 // Standalone gettext initialization for the "tasktimer" domain. This avoids
 // relying on ExtensionUtils.initTranslations() so the CLI/GTK app can locate
@@ -70,11 +71,10 @@ const StorageModule = imports['taskTimer@CryptoD'].storage;
 const Logger = imports['taskTimer@CryptoD'].logger.Logger;
 const AudioManagerModule = imports['taskTimer@CryptoD'].audio_manager;
 
-const APP_ID = 'com.github.cryptod.tasktimer';
-/** Display name for window titles, tray, and dialogs. */
-const APP_DISPLAY_NAME = 'taskTimer';
-/** Icon name for windows, tray, and notifications (theme icon, e.g. alarm-symbolic). */
-const APP_ICON_NAME = 'alarm-symbolic';
+/** @see platform/standalone/branding.js */
+const APP_ID = Branding.APP_ID;
+const APP_DISPLAY_NAME = Branding.DISPLAY_NAME;
+const APP_ICON_NAME = Branding.ICON_NAME;
 /** Standalone app version (aligned with taskTimer@CryptoD/metadata.json). */
 const APP_VERSION = '1.1';
 

@@ -14,6 +14,8 @@ imports.gi.versions.Gtk = '3.0';
 
 const { Gtk, GLib } = imports.gi;
 
+const Branding = imports.platform.standalone.branding;
+
 var PreferencesWindow = class PreferencesWindow {
     /**
      * @param {Gtk.Application} app - The main application instance.
@@ -25,7 +27,7 @@ var PreferencesWindow = class PreferencesWindow {
         this._transientFor = params.transient_for || null;
         this._settings = app && app._services ? app._services.settings : null;
 
-        const displayName = (app._displayName && typeof app._displayName === 'string') ? app._displayName : 'taskTimer';
+        const displayName = (app._displayName && typeof app._displayName === 'string') ? app._displayName : Branding.DISPLAY_NAME;
         this._window = new Gtk.Window({ title: `${displayName} Preferences` });
         try {
             this._window.get_style_context().add_class('tasktimer-preferences');

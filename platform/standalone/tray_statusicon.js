@@ -12,6 +12,7 @@
 const { Gtk, Gio, GLib } = imports.gi;
 
 const Platform = imports.platform.interface;
+const Branding = imports.platform.standalone.branding;
 
 /** Default quick timer presets when none are stored (name, duration in seconds). */
 const DEFAULT_QUICK_TIMERS = [
@@ -42,7 +43,8 @@ var StatusIconTrayProvider = class StatusIconTrayProvider extends Platform.TrayP
         if (typeof Gtk.StatusIcon !== 'undefined') {
             try {
                 this._icon = new Gtk.StatusIcon();
-                this._icon.set_from_icon_name('alarm-symbolic');
+                const iconName = (platform && platform._iconName) ? platform._iconName : Branding.ICON_NAME;
+                this._icon.set_from_icon_name(iconName);
                 this._icon.set_visible(false);
                 this._icon.connect('activate', this._onActivate.bind(this));
                 this._icon.connect('popup-menu', this._onPopupMenu.bind(this));
@@ -86,7 +88,9 @@ var StatusIconTrayProvider = class StatusIconTrayProvider extends Platform.TrayP
         const app = this._platform && this._platform._application;
         const win = this._platform && this._platform._window;
 
-        const name = typeof this._platform.getDisplayName === 'function' ? this._platform.getDisplayName() : 'taskTimer';
+        const name = typeof this._platform.getDisplayName === 'function'
+            ? this._platform.getDisplayName()
+            : Branding.DISPLAY_NAME;
         const showHideLabel = win && win.get_visible() ? `Hide ${name}` : `Show ${name}`;
         const showHide = new Gtk.MenuItem({ label: showHideLabel });
         showHide.connect('activate', () => this._onActivate());
@@ -239,7 +243,7 @@ var StatusIconTrayProvider = class StatusIconTrayProvider extends Platform.TrayP
         }
         try {
             if (typeof icon === 'string') {
-                this._icon.set_from_icon_name(icon || 'alarm-symbolic');
+                this._icon.set_from_icon_name(icon || Branding.ICON_NAME);
             } else if (icon && typeof icon.to_string === 'function') {
                 this._icon.set_from_gicon(icon, Gtk.IconSize.MENU);
             } else if (icon && icon.toString && icon.toString().indexOf('file://') !== -1) {

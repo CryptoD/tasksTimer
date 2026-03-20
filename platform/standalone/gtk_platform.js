@@ -17,6 +17,7 @@ imports.gi.versions.Gtk = '3.0';
 const { GObject, Gtk, GLib, Gio, Pango, Gdk } = imports.gi;
 
 const Context = imports.context;
+const Branding = imports.platform.standalone.branding;
 const Platform = imports.platform.interface;
 const GioNotification = imports.platform.standalone.notification_gio;
 const GtkShortcuts = imports.platform.standalone.shortcuts_gtk;
@@ -108,10 +109,10 @@ class StandaloneGtkPlatform extends GObject.Object {
               });
         this._displayName = typeof params.displayName === 'string' && params.displayName.length > 0
             ? params.displayName
-            : 'taskTimer';
+            : Branding.DISPLAY_NAME;
         this._iconName = typeof params.iconName === 'string' && params.iconName.length > 0
             ? params.iconName
-            : 'alarm-symbolic';
+            : Branding.ICON_NAME;
 
         this._tray = new StandaloneTrayProvider(this);
         this._shortcuts = new StandaloneShortcutProvider(this._application);
@@ -121,6 +122,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             fallback: (id, title, body) => this._showInAppBanner(title, body),
             settings: settings || null,
             defaultIcon: defaultIcon,
+            applicationName: this.getDisplayName(),
         });
 
         this._window = null;
@@ -170,9 +172,14 @@ class StandaloneGtkPlatform extends GObject.Object {
         });
     }
 
-    /** Display name for window titles, tray tooltip, and menu labels (e.g. "taskTimer"). */
+    /** Display name for window titles, tray tooltip, menu labels, and notifications. */
     getDisplayName() {
-        return this._displayName || 'taskTimer';
+        return this._displayName || Branding.DISPLAY_NAME;
+    }
+
+    /** Theme icon name for windows, tray default state, and notifications. */
+    getIconName() {
+        return this._iconName || Branding.ICON_NAME;
     }
 
     /**
@@ -656,7 +663,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             ? ctx.mainScriptPath
             : GLib.build_filenamev([appDir, 'main.js']);
         const execLine = 'gjs "' + mainPath.replace(/"/g, '\\"') + '"';
-        const iconName = this._iconName || 'alarm-symbolic';
+        const iconName = this.getIconName();
         const lines = [
             '[Desktop Entry]',
             'Type=Application',
@@ -667,6 +674,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             'Path=' + appDir,
             'Terminal=false',
             'StartupNotify=true',
+            'StartupWMClass=' + Branding.APP_ID,
             'X-GNOME-Autostart-enabled=true',
             '',
         ];
@@ -697,6 +705,11 @@ class StandaloneGtkPlatform extends GObject.Object {
                 default_width: defW,
                 default_height: defH,
             });
+            try {
+                if (typeof this._window.set_icon_name === 'function') {
+                    this._window.set_icon_name(this.getIconName());
+                }
+            } catch (_e) {}
             this._addHeaderBar(this._window);
 
             this._window.connect('delete-event', () => {
@@ -1276,7 +1289,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             : [];
 
         if (!timers || timers.length === 0) {
-            this._tray.setIcon(this._iconName);
+            this._tray.setIcon(this.getIconName());
             this._tray.setTooltip(this.getDisplayName());
             return;
         }

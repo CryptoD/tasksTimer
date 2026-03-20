@@ -15,6 +15,7 @@
 const { Gtk, Gio, GLib } = imports.gi;
 
 const Platform = imports.platform.interface;
+const Branding = imports.platform.standalone.branding;
 
 /** Default quick timer presets when none are stored (name, duration in seconds). */
 const DEFAULT_QUICK_TIMERS = [
@@ -23,9 +24,6 @@ const DEFAULT_QUICK_TIMERS = [
     { name: '15 min', duration: 900 },
     { name: '25 min', duration: 1500 },
 ];
-
-const INDICATOR_ID = 'tasktimer';
-const INDICATOR_ICON = 'alarm-symbolic';
 
 /**
  * Try to load AppIndicator3 (Ubuntu/old) or AyatanaAppIndicator3 (Ayatana).
@@ -58,7 +56,7 @@ var AppIndicatorTrayProvider = class AppIndicatorTrayProvider extends Platform.T
         this._platform = platform;
         this._indicator = null;
         this._menu = null;
-        this._iconName = INDICATOR_ICON;
+        this._iconName = (platform && platform._iconName) ? platform._iconName : Branding.ICON_NAME;
         this._tooltipText = '';
         this._visible = false;
 
@@ -69,7 +67,10 @@ var AppIndicatorTrayProvider = class AppIndicatorTrayProvider extends Platform.T
             const Indicator = _AppIndicator.Indicator;
             const Cat = _AppIndicator.IndicatorCategory;
             const category = (Cat && Cat.APPLICATION_STATUS !== undefined) ? Cat.APPLICATION_STATUS : 0;
-            this._indicator = Indicator.new(INDICATOR_ID, this._iconName, category);
+            const indicatorId = typeof Branding.trayIndicatorId === 'function'
+                ? Branding.trayIndicatorId()
+                : Branding.APP_ID.replace(/\./g, '-');
+            this._indicator = Indicator.new(indicatorId, this._iconName, category);
             this._indicator.set_status(_AppIndicator.IndicatorStatus.ACTIVE);
             this._rebuildAndSetMenu();
         } catch (e) {
@@ -106,7 +107,9 @@ var AppIndicatorTrayProvider = class AppIndicatorTrayProvider extends Platform.T
         const app = this._platform && this._platform._application;
         const win = this._platform && this._platform._window;
 
-        const name = typeof this._platform.getDisplayName === 'function' ? this._platform.getDisplayName() : 'taskTimer';
+        const name = typeof this._platform.getDisplayName === 'function'
+            ? this._platform.getDisplayName()
+            : Branding.DISPLAY_NAME;
         const showHideLabel = win && win.get_visible() ? `Hide ${name}` : `Show ${name}`;
         const showHide = new Gtk.MenuItem({ label: showHideLabel });
         showHide.connect('activate', () => this._onActivate());
@@ -258,8 +261,8 @@ var AppIndicatorTrayProvider = class AppIndicatorTrayProvider extends Platform.T
             return;
         }
         try {
-            const name = typeof icon === 'string' ? icon : (icon ? 'alarm-symbolic' : INDICATOR_ICON);
-            this._iconName = name || INDICATOR_ICON;
+            const name = typeof icon === 'string' ? icon : Branding.ICON_NAME;
+            this._iconName = name || Branding.ICON_NAME;
             if (this._indicator.set_icon_full) {
                 this._indicator.set_icon_full(this._iconName, this._tooltipText || '');
             } else if (this._indicator.set_icon) {

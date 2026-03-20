@@ -33,6 +33,10 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         this._defaultIcon = options.defaultIcon && options.defaultIcon instanceof Gio.Icon
             ? options.defaultIcon
             : null;
+        /** Shown as the notification “application” name on some desktops (matches branding). */
+        this._applicationName = typeof options.applicationName === 'string' && options.applicationName.length > 0
+            ? options.applicationName
+            : null;
     }
 
     /**
@@ -58,6 +62,11 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         const notification = new Gio.Notification();
         notification.set_title(title || '');
         notification.set_body(body || '');
+        if (this._applicationName && typeof notification.set_application_name === 'function') {
+            try {
+                notification.set_application_name(this._applicationName);
+            } catch (_e) {}
+        }
         const icon = options.icon && options.icon instanceof Gio.Icon
             ? options.icon
             : this._defaultIcon;
