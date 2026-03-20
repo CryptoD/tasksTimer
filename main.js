@@ -3,16 +3,8 @@
 /*
  * taskTimer standalone GTK application entry point.
  *
- * This file is intended to become the primary entry point for running
- * taskTimer as a standalone GTK application instead of a GNOME Shell
- * extension. It currently provides a minimal GtkApplication skeleton,
- * command-line argument handling, and a placeholder window.
- *
- * Future phases are expected to:
- * - Wire this application into the shared timer logic (timers, storage, etc.).
- * - Replace GNOME Shell-specific UI pieces with GTK widgets.
- * - Extend command-line handling to support operations like starting
- *   timers directly from the CLI.
+ * Gtk `Gtk.Application` that shares timer logic with the GNOME Shell extension.
+ * Command-line flags are parsed in `_handleCommandLine` (see README: Command-line flags).
  */
 
 imports.gi.versions.Gtk = '3.0';
@@ -35,10 +27,17 @@ try {
     // Ignore if log handlers aren't supported in this runtime.
 }
 
+// Absolute path to this script (works when cwd is not the repo; used for
+// imports.searchPath and autostart `.desktop` Exec=/Path=).
+const _APP_MAIN_SCRIPT = (typeof imports.system.programPath === 'string' && imports.system.programPath.length > 0)
+    ? imports.system.programPath
+    : GLib.build_filenamev([GLib.get_current_dir(), 'main.js']);
+const _APP_ROOT_DIR = GLib.path_get_dirname(_APP_MAIN_SCRIPT);
+
 // Ensure the directory containing this script (and its submodules) is in the
 // GJS search path so that standalone modules like `context` and `platform/*`
-// can be imported when running `gjs main.js` directly.
-imports.searchPath.unshift(GLib.get_current_dir());
+// can be imported when `gjs /path/to/main.js` is run from any cwd.
+imports.searchPath.unshift(_APP_ROOT_DIR);
 
 // Some shared modules still rely on GNOME Shell's JS runtime modules
 // (e.g. `imports.misc.extensionUtils`). When GNOME Shell is installed, make
@@ -78,6 +77,19 @@ const APP_DISPLAY_NAME = 'taskTimer';
 const APP_ICON_NAME = 'alarm-symbolic';
 /** Standalone app version (aligned with taskTimer@CryptoD/metadata.json). */
 const APP_VERSION = '1.1';
+
+/**
+ * Recognized CLI option tokens (for unknown-flag warnings). Keep in sync with
+ * `_handleCommandLine` and `_printHelp`.
+ */
+const _CLI_KNOWN_OPTIONS = {
+    '--version': true,
+    '-v': true,
+    '--help': true,
+    '-h': true,
+    '--minimized': true,
+    '--test-notification': true,
+};
 
 /** Action IDs used by Gio.Notification buttons; must match names registered on GApplication. */
 const TIMER_ACTION_DISMISS = 'timerDismiss';
@@ -481,6 +493,8 @@ class TaskTimerApplication extends Gtk.Application {
         this._context = new Context.StandaloneContext({
             appId: APP_ID,
             application: this,
+            appRoot: _APP_ROOT_DIR,
+            mainScriptPath: _APP_MAIN_SCRIPT,
         });
 
         // Create a Settings instance backed by the standalone JSON
@@ -682,31 +696,28 @@ class TaskTimerApplication extends Gtk.Application {
     }
 
     /**
-     * Handle command-line arguments. Supports:
-     * - --version / -v: print version and exit
-     * - --help / -h: print usage and exit
-     * - --minimized: start with window hidden (tray if available)
-     * - --test-notification: show a test notification on startup
+     * Gtk.Application command-line entry. Delegates parsing to `_handleCommandLine`.
      */
     vfunc_command_line(commandLine) {
         const argv = commandLine.get_arguments();
         const args = Array.prototype.slice.call(argv, 1);
+        const programName = argv.length > 0 ? argv[0] : null;
 
-        // --version: print version and exit (do not activate UI).
-        if (args.indexOf('--version') >= 0 || args.indexOf('-v') >= 0) {
+        const parsed = this._handleCommandLine(args);
+
+        if (parsed.exitKind === 'version') {
             print(`${APP_DISPLAY_NAME} ${APP_VERSION}`);
             this.quit();
             return 0;
         }
-
-        // --help: print usage and exit (do not activate UI).
-        if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-            this._printHelp(argv[0]);
+        if (parsed.exitKind === 'help') {
+            this._printHelp(programName);
             this.quit();
             return 0;
         }
 
-        this._handleCommandLine(args);
+        this._startMinimized = parsed.startMinimized;
+        this._testNotification = parsed.testNotification;
         this.activate();
         return 0;
     }
@@ -722,20 +733,49 @@ ${APP_DISPLAY_NAME} – kitchen and task timer.
 Options:
   -h, --help              Show this help and exit.
   -v, --version           Show version and exit.
-  --minimized             Start with the window hidden (in tray if available).
-  --test-notification     Show a test notification on startup (for testing).`);
+  --minimized             Start with the main window hidden (tray icon only if tray is available).
+  --test-notification     Show a test notification on startup (for testing).
+
+Run with no options to open the main window.`);
     }
 
+    /**
+     * Parse argv after the program name. Handles early-exit flags first, then
+     * runtime flags. Logs a warning for unknown options (tokens starting with `-`).
+     *
+     * @param {string[]} args - Arguments from `gjs main.js …` (excluding argv[0]).
+     * @returns {{ exitKind: 'version'|'help'|null, startMinimized: boolean, testNotification: boolean }}
+     */
     _handleCommandLine(args) {
-        if (args.indexOf('--minimized') >= 0) {
-            this._startMinimized = true;
+        const has = (flag) => args.indexOf(flag) >= 0;
+
+        if (has('--version') || has('-v')) {
+            return { exitKind: 'version', startMinimized: false, testNotification: false };
         }
-        if (args.indexOf('--test-notification') >= 0) {
-            this._testNotification = true;
+        if (has('--help') || has('-h')) {
+            return { exitKind: 'help', startMinimized: false, testNotification: false };
         }
-        if (args.length > 0) {
+
+        const result = {
+            exitKind: null,
+            startMinimized: has('--minimized'),
+            testNotification: has('--test-notification'),
+        };
+
+        const unknown = [];
+        for (let i = 0; i < args.length; i++) {
+            const a = args[i];
+            if (a.length > 0 && a.charAt(0) === '-' && !_CLI_KNOWN_OPTIONS[a]) {
+                unknown.push(a);
+            }
+        }
+        if (unknown.length > 0) {
+            log(`taskTimer: unknown option(s): ${unknown.join(', ')} — try --help`);
+        } else if (args.length > 0) {
             log(`taskTimer CLI arguments: ${JSON.stringify(args)}`);
         }
+
+        return result;
     }
 });
 

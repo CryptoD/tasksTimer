@@ -29,15 +29,10 @@ The repository now also contains a **standalone GTK application entry point** in
 - **Type**: GJS `Gtk.Application` with `Gio.ApplicationFlags.HANDLES_COMMAND_LINE`
 - **Application class**: `TaskTimerApplication` (extends `Gtk.Application`)
 - **Current behavior**:
-  - Implements the GTK application lifecycle:
-    - `vfunc_startup()` – one-time initialization hook (currently logs startup; future home for wiring timers, storage, settings, etc.).
-    - `vfunc_activate()` – creates/presents the main `Gtk.ApplicationWindow` and placeholder content.
-    - `vfunc_shutdown()` – final cleanup hook (destroys the window and logs shutdown; future home for “save all timers” and other teardown work).
-  - Handles command-line arguments via `vfunc_command_line()` and `_handleCommandLine(args)` (currently only logs arguments for debugging/future routing).
+  - Implements the GTK application lifecycle (`vfunc_startup`, `vfunc_activate`, `vfunc_shutdown`) with timers, JSON settings, tray, and notifications.
+  - Parses command-line options in `vfunc_command_line()` / `_handleCommandLine()` in `main.js` (see **Command-line flags** below).
 - **Planned behavior (future phases)**:
-  - Initialize the shared timer core (currently used by the GNOME Shell extension).
-  - Provide a GTK-based UI (menu, timers list, controls) mapped to the existing timer logic.
-  - Support CLI operations such as starting timers directly from the terminal.
+  - Optional CLI operations such as starting timers directly from the terminal (non-flag arguments).
 
 ### Running the GTK application
 
@@ -49,19 +44,25 @@ gjs main.js [arguments...]
 
 Examples:
 
-- Run with no arguments (just opens the window):
+```bash
+gjs main.js
+gjs main.js --minimized
+gjs main.js --version
+gjs main.js --help
+```
 
-  ```bash
-  gjs main.js
-  ```
+### Command-line flags
 
-- Run with placeholder arguments (currently only logged for debugging/future use):
+Parsed in `_handleCommandLine()` (`main.js`). Unknown options (`-…` tokens that are not listed) log a warning and suggest `--help`.
 
-  ```bash
-  gjs main.js --start-timer 25m "Write report"
-  ```
+| Flag | Short | Meaning |
+|------|--------|---------|
+| `--help` | `-h` | Print usage and exit (does not start the UI). |
+| `--version` | `-v` | Print name and version and exit (does not start the UI). |
+| `--minimized` | — | After startup, keep the main window hidden (use tray if available). |
+| `--test-notification` | — | After startup, show a one-off test notification (for debugging). |
 
-Developers extending CLI behavior should add parsing and dispatching logic inside `_handleCommandLine(args)` in `main.js`, keeping all CLI handling in that single location.
+Developers adding new flags should update `_CLI_KNOWN_OPTIONS`, `_handleCommandLine`, `_printHelp`, and this table.
 
 ## Implementation details
 
