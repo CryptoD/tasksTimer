@@ -31,6 +31,7 @@ The repository now also contains a **standalone GTK application entry point** in
 - **Current behavior**:
   - Implements the GTK application lifecycle (`vfunc_startup`, `vfunc_activate`, `vfunc_shutdown`) with timers, JSON settings, tray, and notifications.
   - Parses command-line options in `vfunc_command_line()` / `_handleCommandLine()` in `main.js` (see **Command-line flags** below).
+  - **Startup notification** ([freedesktop spec](https://specifications.freedesktop.org/startup-notification-spec/)): when launched from a `.desktop` or panel with `DESKTOP_STARTUP_ID`, the main window calls `Gtk.Window.set_startup_id()` and, after the first `present()`, `Gdk.notify_startup_complete()` once (see `StandaloneGtkPlatform` in `platform/standalone/gtk_platform.js`). This clears the “starting” / busy launcher feedback and avoids confusion when the app stays in the tray (`--minimized`). Autostart entries use `StartupNotify=true`.
 - **Planned behavior (future phases)**:
   - Optional CLI operations such as starting timers directly from the terminal (non-flag arguments).
 

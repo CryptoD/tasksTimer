@@ -131,6 +131,43 @@ class StandaloneGtkPlatform extends GObject.Object {
         this._volumeBannerLabel = null;
         this._trayUpdateId = null;
         this._presetManagementWindow = null;
+        /** Freedesktop startup-notification: complete once after first window is ready. */
+        this._startupNotifyScheduled = false;
+        this._startupNotifyDone = false;
+    }
+
+    /**
+     * Tell the session / launcher that startup is finished (stops “busy” cursor on
+     * the taskbar icon). Paired with `Gtk.Window.set_startup_id()` from
+     * `DESKTOP_STARTUP_ID`. We disable GTK’s auto notify and call
+     * `Gdk.notify_startup_complete()` once ourselves so `--minimized` still completes.
+     */
+    _completeStartupNotificationOnce() {
+        if (this._startupNotifyDone) {
+            return;
+        }
+        this._startupNotifyDone = true;
+        try {
+            if (Gdk.notify_startup_complete) {
+                Gdk.notify_startup_complete();
+            }
+        } catch (e) {
+            log('taskTimer: Gdk.notify_startup_complete failed: ' + (e && e.message ? e.message : e));
+        }
+        try {
+            GLib.unsetenv('DESKTOP_STARTUP_ID');
+        } catch (_e) {}
+    }
+
+    _scheduleStartupNotificationComplete() {
+        if (this._startupNotifyScheduled) {
+            return;
+        }
+        this._startupNotifyScheduled = true;
+        GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            this._completeStartupNotificationOnce();
+            return false;
+        });
     }
 
     /** Display name for window titles, tray tooltip, and menu labels (e.g. "taskTimer"). */
@@ -1160,9 +1197,10 @@ class StandaloneGtkPlatform extends GObject.Object {
 
             this._window.add(mainVbox);
 
-            // Startup notification: associate this window with the launcher request
-            // (e.g. desktop file or panel) so the compositor can show feedback and
-            // focus correctly. Unset the env var after use so child processes don't inherit it.
+            // Startup notification (freedesktop.org): bind this window to the launcher
+            // click so the session can track focus / “starting…” state. Completion is
+            // signaled once via Gdk.notify_startup_complete() in _scheduleStartupNotificationComplete
+            // (after present), so `--minimized` still clears the launcher busy state.
             const startupId = GLib.getenv('DESKTOP_STARTUP_ID');
             if (startupId && typeof this._window.set_startup_id === 'function') {
                 try {
@@ -1170,9 +1208,11 @@ class StandaloneGtkPlatform extends GObject.Object {
                 } catch (e) {
                     log('taskTimer: set_startup_id failed: ' + (e && e.message ? e.message : e));
                 }
+            }
+            if (typeof this._window.set_auto_startup_notification === 'function') {
                 try {
-                    GLib.unsetenv('DESKTOP_STARTUP_ID');
-                } catch (e2) {}
+                    this._window.set_auto_startup_notification(false);
+                } catch (_e) {}
             }
 
             this._window.show_all();
@@ -1187,6 +1227,9 @@ class StandaloneGtkPlatform extends GObject.Object {
         this._tray.show();
         this._startTrayUpdates();
         this._window.present();
+        if (!this._startupNotifyDone) {
+            this._scheduleStartupNotificationComplete();
+        }
     }
 
     _syncDisplayOptionsFromSettings() {
