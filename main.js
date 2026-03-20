@@ -271,20 +271,36 @@ function _addPreferencesAction(app) {
 
 /**
  * Add app.about action. Shows a Gtk.AboutDialog with version, license (GPL-3.0),
- * and credits, accessible from the main window menu.
+ * logo, and credits; opened from the header bar menu (and tray on some platforms).
  */
 function _addAboutAction(app) {
     const aboutAction = Gio.SimpleAction.new('about', null);
     aboutAction.connect('activate', () => {
         const transient = app._platform && app._platform._window ? app._platform._window : null;
-        const dialog = new Gtk.AboutDialog({ transient_for: transient });
+        const iconName = app._iconName || APP_ICON_NAME;
+        const dialog = new Gtk.AboutDialog({
+            transient_for: transient,
+            modal: true,
+            destroy_with_parent: true,
+        });
         dialog.set_program_name(app._displayName || APP_DISPLAY_NAME);
-        dialog.set_version(APP_VERSION);
+        let versionStr = String(APP_VERSION);
+        try {
+            const mv = app._context && app._context.version;
+            if (mv !== undefined && mv !== null && String(mv).length > 0) {
+                versionStr = String(mv);
+            }
+        } catch (_e) {}
+        dialog.set_version(versionStr);
+        if (typeof dialog.set_logo_icon_name === 'function') {
+            dialog.set_logo_icon_name(iconName);
+        }
         dialog.set_comments(
             'General purpose kitchen and task timer. ' +
             'Run timers from the app or from the system tray.'
         );
         dialog.set_website('https://github.com/CryptoD/taskTimer');
+        dialog.set_website_label('Website');
         dialog.set_license_type(Gtk.License.GPL_3_0);
         dialog.set_authors(['CryptoD']);
         dialog.set_copyright('Copyright © 2024–2025 CryptoD');

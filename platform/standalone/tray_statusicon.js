@@ -157,6 +157,14 @@ var StatusIconTrayProvider = class StatusIconTrayProvider extends Platform.TrayP
         });
         menu.append(prefs);
 
+        const about = new Gtk.MenuItem({ label: 'About' });
+        about.connect('activate', () => {
+            if (app && app.activate_action) {
+                app.activate_action('about', null);
+            }
+        });
+        menu.append(about);
+
         const quit = new Gtk.MenuItem({ label: 'Quit' });
         quit.connect('activate', () => {
             if (app && app.quit) {

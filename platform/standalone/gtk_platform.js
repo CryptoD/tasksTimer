@@ -217,29 +217,35 @@ class StandaloneGtkPlatform extends GObject.Object {
             show_close_button: true,
         });
 
+        // Primary menu: New, Preferences, About (GApplication actions app.*).
+        const menuModel = new Gio.Menu();
+        menuModel.append('New timer…', 'app.newTimer');
+        menuModel.append('Preferences…', 'app.preferences');
+        menuModel.append('About', 'app.about');
+        const menuBtn = new Gtk.MenuButton({
+            menu_model: menuModel,
+            direction: Gtk.ArrowType.NONE,
+        });
+        try {
+            menuBtn.set_use_popover(true);
+        } catch (_e) {}
+        try {
+            const img = Gtk.Image.new_from_icon_name('open-menu-symbolic', Gtk.IconSize.BUTTON);
+            menuBtn.set_image(img);
+            menuBtn.set_tooltip_text('Main menu');
+        } catch (_e) {
+            menuBtn.set_label('Menu');
+        }
+        hb.pack_start(menuBtn);
+
         const btnNew = new Gtk.Button({ label: 'New' });
+        btnNew.set_tooltip_text('New timer');
         btnNew.connect('clicked', () => {
             if (this._application && this._application.activate_action) {
                 this._application.activate_action('newTimer', null);
             }
         });
         hb.pack_start(btnNew);
-
-        const btnPrefs = new Gtk.Button({ label: 'Preferences' });
-        btnPrefs.connect('clicked', () => {
-            if (this._application && this._application.activate_action) {
-                this._application.activate_action('preferences', null);
-            }
-        });
-        hb.pack_end(btnPrefs);
-
-        const btnAbout = new Gtk.Button({ label: 'About' });
-        btnAbout.connect('clicked', () => {
-            if (this._application && this._application.activate_action) {
-                this._application.activate_action('about', null);
-            }
-        });
-        hb.pack_end(btnAbout);
 
         win.set_titlebar(hb);
     }
@@ -605,16 +611,25 @@ class StandaloneGtkPlatform extends GObject.Object {
             return;
         }
 
-        const appDir = GLib.get_current_dir();
-        const mainPath = GLib.build_filenamev([appDir, 'main.js']);
+        const ctx = this._context;
+        const appDir = (ctx && typeof ctx.appRoot === 'string' && ctx.appRoot.length > 0)
+            ? ctx.appRoot
+            : GLib.get_current_dir();
+        const mainPath = (ctx && typeof ctx.mainScriptPath === 'string' && ctx.mainScriptPath.length > 0)
+            ? ctx.mainScriptPath
+            : GLib.build_filenamev([appDir, 'main.js']);
         const execLine = 'gjs "' + mainPath.replace(/"/g, '\\"') + '"';
+        const iconName = this._iconName || 'alarm-symbolic';
         const lines = [
             '[Desktop Entry]',
             'Type=Application',
             'Name=' + this.getDisplayName(),
             'Comment=Kitchen and task timer',
+            'Icon=' + iconName,
             'Exec=' + execLine,
             'Path=' + appDir,
+            'Terminal=false',
+            'StartupNotify=true',
             'X-GNOME-Autostart-enabled=true',
             '',
         ];
