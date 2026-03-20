@@ -422,7 +422,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             xalign: 0,
             wrap: true,
         });
-        if (timer.expired || timer.running) {
+        if (timer.expired || timer.running || timer.paused) {
             title.get_style_context().add_class('timer-title-emphasis');
         }
 
@@ -431,7 +431,18 @@ class StandaloneGtkPlatform extends GObject.Object {
             halign: Gtk.Align.START,
             xalign: 0,
         });
+        secondary.get_style_context().add_class('timer-row-secondary');
         secondary.get_style_context().add_class('dim-label');
+        if (timer.expired) {
+            secondary.get_style_context().remove_class('dim-label');
+            secondary.get_style_context().add_class('timer-secondary-expired');
+        } else if (timer.running) {
+            secondary.get_style_context().remove_class('dim-label');
+            secondary.get_style_context().add_class('timer-secondary-running');
+        } else if (timer.paused) {
+            secondary.get_style_context().remove_class('dim-label');
+            secondary.get_style_context().add_class('timer-secondary-paused');
+        }
 
         row.get_style_context().add_class('timer-list-item');
         if (timer.expired) {

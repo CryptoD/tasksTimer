@@ -91,10 +91,26 @@ class TimerListItem extends Gtk.ListBoxRow {
         try {
             const titleCtx = this._title.get_style_context();
             titleCtx.remove_class(emphasisClass);
-            if (expired || running) {
+            if (expired || running || paused) {
                 titleCtx.add_class(emphasisClass);
             }
         } catch (_e) {}
+
+        const secCtx = this._secondary.get_style_context();
+        ['timer-secondary-running', 'timer-secondary-expired', 'timer-secondary-paused'].forEach(c => {
+            try { secCtx.remove_class(c); } catch (_e) {}
+        });
+        try { secCtx.add_class('dim-label'); } catch (_e2) {}
+        if (expired) {
+            try { secCtx.remove_class('dim-label'); } catch (_e3) {}
+            secCtx.add_class('timer-secondary-expired');
+        } else if (running) {
+            try { secCtx.remove_class('dim-label'); } catch (_e3) {}
+            secCtx.add_class('timer-secondary-running');
+        } else if (paused) {
+            try { secCtx.remove_class('dim-label'); } catch (_e3) {}
+            secCtx.add_class('timer-secondary-paused');
+        }
 
         const progressCtx = this._progress.get_style_context();
         ['timer-progress-active', 'timer-progress-expired'].forEach(c => {
@@ -158,6 +174,7 @@ class TimerListItem extends Gtk.ListBoxRow {
             halign: Gtk.Align.START,
             xalign: 0,
         });
+        this._secondary.get_style_context().add_class('timer-row-secondary');
         this._secondary.get_style_context().add_class('dim-label');
 
         this._progress = new Gtk.ProgressBar({

@@ -13,55 +13,114 @@ window.tasktimer-preferences {
   background-color: #f5e6c8;
 }
 
-/* Timer list item states: visual cues + accessibility (bold/outline, not color alone) */
+/*
+ * Timer list rows — state cues use:
+ *   - left border + background (not color alone)
+ *   - bold title / weighted secondary text
+ *   - focus ring for keyboard navigation
+ * Secondary line: .timer-row-secondary + state class (dim-label only when idle).
+ */
 
 .timer-list-item {
-  border-radius: 4px;
-  padding: 2px 0;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+  padding: 2px 0 2px 4px;
+  margin-left: 2px;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
 }
 
+.timer-list-item:focus {
+  outline: 2px solid alpha(@theme_selected_bg_color, 0.55);
+  outline-offset: 1px;
+}
+
+/* Running: theme accent strip + inset highlight */
 .timer-list-item.timer-running {
-  background-color: alpha(@theme_selected_bg_color, 0.15);
-  border-left: 3px solid @theme_selected_bg_color;
-  margin-left: 2px;
-  padding-left: 4px;
+  background-color: alpha(@theme_selected_bg_color, 0.2);
+  border-left-color: @theme_selected_bg_color;
+  box-shadow: inset 0 0 0 1px alpha(@theme_selected_bg_color, 0.18);
 }
 
-.timer-list-item.timer-paused {
-  background-color: alpha(alpha(currentColor, 0.03), 0.5);
-  opacity: 0.9;
-}
-
+/* Expired / alarm: error tone — border + background; text uses .timer-secondary-expired */
 .timer-list-item.timer-expired {
-  background-color: alpha(#ef2929, 0.12);
-  border-left: 3px solid #ef2929;
-  margin-left: 2px;
-  padding-left: 4px;
+  background-color: alpha(#cc0000, 0.14);
+  border-left-color: #cc0000;
+  box-shadow: inset 0 0 0 1px alpha(#cc0000, 0.12);
+}
+
+/* Paused: dashed border, muted fill */
+.timer-list-item.timer-paused {
+  background-color: alpha(currentColor, 0.06);
+  border-left-color: alpha(currentColor, 0.45);
+  border-left-style: dashed;
 }
 
 .timer-title-emphasis {
-  font-weight: bold;
+  font-weight: 700;
 }
 
-/* Progress bar: highlight when active, urgent when expired (GTK3 node: progressbar) */
+/* Secondary line: idle = dim; active states = stronger (still paired with row border) */
+.timer-row-secondary.timer-secondary-running {
+  opacity: 0.95;
+  font-weight: 600;
+}
+
+.timer-row-secondary.timer-secondary-expired {
+  opacity: 1;
+  font-weight: 700;
+  color: #a40000;
+}
+
+.timer-row-secondary.timer-secondary-paused {
+  opacity: 0.92;
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* Progress bar: running vs expired */
 
 progressbar.timer-progress-active trough {
-  min-height: 8px;
+  min-height: 10px;
+  border-radius: 4px;
   background-color: alpha(currentColor, 0.08);
 }
 
 progressbar.timer-progress-active progress {
-  min-height: 8px;
+  min-height: 10px;
+  border-radius: 4px;
   background-color: @theme_selected_bg_color;
+  box-shadow: 0 0 0 1px alpha(@theme_selected_bg_color, 0.35);
 }
 
 progressbar.timer-progress-expired trough {
-  min-height: 8px;
-  background-color: alpha(#ef2929, 0.15);
+  min-height: 10px;
+  border-radius: 4px;
+  background-color: alpha(#cc0000, 0.18);
 }
 
 progressbar.timer-progress-expired progress {
-  min-height: 8px;
-  background-color: #cc0000;
+  min-height: 10px;
+  border-radius: 4px;
+  background-color: #a40000;
+  box-shadow: 0 0 0 1px alpha(#cc0000, 0.4);
 }
 
+@media (prefers-color-scheme: dark) {
+  .timer-list-item.timer-expired {
+    background-color: alpha(#f66151, 0.16);
+    border-left-color: #f66151;
+    box-shadow: inset 0 0 0 1px alpha(#f66151, 0.15);
+  }
+
+  .timer-row-secondary.timer-secondary-expired {
+    color: #ff8c82;
+  }
+
+  progressbar.timer-progress-expired trough {
+    background-color: alpha(#f66151, 0.22);
+  }
+
+  progressbar.timer-progress-expired progress {
+    background-color: #e01b24;
+  }
+}
