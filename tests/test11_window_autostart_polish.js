@@ -103,6 +103,7 @@ function testAutostartDesktopCreateAndRemove() {
         assert(text.indexOf('Name=taskTimer') >= 0, 'desktop has Name=taskTimer');
         assert(text.indexOf('Exec=') >= 0, 'desktop has Exec=');
         assert(text.indexOf('Path=') >= 0, 'desktop has Path=');
+        assert(text.indexOf('Categories=Utility') >= 0, 'desktop has Categories');
         assert(text.indexOf('X-GNOME-Autostart-enabled=true') >= 0, 'desktop has X-GNOME-Autostart-enabled');
 
         platform.updateAutostartDesktop(false);

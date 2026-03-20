@@ -69,6 +69,18 @@ Developers adding new flags should update `_CLI_KNOWN_OPTIONS`, `_handleCommandL
 
 Single source of truth: `platform/standalone/branding.js` (`APP_ID`, `DISPLAY_NAME`, `ICON_NAME`). `main.js` uses these for `Gtk.Application` (`application_id`), default window icons, and About dialog text. `StandaloneGtkPlatform` passes the same display name and icon to the main window, tray, `Gio.Notification` (including `set_application_name` when supported), and the autostart `.desktop` file (`Name`, `Icon`, `StartupWMClass`).
 
+### Autostart on login (standalone)
+
+The standalone app can register an [XDG autostart](https://specifications.freedesktop.org/autostart-spec/autostart-spec-latest.html) entry so it launches after you log in:
+
+| What | Where |
+|------|--------|
+| **Setting** | Preferences → General → **Start when you log in** (JSON key `autostart` in `~/.config/tasktimer/config.json`) |
+| **File created** | `~/.config/autostart/tasktimer.desktop` |
+| **When removed** | Turn the setting off — the file is deleted |
+
+**Code path:** `Settings.autostart` → `Settings._onAutostartChange` (assigned in `main.js` during startup) → `StandaloneGtkPlatform.updateAutostartDesktop(enabled)`. On each app start, the `.desktop` file is synced with the saved boolean. `Exec`/`Path` use absolute paths from `StandaloneContext` (`appRoot`, `mainScriptPath`) so login works even if the install directory is not the current working directory.
+
 ## Implementation details
 
 Theme customization is handled via the `theme-variant` and `menu-max-width` GSettings keys.
