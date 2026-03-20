@@ -665,11 +665,13 @@ class TaskTimerApplication extends Gtk.Application {
     vfunc_shutdown() {
         // This method is called once when the application is exiting.
         // Use it to flush state (e.g. save timers) and clean up resources.
-        //
-        // Future work: integrate with the shared timer manager and invoke a
-        // "save all timers" operation here so that standalone runs can
-        // persist their state similarly to the GNOME Shell extension.
         log('taskTimer: application shutdown');
+        // Persist main window geometry (tray Quit does not emit window delete-event).
+        try {
+            if (this._platform && typeof this._platform.saveWindowState === 'function') {
+                this._platform.saveWindowState();
+            }
+        } catch (_e) {}
         // Ensure GStreamer elements are released cleanly (avoid READY disposal warnings).
         try {
             if (this._services && this._services.audio && typeof this._services.audio.shutdown === 'function') {

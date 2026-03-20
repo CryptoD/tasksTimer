@@ -521,6 +521,14 @@ class StandaloneGtkPlatform extends GObject.Object {
         // No-op for now; main window is created on demand in showMainWindow().
     }
 
+    /**
+     * Persist main window geometry to JSON config (via Settings / JSONSettingsProvider).
+     * Call on close, hide-to-tray, and application shutdown so state survives tray quit.
+     */
+    saveWindowState() {
+        this._saveWindowState();
+    }
+
     _saveWindowState() {
         const win = this._window;
         const settings = this._application && this._application._services
@@ -640,14 +648,15 @@ class StandaloneGtkPlatform extends GObject.Object {
             this._addHeaderBar(this._window);
 
             this._window.connect('delete-event', () => {
-                this._saveWindowState();
                 const settings = this._application && this._application._services
                     ? this._application._services.settings
                     : null;
                 if (settings && settings.minimize_to_tray) {
+                    // hideMainWindow() persists geometry then hides (no quit).
                     this.hideMainWindow();
                     return true; // prevent destroy/quit
                 }
+                this._saveWindowState();
                 return false;
             });
 
@@ -1181,6 +1190,7 @@ class StandaloneGtkPlatform extends GObject.Object {
 
     hideMainWindow() {
         if (this._window) {
+            this._saveWindowState();
             this._window.hide();
         }
     }
