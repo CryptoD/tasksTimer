@@ -66,8 +66,11 @@ function testAutostartDesktopCreateAndRemove() {
     const savedConfig = GLib.getenv('XDG_CONFIG_HOME');
     try {
         GLib.setenv('XDG_CONFIG_HOME', tmpDir, true);
-        if (GLib.get_user_config_dir() !== tmpDir) {
-            print('TEST 11: skip autostart file test (XDG_CONFIG_HOME not honored by GLib.get_user_config_dir)');
+        const cfgHome = GLib.get_user_config_dir();
+        const cfgFile = Gio.File.new_for_path(cfgHome);
+        const tmpFile = Gio.File.new_for_path(tmpDir);
+        if (!cfgFile.equal(tmpFile)) {
+            print('TEST 11: skip autostart file test (XDG_CONFIG_HOME not honored: ' + cfgHome + ' vs ' + tmpDir + ')');
             return;
         }
 
@@ -152,15 +155,18 @@ function testCliVersionAndHelp() {
 }
 
 // ---- Run ----
-testWindowStateAndAutostartDefaults();
+// Autostart file test must run before JSONSettingsProvider: some GLib builds cache
+// get_user_config_dir() after first use, so a later setenv(XDG_CONFIG_HOME) is ignored.
 testAutostartDesktopCreateAndRemove();
+testWindowStateAndAutostartDefaults();
 testCliVersionAndHelp();
 
 print('TEST 11 window/autostart polish: pass');
 print('');
-print('Manual checks (after reboot or in a separate session):');
-print('  1. Enable "Start when you log in" in Preferences, log out and back in:');
-print('     taskTimer should start automatically.');
-print('  2. Resize/move/maximize the main window, then close (or minimize to tray);');
-print('     reopen: size, position, and maximized state should be restored.');
-print('  3. Run with --minimized: window should start hidden (tray icon only if tray enabled).');
+print('Manual checks (full polish requires a real graphical session + reboot or re-login):');
+print('  1. Preferences → General → enable "Start when you log in", then reboot or log out/in:');
+print('     taskTimer should autostart; launcher busy state should clear (startup notification).');
+print('  2. Resize/move/maximize the main window, quit from tray or close; start again:');
+print('     size, position, and maximized state should match ~/.config/tasktimer/config.json keys.');
+print('  3. Run: gjs main.js --minimized — window should stay hidden (tray if available).');
+print('  4. Optional: disable autostart in Preferences and confirm ~/.config/autostart/tasktimer.desktop is removed.');

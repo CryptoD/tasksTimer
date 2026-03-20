@@ -716,7 +716,8 @@ class TaskTimerApplication extends Gtk.Application {
      */
     vfunc_command_line(commandLine) {
         const argv = commandLine.get_arguments();
-        const args = Array.prototype.slice.call(argv, 1);
+        // Full argv (some Gtk/GJS paths pass only flags like ['--help']); do not slice(1).
+        const args = Array.prototype.slice.call(argv);
         const programName = argv.length > 0 ? argv[0] : null;
 
         const parsed = this._handleCommandLine(args);
@@ -759,7 +760,7 @@ Run with no options to open the main window.`);
      * Parse argv after the program name. Handles early-exit flags first, then
      * runtime flags. Logs a warning for unknown options (tokens starting with `-`).
      *
-     * @param {string[]} args - Arguments from `gjs main.js …` (excluding argv[0]).
+     * @param {string[]} args - Full argv from Gio.ApplicationCommandLine (may include interpreter path).
      * @returns {{ exitKind: 'version'|'help'|null, startMinimized: boolean, testNotification: boolean }}
      */
     _handleCommandLine(args) {
@@ -787,7 +788,7 @@ Run with no options to open the main window.`);
         }
         if (unknown.length > 0) {
             log(`taskTimer: unknown option(s): ${unknown.join(', ')} — try --help`);
-        } else if (args.length > 0) {
+        } else if (args.length > 1) {
             log(`taskTimer CLI arguments: ${JSON.stringify(args)}`);
         }
 

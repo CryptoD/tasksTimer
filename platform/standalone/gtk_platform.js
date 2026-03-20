@@ -597,6 +597,11 @@ class StandaloneGtkPlatform extends GObject.Object {
             : null;
         if (!win || !settings || typeof settings.window_width === 'undefined') return;
         try {
+            if (typeof win.get_in_destruction === 'function' && win.get_in_destruction()) {
+                return;
+            }
+        } catch (_e) {}
+        try {
             if (win.get_realized && win.get_realized()) {
                 const [w, h] = win.get_size ? win.get_size() : [900, 560];
                 const [x, y] = win.get_position ? win.get_position() : [-1, -1];
