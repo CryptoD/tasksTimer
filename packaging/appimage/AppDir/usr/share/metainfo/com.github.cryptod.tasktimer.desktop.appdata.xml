@@ -4,14 +4,47 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>taskTimer</name>
-  <summary>General purpose kitchen and task timer</summary>
+  <summary>General-purpose kitchen and task timer for the desktop</summary>
+  <summary xml:lang="fr">Minuteur de cuisine et de tâches pour le bureau</summary>
   <description>
-    <p>Timer application with a GTK interface. The AppImage bundles application scripts and data; the system provides gjs, GTK 3, and GObject-Introspection.</p>
+    <p>
+      taskTimer helps you track cooking steps, work sessions, or any timed activity. Create
+      multiple named timers, see remaining time at a glance, and get notified when time is up.
+      The standalone build uses GTK 3 with optional system tray support and desktop notifications.
+    </p>
+    <p>
+      Originally a GNOME Shell extension, taskTimer shares the same timer core between the
+      extension and this desktop application.
+    </p>
+    <p xml:lang="fr">
+      taskTimer suit la cuisson, le travail en sessions ou toute activité chronométrée. Créez
+      plusieurs minuteurs nommés, consultez le temps restant et recevez une alerte à la fin.
+    </p>
   </description>
   <launchable type="desktop-id">com.github.cryptod.tasktimer.desktop</launchable>
-  <url type="homepage">https://github.com/CryptoD/taskTimer</url>
+  <categories>
+    <category>Utility</category>
+    <category>Clock</category>
+  </categories>
+  <keywords>
+    <keyword>timer</keyword>
+    <keyword>alarm</keyword>
+    <keyword>clock</keyword>
+    <keyword>task</keyword>
+    <keyword>kitchen</keyword>
+    <keyword>pomodoro</keyword>
+    <keyword>countdown</keyword>
+  </keywords>
+  <url type="homepage">https://github.com/CryptoD/tasksTimer</url>
+  <url type="bugtracker">https://github.com/CryptoD/tasksTimer/issues</url>
+  <developer id="io.github.cryptod">
+    <name>CryptoD</name>
+  </developer>
   <provides>
     <binary>tasktimer</binary>
   </provides>
-  <developer_name>CryptoD</developer_name>
+  <releases>
+    <release version="1.1" date="2026-03-21"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
 </component>

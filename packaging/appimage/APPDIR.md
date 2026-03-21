@@ -39,7 +39,7 @@ AppDir/
 
 - **`APPDIR`:** Must point to the **mount/root directory of the squashfs** (AppImage runtime sets this when using `AppRun` from the project template).
 - **Working directory:** `AppRun` and `usr/bin/tasktimer` **change directory to `$APPDIR`** before running `gjs`. Several modules resolve resources with `GLib.get_current_dir()` in standalone mode; keeping `cwd == APPDIR` matches development from the repo root and avoids path bugs.
-- **Freedesktop ID:** `com.github.cryptod.tasktimer` — aligned with `platform/standalone/branding.js` (`APP_ID`).
+- **Freedesktop ID:** `com.github.cryptod.tasktimer` — aligned with `platform/standalone/branding.js` (`APP_ID`). The `.desktop` file uses `Icon=com.github.cryptod.tasktimer` (see `usr/share/icons/hicolor/.../com.github.cryptod.tasktimer.svg`). A convenience symlink `packaging/appimage/tasktimer.desktop` points at that file.
 
 ## Build-time notes
 

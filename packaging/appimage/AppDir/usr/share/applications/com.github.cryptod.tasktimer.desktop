@@ -2,12 +2,14 @@
 Type=Application
 Version=1.0
 Name=taskTimer
-Comment=Kitchen and task timer
+GenericName=Task Timer
+Comment=Run multiple named timers with alarms, tray integration, and optional notifications
 Icon=com.github.cryptod.tasktimer
 Exec=tasktimer %U
 TryExec=gjs
 Terminal=false
 Categories=Utility;Clock;
-Keywords=timer;alarm;clock;task;kitchen;
+Keywords=timer;alarm;clock;task;kitchen;pomodoro;reminder;countdown;GTK;GNOME;
 StartupNotify=true
 StartupWMClass=com.github.cryptod.tasktimer
+SingleMainWindow=true
