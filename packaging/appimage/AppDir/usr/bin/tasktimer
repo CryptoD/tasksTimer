@@ -1,9 +1,29 @@
 #!/bin/sh
-# PATH helper when running from an extracted AppDir (usr/bin is on PATH).
-# Keeps APPDIR and cwd consistent with AppRun (see packaging/appimage/APPDIR.md).
+# Standalone launcher: set APPDIR, GJS/GI search paths, cwd, run gjs main.js.
+# Invoked by AppRun or from PATH when usr/bin is on PATH (see packaging/appimage/APPDIR.md).
 
-BIN=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")
-APPDIR=$(dirname "$(dirname "$BIN")")
-export APPDIR
+if [ -z "${APPDIR:-}" ]; then
+  BIN=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")
+  HERE=$(dirname "$BIN")
+  APPDIR=$(dirname "$(dirname "$HERE")")
+  export APPDIR
+fi
+
 cd "$APPDIR" || exit 1
+
+# Let GJS resolve imports from the bundle root (main.js also augments imports.searchPath).
+case ":${GJS_PATH:-}:" in
+  *:"$APPDIR":*) ;;
+  *) export GJS_PATH="$APPDIR${GJS_PATH:+:$GJS_PATH}" ;;
+esac
+
+# If typelibs are ever shipped under AppDir, prefer them before system paths.
+GI_BUNDLE="$APPDIR/usr/lib/girepository-1.0"
+if [ -d "$GI_BUNDLE" ]; then
+  case ":${GI_TYPELIB_PATH:-}:" in
+    *:"$GI_BUNDLE":*) ;;
+    *) export GI_TYPELIB_PATH="$GI_BUNDLE${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}" ;;
+  esac
+fi
+
 exec gjs "$APPDIR/main.js" "$@"

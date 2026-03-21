@@ -1,9 +1,9 @@
 #!/bin/sh
-# AppImage entry: set APPDIR, cwd, and launch the GJS standalone app.
+# AppImage entry: export APPDIR, cwd, then run usr/bin/tasktimer (gjs + env).
 # Runtime: system gjs + GTK (see ../APPDIR.md).
 
 SELF=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")
 HERE=$(dirname "$SELF")
 export APPDIR="$HERE"
 cd "$HERE" || exit 1
-exec gjs "$HERE/main.js" "$@"
+exec "$HERE/usr/bin/tasktimer" "$@"

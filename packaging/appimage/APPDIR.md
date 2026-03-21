@@ -17,7 +17,7 @@ This document defines the [AppDir](https://docs.appimage.org/packaging-guide/dir
 
 ```
 AppDir/
-├── AppRun                 # Executable; sets APPDIR, cd to bundle root, exec gjs main.js
+├── AppRun                 # Sets APPDIR, cd, exec usr/bin/tasktimer
 ├── main.js                # Copied from repo root (not necessarily tracked in this template tree)
 ├── config.js
 ├── context.js
@@ -26,7 +26,7 @@ AppDir/
 ├── taskTimer@CryptoD/     # Extension tree (schemas, icons, JS, …)
 └── usr/
     ├── bin/
-    │   └── tasktimer      # Optional PATH helper; same behavior as AppRun
+    │   └── tasktimer      # Sets APPDIR (if unset), GJS_PATH, GI_TYPELIB_PATH, runs gjs main.js
     └── share/
         ├── applications/
         │   └── com.github.cryptod.tasktimer.desktop
@@ -39,6 +39,8 @@ AppDir/
 
 - **`APPDIR`:** Must point to the **mount/root directory of the squashfs** (AppImage runtime sets this when using `AppRun` from the project template).
 - **Working directory:** `AppRun` and `usr/bin/tasktimer` **change directory to `$APPDIR`** before running `gjs`. Several modules resolve resources with `GLib.get_current_dir()` in standalone mode; keeping `cwd == APPDIR` matches development from the repo root and avoids path bugs.
+- **GJS / GObject-Introspection paths:** `usr/bin/tasktimer` prepends `$APPDIR` to `GJS_PATH` (if not already present) so GJS can resolve modules from the bundle. If `usr/lib/girepository-1.0` exists under the AppDir (e.g. future bundled typelibs), that directory is prepended to `GI_TYPELIB_PATH`; otherwise the host system typelibs are used unchanged.
+- **Flow:** `AppRun` exports `APPDIR`, `cd`s to the bundle root, then `exec`s `usr/bin/tasktimer`. The `.desktop` file’s `Exec=tasktimer` relies on the same script when `usr/bin` is on `PATH` inside the image.
 - **Freedesktop ID:** `com.github.cryptod.tasktimer` — aligned with `platform/standalone/branding.js` (`APP_ID`). The `.desktop` file uses `Icon=com.github.cryptod.tasktimer` (see `usr/share/icons/hicolor/.../com.github.cryptod.tasktimer.svg`). A convenience symlink `packaging/appimage/tasktimer.desktop` points at that file.
 
 ## Build-time notes
