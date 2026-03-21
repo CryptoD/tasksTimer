@@ -22,7 +22,7 @@ Exit `2` means Docker is missing (skip in that environment).
 
 ### Expected log noise on a clean system
 
-- **GSettings migration:** A logged warning that schema `org.gnome.shell.extensions.kitchen-timer-blackjackshellac` is missing is **expected** when the extension schema is not installed; the app continues with **JSON** settings (`~/.config/tasktimer/`).
+- **GSettings migration:** A single line such as `GSettings schema not available; using JSON defaults` is **expected** when the extension schema is not installed; the app continues with **JSON** settings (`~/.config/tasktimer/`).
 - **Gvc / volume:** “volume warning unavailable (Gvc not used)” is **expected** without GNOME’s volume control typelibs; timers and alarms still work.
 
 These are **not** treated as test failures for the automated script.

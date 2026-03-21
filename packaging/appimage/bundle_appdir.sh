@@ -3,7 +3,7 @@
 # and compiled gettext catalogs under usr/share/locale/.
 #
 # Requires: ImageMagick `convert` (SVG→PNG), GNU gettext `msgfmt`.
-# Usage: from repo root —  packaging/appimage/bundle_appdir.sh
+# Usage:  packaging/appimage/bundle_appdir.sh  (any cwd; resolves repo from script path)
 
 set -euo pipefail
 

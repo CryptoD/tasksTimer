@@ -211,10 +211,14 @@ function _maybeMigrateFromGSettings(data) {
         data.migrated_from_gsettings = true;
         log('taskTimer: migrated settings from GSettings to JSON config');
     } catch (e) {
-        // Most likely the schema is not installed, or this environment does
-        // not support GSettings for the extension. In that case we simply
-        // keep JSON defaults and mark migration as done to avoid retrying.
-        logError(e, 'taskTimer: failed to migrate settings from GSettings; continuing with JSON defaults');
+        // Most often the extension schema is not installed (AppImage, tests,
+        // non-GNOME). That case is expected; only unexpected errors use logError.
+        const msg = e && e.message ? String(e.message) : '';
+        if (msg.indexOf('not found') >= 0 || msg.indexOf('No such schema') >= 0) {
+            log('taskTimer: GSettings schema not available; using JSON defaults');
+        } else {
+            logError(e, 'taskTimer: failed to migrate settings from GSettings');
+        }
         data.migrated_from_gsettings = true;
     }
 }

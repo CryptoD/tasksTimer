@@ -13,10 +13,25 @@
 const { Gio, GLib } = imports.gi;
 const Config = imports.config;
 
+function _appRootDirForMetadata() {
+    try {
+        const p = imports.system.programPath;
+        if (typeof p === 'string' && p.length > 0) {
+            const base = GLib.path_get_basename(p);
+            if (base === 'main.js') {
+                return GLib.path_get_dirname(p);
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+    return GLib.get_current_dir();
+}
+
 // Path to the extension metadata, used as a source of name/description/version
 // information until a dedicated standalone metadata file is introduced.
 const METADATA_PATH = GLib.build_filenamev([
-    GLib.get_current_dir(),
+    _appRootDirForMetadata(),
     'taskTimer@CryptoD',
     'metadata.json',
 ]);

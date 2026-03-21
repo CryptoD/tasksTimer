@@ -1,29 +1,36 @@
 #!/bin/bash
+# Pack the GNOME Shell extension into a .zip for extensions.gnome.org or local install.
+# Run from repository root:  bin/pack.sh
+set -euo pipefail
 
-ed=taskTimer@CryptoD
-[ ! -d $ed ] && echo "Extension dir $ed not found" && exit 1
-cd $ed
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ED="taskTimer@CryptoD"
+ED_DIR="$ROOT/$ED"
 
-#kitchen-timer-blackjackshellac
-extra_source=$(ls -1 *.js | grep -v prefs.js | grep -v extension.js)
-extra_source="$extra_source $(ls *.ogg *.ui)"
-[ ! -d $ed ] && echo "Extension dir $ed not found" && exit 1
-cd $ed
+if [ ! -d "$ED_DIR" ]; then
+  echo "Extension dir $ED not found" >&2
+  exit 1
+fi
 
-#kitchen-timer-blackjackshellac
-extra_source=$(ls -1 *.js | grep -v prefs.js | grep -v extension.js)
-extra_source="$extra_source $(ls *.ogg *.ui)"
-extra_source="$extra_source"
-echo $extra_source
-eso=""
-for es in $extra_source; do
-	echo "Adding extra $es"
-	sed -i 's|--schema=schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml --gettext-domain=kitchen-timer-blackjackshellac|--schema=schemas/org.gnome.shell.extensions.tasktimer.gschema.xml --gettext-domain=tasktimer|' bin/pack.sh
-	eso="$eso --extra-source=$es"
+cd "$ED_DIR"
+
+args=(--podir=po/
+  --schema=schemas/org.gnome.shell.extensions.tasktimer.gschema.xml
+  --gettext-domain=tasktimer)
+
+shopt -s nullglob
+for f in *.js; do
+  case "$f" in
+    prefs.js|extension.js) ;;
+    *) args+=(--extra-source="$f") ;;
+  esac
 done
+for f in *.ogg *.ui; do
+  args+=(--extra-source="$f")
+done
+shopt -u nullglob
 
-eso="$eso --extra-source=./icons/ --extra-source=./bin/"
+args+=(--extra-source=./icons/ --extra-source=./bin/ -o ../ --force)
 
-cmd="gnome-extensions pack --podir=po/ --schema=schemas/org.gnome.shell.extensions.kitchen-timer-blackjackshellac.gschema.xml --gettext-domain=kitchen-timer-blackjackshellac $eso -o ../ --force"
-echo $cmd
-$cmd
+echo "gnome-extensions pack ${args[*]}"
+exec gnome-extensions pack "${args[@]}"
