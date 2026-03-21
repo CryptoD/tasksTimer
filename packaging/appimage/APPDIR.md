@@ -18,6 +18,9 @@ This document defines the [AppDir](https://docs.appimage.org/packaging-guide/dir
 ```
 AppDir/
 ├── AppRun                 # Sets APPDIR, cd, exec usr/bin/tasktimer
+├── com.github.cryptod.tasktimer.desktop  # Symlink → usr/share/applications/… (appimagetool)
+├── com.github.cryptod.tasktimer.png      # Symlink → usr/share/icons/hicolor/256x256/… (appimagetool)
+├── com.github.cryptod.tasktimer.svg      # Symlink → usr/share/icons/hicolor/scalable/…
 ├── main.js                # Copied from repo root (not necessarily tracked in this template tree)
 ├── config.js
 ├── context.js
@@ -34,14 +37,15 @@ AppDir/
         │   └── hicolor/   # See “Icons” below; maintain via bundle_appdir.sh
         ├── locale/        # <lang>/LC_MESSAGES/tasktimer.mo — bundle_appdir.sh or po_compile.sh
         └── metainfo/
-            └── com.github.cryptod.tasktimer.desktop.appdata.xml
+            └── com.github.cryptod.tasktimer.appdata.xml
 ```
 
 - **`APPDIR`:** Must point to the **mount/root directory of the squashfs** (AppImage runtime sets this when using `AppRun` from the project template).
 - **Working directory:** `AppRun` and `usr/bin/tasktimer` **change directory to `$APPDIR`** before running `gjs`. Several modules resolve resources with `GLib.get_current_dir()` in standalone mode; keeping `cwd == APPDIR` matches development from the repo root and avoids path bugs.
 - **GJS / GObject-Introspection paths:** `usr/bin/tasktimer` prepends `$APPDIR` to `GJS_PATH` (if not already present) so GJS can resolve modules from the bundle. If `usr/lib/girepository-1.0` exists under the AppDir (e.g. future bundled typelibs), that directory is prepended to `GI_TYPELIB_PATH`; otherwise the host system typelibs are used unchanged.
 - **Flow:** `AppRun` exports `APPDIR`, `cd`s to the bundle root, then `exec`s `usr/bin/tasktimer`. The `.desktop` file’s `Exec=tasktimer` relies on the same script when `usr/bin` is on `PATH` inside the image.
-- **Freedesktop ID:** `com.github.cryptod.tasktimer` — aligned with `platform/standalone/branding.js` (`APP_ID`). The `.desktop` file uses `Icon=com.github.cryptod.tasktimer` (see `usr/share/icons/hicolor/.../com.github.cryptod.tasktimer.svg`). A convenience symlink `packaging/appimage/tasktimer.desktop` points at that file.
+- **Freedesktop ID:** `com.github.cryptod.tasktimer` — aligned with `platform/standalone/branding.js` (`APP_ID`). The `.desktop` file uses `Icon=com.github.cryptod.tasktimer` (see `usr/share/icons/hicolor/...`). A convenience symlink `packaging/appimage/tasktimer.desktop` points at the canonical desktop file under `usr/share/applications/`.
+- **appimagetool:** expects the primary `.desktop` and the icon named in `Icon=` as **symlinks in the AppDir root** (see [AppImage packaging](https://docs.appimage.org/packaging-guide/directory-structure.html)). `build-appimage.sh` creates those links after icons are installed.
 
 ## Icons (`usr/share/icons/hicolor`)
 
@@ -60,8 +64,28 @@ Compiled catalogs live at `usr/share/locale/<lang>/LC_MESSAGES/tasktimer.mo`, bu
 
 ## Build-time notes
 
-1. Copy or sync the **repository payload** (files at the root of `AppDir/` above) into `AppDir/` before running `appimagetool` (or your builder).
-2. Run **`packaging/appimage/bundle_appdir.sh`** to refresh **icons** (all sizes + symbolic) and **locale** `.mo` files under `usr/share/`.
+### One-shot AppImage (`build-appimage.sh`)
+
+From the repository root:
+
+```bash
+packaging/appimage/build-appimage.sh
+```
+
+This script:
+
+1. **Syncs** `main.js`, `config.js`, `context.js`, `i18n.js`, `platform/`, and `taskTimer@CryptoD/` into `packaging/appimage/AppDir/` (overwriting previous build output).
+2. Runs **`bundle_appdir.sh`** to refresh **icons** and **`usr/share/locale`**. Use `--skip-bundle` if those are already up to date.
+3. Runs **[appimagetool](https://github.com/AppImage/appimagetool)** to produce **`packaging/appimage/dist/tasktimer-<version>-<arch>.AppImage`**.
+
+If `appimagetool` is not on `PATH`, the script downloads the continuous build from GitHub into `$XDG_CACHE_HOME/tasktimer-appimage/` (override with `APPIMAGETOOL=/path/to/appimagetool`). Use `--no-download` to require a local install.
+
+**linuxdeploy** / **appimage-builder** are not used: this is a thin GJS bundle (system `gjs`/GTK). linuxdeploy is aimed at collecting ELF dependencies; appimage-builder expects a recipe file. **appimagetool** is the usual tool for a finished AppDir.
+
+### Manual steps
+
+1. Copy or sync the **repository payload** into `AppDir/` before running `appimagetool` (or use `build-appimage.sh`).
+2. Run **`packaging/appimage/bundle_appdir.sh`** to refresh **icons** and **locale** `.mo` files under `usr/share/`.
 3. Ensure `AppRun` and `usr/bin/tasktimer` are executable (`chmod +x`).
 
 ## Host dependencies (typical package names)
