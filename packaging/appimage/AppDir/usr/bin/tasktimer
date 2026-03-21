@@ -1,0 +1,9 @@
+#!/bin/sh
+# PATH helper when running from an extracted AppDir (usr/bin is on PATH).
+# Keeps APPDIR and cwd consistent with AppRun (see packaging/appimage/APPDIR.md).
+
+BIN=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")
+APPDIR=$(dirname "$(dirname "$BIN")")
+export APPDIR
+cd "$APPDIR" || exit 1
+exec gjs "$APPDIR/main.js" "$@"

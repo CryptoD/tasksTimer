@@ -69,6 +69,14 @@ var StandaloneContext = class StandaloneContext extends Context {
         this._appId = params.appId;
         this._application = params.application || null;
 
+        // Install root and entry script (standalone autostart `.desktop` must not rely on cwd).
+        this._appRoot = typeof params.appRoot === 'string' && params.appRoot.length > 0
+            ? params.appRoot
+            : GLib.get_current_dir();
+        this._mainScriptPath = typeof params.mainScriptPath === 'string' && params.mainScriptPath.length > 0
+            ? params.mainScriptPath
+            : GLib.build_filenamev([this._appRoot, 'main.js']);
+
         const configHome = GLib.get_user_config_dir();
         const dataHome = GLib.get_user_data_dir();
 
@@ -110,6 +118,16 @@ var StandaloneContext = class StandaloneContext extends Context {
 
     get configDir() {
         return this._configDir;
+    }
+
+    /** Absolute directory containing `main.js` (application bundle root). */
+    get appRoot() {
+        return this._appRoot;
+    }
+
+    /** Absolute path to the standalone entry script (`main.js`). */
+    get mainScriptPath() {
+        return this._mainScriptPath;
     }
 
     get dataDir() {

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.cryptod.tasktimer.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>taskTimer</name>
+  <summary>General purpose kitchen and task timer</summary>
+  <description>
+    <p>Timer application with a GTK interface. The AppImage bundles application scripts and data; the system provides gjs, GTK 3, and GObject-Introspection.</p>
+  </description>
+  <launchable type="desktop-id">com.github.cryptod.tasktimer.desktop</launchable>
+  <url type="homepage">https://github.com/CryptoD/taskTimer</url>
+  <provides>
+    <binary>tasktimer</binary>
+  </provides>
+  <developer_name>CryptoD</developer_name>
+</component>
