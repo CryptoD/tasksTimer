@@ -31,8 +31,8 @@ AppDir/
         ├── applications/
         │   └── com.github.cryptod.tasktimer.desktop
         ├── icons/
-        │   └── hicolor/scalable/apps/com.github.cryptod.tasktimer.svg
-        ├── locale/        # Optional; populated by APPDIR=… bin/po_compile.sh
+        │   └── hicolor/   # See “Icons” below; maintain via bundle_appdir.sh
+        ├── locale/        # <lang>/LC_MESSAGES/tasktimer.mo — bundle_appdir.sh or po_compile.sh
         └── metainfo/
             └── com.github.cryptod.tasktimer.desktop.appdata.xml
 ```
@@ -43,10 +43,25 @@ AppDir/
 - **Flow:** `AppRun` exports `APPDIR`, `cd`s to the bundle root, then `exec`s `usr/bin/tasktimer`. The `.desktop` file’s `Exec=tasktimer` relies on the same script when `usr/bin` is on `PATH` inside the image.
 - **Freedesktop ID:** `com.github.cryptod.tasktimer` — aligned with `platform/standalone/branding.js` (`APP_ID`). The `.desktop` file uses `Icon=com.github.cryptod.tasktimer` (see `usr/share/icons/hicolor/.../com.github.cryptod.tasktimer.svg`). A convenience symlink `packaging/appimage/tasktimer.desktop` points at that file.
 
+## Icons (`usr/share/icons/hicolor`)
+
+The AppDir ships a full **hicolor** set for `com.github.cryptod.tasktimer`:
+
+- **PNG:** `16x16`, `22x22`, `24x24`, `32x32`, `48x48`, `64x64`, `128x128`, `256x256`, `512x512` under `hicolor/<WxH>/apps/com.github.cryptod.tasktimer.png`
+- **Scalable:** `hicolor/scalable/apps/com.github.cryptod.tasktimer.svg` (from `kitchen-timer-blackjackshellac-full.svg`)
+- **Symbolic:** `hicolor/symbolic/apps/com.github.cryptod.tasktimer-symbolic.svg` (from `tasktimer-symbolic.svg`)
+- **Cache:** `icon-theme.cache` (from `gtk-update-icon-cache` when available)
+
+Regenerate these files with **`packaging/appimage/bundle_appdir.sh`** (requires ImageMagick `convert` and `msgfmt`).
+
+## Translations (`usr/share/locale`)
+
+Compiled catalogs live at `usr/share/locale/<lang>/LC_MESSAGES/tasktimer.mo`, built from `taskTimer@CryptoD/po/*.po`. The same **`bundle_appdir.sh`** runs `bin/po_compile.sh` with `APPDIR` pointing at this AppDir. You can also run `APPDIR=/path/to/AppDir bin/po_compile.sh` alone to refresh only locales.
+
 ## Build-time notes
 
 1. Copy or sync the **repository payload** (files at the root of `AppDir/` above) into `AppDir/` before running `appimagetool` (or your builder).
-2. Run `APPDIR=/path/to/AppDir bin/po_compile.sh` to fill `usr/share/locale/` if translations are required.
+2. Run **`packaging/appimage/bundle_appdir.sh`** to refresh **icons** (all sizes + symbolic) and **locale** `.mo` files under `usr/share/`.
 3. Ensure `AppRun` and `usr/bin/tasktimer` are executable (`chmod +x`).
 
 ## Host dependencies (typical package names)
