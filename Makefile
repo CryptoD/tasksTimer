@@ -2,9 +2,12 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test
+.PHONY: all mo pack clean install uninstall appimage test lint
 
 all: pack
+
+lint:
+	"$(ROOT)/bin/lint.sh"
 
 mo:
 	"$(ROOT)/bin/po_compile.sh"
