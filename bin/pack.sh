@@ -4,6 +4,8 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+"$ROOT/bin/check-deps.sh" --pack
+
 ED="taskTimer@CryptoD"
 ED_DIR="$ROOT/$ED"
 

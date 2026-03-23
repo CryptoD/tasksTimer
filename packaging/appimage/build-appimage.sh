@@ -23,6 +23,7 @@ set -euo pipefail
 ME=$(basename "$0")
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+"$REPO_ROOT/bin/check-deps.sh" --appimage
 APPDIR="$SCRIPT_DIR/AppDir"
 DIST_DIR="$SCRIPT_DIR/dist"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/tasktimer-appimage"

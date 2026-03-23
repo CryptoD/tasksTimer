@@ -15,6 +15,8 @@ set -e
 
 ME=$(basename "$0")
 MD=$(cd "$(dirname "$0")" && pwd)
+ROOT="$(cd "$MD/.." && pwd)"
+"$ROOT/bin/check-deps.sh" --compile
 
 echo "$MD"
 cd "$MD/../taskTimer@CryptoD"
