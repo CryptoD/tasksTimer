@@ -74,11 +74,11 @@ else
 	done
 fi
 
-# --appimage implies pack + runtime + compile (full toolchain for image)
+# --appimage implies gettext + GJS/GTK/GStreamer (same as tests) but not gnome-extensions
+# (extension zip is only produced by make pack).
 if [ "$DO_APPIMAGE" = 1 ]; then
 	DO_COMPILE=1
 	DO_RUNTIME=1
-	DO_PACK=1
 fi
 
 # --pack implies runtime + compile for a consistent dev environment

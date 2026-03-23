@@ -2,7 +2,7 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint sync-version check-deps check-deps-appimage
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version check-deps check-deps-appimage test12
 
 all: pack
 
@@ -14,6 +14,10 @@ check-deps:
 
 check-deps-appimage:
 	"$(ROOT)/bin/check-deps.sh" --appimage
+
+# Full pipeline (TEST 12): lint, test, appimage; pack too if gnome-extensions is installed.
+test12:
+	bash "$(ROOT)/tests/test12_full_build_local.sh"
 
 lint:
 	"$(ROOT)/bin/check-deps.sh" --compile
