@@ -1,8 +1,11 @@
 #!/bin/bash
 # Build a taskTimer AppImage from packaging/appimage/AppDir.
 #
+# App version for the output filename comes from ../../version.json (repo root).
+#
 # Steps:
-#   1. Sync main.js, config.js, context.js, i18n.js, platform/, taskTimer@CryptoD/ into AppDir.
+#   1. Sync main.js, config.js, context.js, i18n.js, app_version.js, version.json,
+#      platform/, taskTimer@CryptoD/ into AppDir.
 #   2. Run bundle_appdir.sh (unless --skip-bundle): hicolor icons, locale .mo, icon cache.
 #   3. Run appimagetool to produce packaging/appimage/dist/tasktimer-<version>-<arch>.AppImage.
 #
@@ -67,7 +70,7 @@ get_appimage_arch() {
 
 sync_payload() {
   echo "[$ME] Syncing application payload into AppDir..." >&2
-  for f in main.js config.js context.js i18n.js; do
+  for f in main.js config.js context.js i18n.js app_version.js version.json; do
     if [ ! -f "$REPO_ROOT/$f" ]; then
       echo "[$ME] Missing file: $REPO_ROOT/$f" >&2
       exit 1
@@ -144,7 +147,7 @@ resolve_appimagetool() {
   download_appimagetool "$arch"
 }
 
-VERSION=$(python3 -c "import json; print(json.load(open('$REPO_ROOT/taskTimer@CryptoD/metadata.json'))['version'])")
+VERSION=$(python3 -c "import json; print(json.load(open('$REPO_ROOT/version.json'))['version'])")
 ARCH=$(get_appimage_arch)
 export ARCH
 

@@ -6,6 +6,7 @@
  *
  * Exported as top-level symbols so `imports.platform.standalone.branding.APP_ID` works in GJS.
  * Keep aligned with taskTimer@CryptoD/metadata.json (name, url) and main.js wiring.
+ * Release version: version.json at repository root (synced into metadata.json via bin/sync-version.py).
  */
 
 /** Reverse-DNS id; must match TaskTimerApplication and any .desktop StartupWMClass if set. */

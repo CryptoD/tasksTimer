@@ -12,6 +12,7 @@
 
 const { Gio, GLib } = imports.gi;
 const Config = imports.config;
+const AppVersion = imports.app_version;
 
 function _appRootDirForMetadata() {
     try {
@@ -28,8 +29,8 @@ function _appRootDirForMetadata() {
     return GLib.get_current_dir();
 }
 
-// Path to the extension metadata, used as a source of name/description/version
-// information until a dedicated standalone metadata file is introduced.
+// Path to the extension metadata (name, description, etc.). Application version
+// is read from version.json via app_version.js; metadata remains a fallback.
 const METADATA_PATH = GLib.build_filenamev([
     _appRootDirForMetadata(),
     'taskTimer@CryptoD',
@@ -124,7 +125,10 @@ var StandaloneContext = class StandaloneContext extends Context {
     }
 
     get version() {
-        // Prefer version from metadata.json if available.
+        // Single source of truth: version.json (see bin/sync-version.py).
+        if (AppVersion.VERSION && AppVersion.VERSION !== '0.0.0') {
+            return AppVersion.VERSION;
+        }
         if (_metadata && typeof _metadata.version !== 'undefined') {
             return _metadata.version;
         }

@@ -39,6 +39,8 @@ const _APP_ROOT_DIR = GLib.path_get_dirname(_APP_MAIN_SCRIPT);
 // can be imported when `gjs /path/to/main.js` is run from any cwd.
 imports.searchPath.unshift(_APP_ROOT_DIR);
 
+const AppVersion = imports.app_version;
+
 // Some shared modules still rely on GNOME Shell's JS runtime modules
 // (e.g. `imports.misc.extensionUtils`). When GNOME Shell is installed, make
 // those modules discoverable for plain `gjs main.js` runs.
@@ -75,8 +77,8 @@ const AudioManagerModule = imports['taskTimer@CryptoD'].audio_manager;
 const APP_ID = Branding.APP_ID;
 const APP_DISPLAY_NAME = Branding.DISPLAY_NAME;
 const APP_ICON_NAME = Branding.ICON_NAME;
-/** Standalone app version (aligned with taskTimer@CryptoD/metadata.json). */
-const APP_VERSION = '1.1';
+/** @see version.json (synced into taskTimer@CryptoD/metadata.json). */
+const APP_VERSION = AppVersion.VERSION;
 
 /**
  * Recognized CLI option tokens (for unknown-flag warnings). Keep in sync with

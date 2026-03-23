@@ -2,9 +2,12 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version
 
 all: pack
+
+sync-version:
+	"$(ROOT)/bin/sync-version.py"
 
 lint:
 	"$(ROOT)/bin/lint.sh"
