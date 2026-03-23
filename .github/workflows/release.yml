@@ -1,0 +1,61 @@
+# Build AppImage and attach it to a GitHub Release when a tag is pushed.
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  appimage:
+    runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            curl \
+            dbus-daemon \
+            dbus-x11 \
+            gettext \
+            gjs \
+            gir1.2-gstreamer-1.0 \
+            gir1.2-gtk-3.0 \
+            imagemagick \
+            libgtk-3-bin \
+            python3 \
+            rsync \
+            shellcheck \
+            wget \
+            xvfb
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: xvfb-run -a dbus-run-session -- make test
+
+      - name: Build AppImage
+        run: make appimage
+
+      - name: List AppImage artifacts
+        run: ls -la packaging/appimage/dist/
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packaging/appimage/dist/*.AppImage
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

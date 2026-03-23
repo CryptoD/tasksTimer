@@ -1,0 +1,40 @@
+# Lint and tests on every push (branches + tags) and on pull requests.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dbus-daemon \
+            dbus-x11 \
+            gettext \
+            gjs \
+            gir1.2-gstreamer-1.0 \
+            gir1.2-gtk-3.0 \
+            shellcheck \
+            xvfb
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: xvfb-run -a dbus-run-session -- make test
