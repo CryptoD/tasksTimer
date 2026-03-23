@@ -10,5 +10,7 @@ packaging/appimage/AppDir/main.js
 packaging/appimage/AppDir/config.js
 packaging/appimage/AppDir/context.js
 packaging/appimage/AppDir/i18n.js
+packaging/appimage/AppDir/app_version.js
+packaging/appimage/AppDir/version.json
 packaging/appimage/AppDir/platform/
 packaging/appimage/AppDir/taskTimer@CryptoD/
