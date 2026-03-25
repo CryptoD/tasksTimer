@@ -45,6 +45,8 @@ class AudioPlayer {
         this._loopsDone = 0;
         this._isPlaying = false;
         this._destroyed = false;
+        /** Set when GStreamer reports ERROR (e.g. no audio sink); avoids tight retry loops. */
+        this._fatalPlaybackError = false;
     }
 
     /**
@@ -161,7 +163,24 @@ class AudioPlayer {
                     return;
                 }
                 const type = message.type;
-                if (type === Gst.MessageType.EOS || type === Gst.MessageType.ERROR) {
+                if (type === Gst.MessageType.ERROR) {
+                    try {
+                        const [err, dbg] = message.parse_error();
+                        const em = err && err.message ? err.message : String(err);
+                        this._logger && this._logger.error(
+                            'AudioManager: GStreamer error for %s (no output device, missing codec, or broken pipeline?): %s — %s',
+                            this._id, em, dbg || '');
+                    } catch (_parseE) {
+                        this._logger && this._logger.error('AudioManager: GStreamer ERROR for %s (see Gst debug for details)', this._id);
+                    }
+                    try {
+                        this._player.set_state(Gst.State.READY);
+                    } catch (_st) {}
+                    this._isPlaying = false;
+                    this._fatalPlaybackError = true;
+                    return;
+                }
+                if (type === Gst.MessageType.EOS) {
                     // IMPORTANT: to reuse the player, set state to READY
                     this._player.set_state(Gst.State.READY);
                     this._isPlaying = false;
@@ -183,6 +202,10 @@ class AudioPlayer {
 
     _startPlayback() {
         if (!this._player) {
+            return false;
+        }
+
+        if (this._fatalPlaybackError) {
             return false;
         }
 
@@ -212,6 +235,7 @@ class AudioPlayer {
      */
     play() {
         this._destroyed = false;
+        this._fatalPlaybackError = false;
         this._loopsDone = 0;
         this._ensurePlayer();
         return this._startPlayback();

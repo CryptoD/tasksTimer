@@ -13,7 +13,7 @@ function saveJSON(filename, data) {
         GLib.file_set_contents(filename, jsonString);
         return true;
     } catch (e) {
-        log(`Error saving JSON to ${filename}: ${e}`);
+        log(`taskTimer: failed to save JSON to ${filename}: ${e} (permissions or disk full?)`);
         return false;
     }
 }
@@ -27,7 +27,7 @@ function loadJSON(filename) {
         if (!ok) return null;
         return JSON.parse(contents);
     } catch (e) {
-        log(`Error loading JSON from ${filename}: ${e}`);
+        log(`taskTimer: failed to load JSON from ${filename}: ${e}; treating as empty`);
         return null;
     }
 }

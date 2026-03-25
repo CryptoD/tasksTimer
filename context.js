@@ -116,7 +116,7 @@ var StandaloneContext = class StandaloneContext extends Context {
         } catch (e) {
             // If we cannot create the directory, log but continue; callers
             // should handle I/O failures when they occur.
-            logError(e, `taskTimer: failed to create directory ${path}`);
+            logError(e, `taskTimer: failed to create directory ${path} (check permissions and disk space)`);
         }
     }
 

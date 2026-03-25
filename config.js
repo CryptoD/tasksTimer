@@ -104,7 +104,20 @@ function _loadRawConfig() {
         const data = JSON.parse(text);
         return _applyDefaultsAndMigrate(data);
     } catch (e) {
-        // File does not exist or cannot be parsed; start with defaults.
+        let notFound = false;
+        try {
+            if (e instanceof GLib.Error) {
+                notFound = e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND);
+            }
+        } catch (_m) {
+            // ignore; fall through to message heuristics
+        }
+        const msg = e && e.message ? String(e.message) : '';
+        if (notFound || msg.indexOf('No such file') >= 0 || msg.indexOf('Not found') >= 0) {
+            log(`taskTimer: no configuration file at ${CONFIG_PATH}; using defaults`);
+            return _applyDefaultsAndMigrate({});
+        }
+        logError(e, `taskTimer: invalid or unreadable configuration at ${CONFIG_PATH}; using defaults`);
         return _applyDefaultsAndMigrate({});
     }
 }
@@ -126,7 +139,7 @@ function _saveRawConfig(data) {
             null
         );
     } catch (e) {
-        logError(e, `taskTimer: failed to write config file ${CONFIG_PATH}`);
+        logError(e, `taskTimer: failed to write config file ${CONFIG_PATH} (read-only directory, full disk, or permissions)`);
     }
 }
 

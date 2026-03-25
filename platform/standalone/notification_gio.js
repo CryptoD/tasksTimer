@@ -96,9 +96,12 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
         try {
             this._application.send_notification(id || null, notification);
         } catch (e) {
-            logError(e, 'GioNotificationProvider: send_notification failed');
+            logError(e, 'GioNotificationProvider: send_notification failed (no notification daemon, portal, or session bus?)');
             if (this._fallback) {
+                log('GioNotificationProvider: showing in-app fallback instead of system notification');
                 this._fallback(id, title, body);
+            } else {
+                log('GioNotificationProvider: no fallback available; timer completion may be easy to miss');
             }
         }
     }
