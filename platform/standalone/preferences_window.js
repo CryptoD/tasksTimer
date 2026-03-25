@@ -15,6 +15,7 @@ imports.gi.versions.Gtk = '3.0';
 const { Gtk, GLib } = imports.gi;
 
 const Branding = imports.platform.standalone.branding;
+const GtkA11y = imports.platform.standalone.gtk_a11y;
 
 var PreferencesWindow = class PreferencesWindow {
     /**
@@ -29,6 +30,8 @@ var PreferencesWindow = class PreferencesWindow {
 
         const displayName = (app._displayName && typeof app._displayName === 'string') ? app._displayName : Branding.DISPLAY_NAME;
         this._window = new Gtk.Window({ title: `${displayName} Preferences` });
+        GtkA11y.setName(this._window, `${displayName} Preferences`);
+        GtkA11y.setDescription(this._window, 'Standalone taskTimer settings');
         try {
             this._window.get_style_context().add_class('tasktimer-preferences');
         } catch (_e) {
@@ -79,6 +82,8 @@ var PreferencesWindow = class PreferencesWindow {
 
         const notebook = new Gtk.Notebook();
         notebook.set_scrollable(true);
+        GtkA11y.setName(notebook, 'Preferences');
+        GtkA11y.setDescription(notebook, 'General, notifications, display, behavior, and volume');
 
         const mkPage = (title, child) => {
             const lbl = new Gtk.Label({ label: title });
@@ -89,6 +94,12 @@ var PreferencesWindow = class PreferencesWindow {
             const row = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 4 });
             const top = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, spacing: 12 });
             const label = new Gtk.Label({ label: labelText, halign: Gtk.Align.START, xalign: 0, hexpand: true });
+            if (labelText.indexOf('_') >= 0) {
+                label.set_use_underline(true);
+                try {
+                    label.set_mnemonic_widget(widget);
+                } catch (_e) {}
+            }
             top.pack_start(label, true, true, 0);
             top.pack_end(widget, false, false, 0);
             row.pack_start(top, false, false, 0);
@@ -130,8 +141,9 @@ var PreferencesWindow = class PreferencesWindow {
                 this._app._reapplyTheme();
             }
         });
+        GtkA11y.setName(themeCombo, 'Theme variant');
         general.pack_start(
-            mkRow('Theme', themeCombo, 'Choose system/light/dark appearance for the app window.'),
+            mkRow('_Theme', themeCombo, 'Choose system/light/dark appearance for the app window.'),
             false, false, 0
         );
 
@@ -140,7 +152,7 @@ var PreferencesWindow = class PreferencesWindow {
             settings.minimize_to_tray = v;
         });
         general.pack_start(
-            mkRow('Minimize to tray', minimize, 'When enabled, closing/minimizing keeps the app running in the tray.'),
+            mkRow('_Minimize to tray', minimize, 'When enabled, closing/minimizing keeps the app running in the tray.'),
             false, false, 0
         );
 
@@ -149,7 +161,7 @@ var PreferencesWindow = class PreferencesWindow {
             settings.autostart = v;
         });
         general.pack_start(
-            mkRow('Start when you log in', autostart, 'Create/remove an autostart entry for this app.'),
+            mkRow('_Start when you log in', autostart, 'Create/remove an autostart entry for this app.'),
             false, false, 0
         );
 
@@ -163,7 +175,7 @@ var PreferencesWindow = class PreferencesWindow {
             settings.notification = v;
         });
         notifications.pack_start(
-            mkRow('Enable notifications', notifEnabled),
+            mkRow('_Enable notifications', notifEnabled),
             false, false, 0
         );
 
@@ -172,7 +184,7 @@ var PreferencesWindow = class PreferencesWindow {
             settings.notification_sticky = v;
         });
         notifications.pack_start(
-            mkRow('Sticky notifications', sticky, 'When enabled, notifications are sent with urgent priority (where supported).'),
+            mkRow('_Sticky notifications', sticky, 'When enabled, notifications are sent with urgent priority (where supported).'),
             false, false, 0
         );
 
@@ -188,25 +200,25 @@ var PreferencesWindow = class PreferencesWindow {
                 this._app._platform._syncDisplayOptionsFromSettings();
             }
         });
-        display.pack_start(mkRow('Show labels', showLabel), false, false, 0);
+        display.pack_start(mkRow('_Show labels', showLabel), false, false, 0);
 
         const showTime = mkSwitch(settings ? settings.show_time : true, (v) => {
             if (!settings) return;
             settings.show_time = v;
         });
-        display.pack_start(mkRow('Show time / secondary text', showTime), false, false, 0);
+        display.pack_start(mkRow('_Show time / secondary text', showTime), false, false, 0);
 
         const showProgress = mkSwitch(settings ? settings.show_progress : true, (v) => {
             if (!settings) return;
             settings.show_progress = v;
         });
-        display.pack_start(mkRow('Show progress bars', showProgress), false, false, 0);
+        display.pack_start(mkRow('_Show progress bars', showProgress), false, false, 0);
 
         const showEnd = mkSwitch(settings ? settings.show_endtime : false, (v) => {
             if (!settings) return;
             settings.show_endtime = v;
         });
-        display.pack_start(mkRow('Show end time (for running timers)', showEnd), false, false, 0);
+        display.pack_start(mkRow('_Show end time (for running timers)', showEnd), false, false, 0);
 
         mkPage('Display', display);
 
@@ -217,13 +229,13 @@ var PreferencesWindow = class PreferencesWindow {
             if (!settings) return;
             settings.detect_dupes = v;
         });
-        behavior.pack_start(mkRow('Detect duplicates', detectDupes), false, false, 0);
+        behavior.pack_start(mkRow('_Detect duplicates', detectDupes), false, false, 0);
 
         const saveQuick = mkSwitch(settings ? settings.save_quick_timers : true, (v) => {
             if (!settings) return;
             settings.save_quick_timers = v;
         });
-        behavior.pack_start(mkRow('Save quick timers', saveQuick), false, false, 0);
+        behavior.pack_start(mkRow('_Save quick timers', saveQuick), false, false, 0);
 
         const sortMode = new Gtk.ComboBoxText();
         sortMode.append('default', 'Default');
@@ -238,13 +250,14 @@ var PreferencesWindow = class PreferencesWindow {
             settings.sort_by_duration = (id === 'duration');
             settings.sort_by_name = (id === 'name');
         });
-        behavior.pack_start(mkRow('Sort preset/quick lists', sortMode), false, false, 0);
+        GtkA11y.setName(sortMode, 'Default sort mode');
+        behavior.pack_start(mkRow('_Sort preset/quick lists', sortMode), false, false, 0);
 
         const sortDesc = mkSwitch(settings ? settings.sort_descending : false, (v) => {
             if (!settings) return;
             settings.sort_descending = v;
         });
-        behavior.pack_start(mkRow('Descending', sortDesc), false, false, 0);
+        behavior.pack_start(mkRow('_Descending', sortDesc), false, false, 0);
 
         mkPage('Behavior', behavior);
 
@@ -254,13 +267,14 @@ var PreferencesWindow = class PreferencesWindow {
             if (!settings) return;
             settings.volume_level_warn = v;
         });
-        volume.pack_start(mkRow('Warn when volume is low', volWarn), false, false, 0);
+        volume.pack_start(mkRow('_Warn when volume is low', volWarn), false, false, 0);
 
         const threshold = mkSpin(settings ? settings.volume_threshold : 20, 0, 100, 1, (v) => {
             if (!settings) return;
             settings.volume_threshold = v;
         });
-        volume.pack_start(mkRow('Volume threshold (%)', threshold), false, false, 0);
+        GtkA11y.setName(threshold, 'Volume threshold percent');
+        volume.pack_start(mkRow('_Volume threshold (%)', threshold), false, false, 0);
 
         mkPage('Volume', volume);
 

@@ -9,6 +9,7 @@
 const { Gtk, Gdk, GLib } = imports.gi;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+const GtkA11y = imports.platform.standalone.gtk_a11y;
 
 function _formatDuration(secs) {
     if (secs < 60) {
@@ -49,7 +50,10 @@ function _presetEditDialog(parent, title, initialName, initialDurationSecs) {
         text: initialName || '',
         hexpand: true,
     });
-    grid.attach(new Gtk.Label({ label: 'Name', halign: Gtk.Align.START }), 0, 0, 1, 1);
+    GtkA11y.setName(entryName, 'Preset name');
+    const lblName = new Gtk.Label({ label: '_Name', use_underline: true, halign: Gtk.Align.START });
+    lblName.set_mnemonic_widget(entryName);
+    grid.attach(lblName, 0, 0, 1, 1);
     grid.attach(entryName, 1, 0, 1, 1);
 
     const total = typeof initialDurationSecs === 'number' && initialDurationSecs >= 0
@@ -69,9 +73,15 @@ function _presetEditDialog(parent, title, initialName, initialDurationSecs) {
     });
     const spinMin = new Gtk.SpinButton({ adjustment: adjMin, numeric: true });
     const spinSec = new Gtk.SpinButton({ adjustment: adjSec, numeric: true });
-    grid.attach(new Gtk.Label({ label: 'Minutes', halign: Gtk.Align.START }), 0, 1, 1, 1);
+    GtkA11y.setName(spinMin, 'Minutes');
+    GtkA11y.setName(spinSec, 'Seconds');
+    const lblMin = new Gtk.Label({ label: '_Minutes', use_underline: true, halign: Gtk.Align.START });
+    lblMin.set_mnemonic_widget(spinMin);
+    const lblSec = new Gtk.Label({ label: '_Seconds', use_underline: true, halign: Gtk.Align.START });
+    lblSec.set_mnemonic_widget(spinSec);
+    grid.attach(lblMin, 0, 1, 1, 1);
     grid.attach(spinMin, 1, 1, 1, 1);
-    grid.attach(new Gtk.Label({ label: 'Seconds', halign: Gtk.Align.START }), 0, 2, 1, 1);
+    grid.attach(lblSec, 0, 2, 1, 1);
     grid.attach(spinSec, 1, 2, 1, 1);
 
     content.pack_start(grid, true, true, 0);
@@ -105,6 +115,7 @@ var PresetManagementWindow = class PresetManagementWindow {
             default_height: 400,
             transient_for: transientFor || undefined,
         });
+        GtkA11y.setName(this._window, 'Manage preset timers');
         try {
             this._window.get_style_context().add_class('tasktimer-preset-management');
         } catch (_e) {}
@@ -129,6 +140,7 @@ var PresetManagementWindow = class PresetManagementWindow {
             selection_mode: Gtk.SelectionMode.SINGLE,
             activate_on_single_click: false,
         });
+        GtkA11y.setName(list, 'Preset timers');
         const scroller = new Gtk.ScrolledWindow({
             vexpand: true,
             hscrollbar_policy: Gtk.PolicyType.NEVER,

@@ -15,6 +15,7 @@ imports.gi.versions.Gtk = '3.0';
 const { GObject, Gtk, GLib, Pango, Gdk } = imports.gi;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+const GtkA11y = imports.platform.standalone.gtk_a11y;
 const Parser = imports['taskTimer@CryptoD'].timer_entry_parser;
 const TimerListItemModule = imports.platform.standalone.timer_list_item;
 
@@ -78,8 +79,11 @@ class TimerMenuWidget extends Gtk.Box {
 
         const entry = new Gtk.Entry({ placeholder_text: 'Name 00:05:00, 25:00, 90, alarm @3pm…' });
         this._quickEntry = entry;
+        GtkA11y.setName(entry, 'Quick timer entry');
+        GtkA11y.setDescription(entry, 'Type a duration or natural language; press Enter to start');
 
         const btnStart = new Gtk.Button({ label: 'Start' });
+        GtkA11y.setName(btnStart, 'Start quick timer from entry');
         btnStart.connect('clicked', () => this._startFromEntry());
 
         entry.connect('activate', () => this._startFromEntry());
@@ -123,6 +127,7 @@ class TimerMenuWidget extends Gtk.Box {
         bottom.get_style_context().add_class('toolbar');
 
         const btnNewTimer = new Gtk.Button({ label: 'New timer…' });
+        GtkA11y.setName(btnNewTimer, 'New timer');
         btnNewTimer.connect('clicked', () => {
             if (this._application && this._application.activate_action) {
                 this._application.activate_action('newTimer', null);
@@ -130,6 +135,7 @@ class TimerMenuWidget extends Gtk.Box {
         });
 
         const btnPrefs = new Gtk.Button({ label: 'Preferences…' });
+        GtkA11y.setName(btnPrefs, 'Preferences');
         btnPrefs.connect('clicked', () => {
             if (this._application && this._application.activate_action) {
                 this._application.activate_action('preferences', null);
@@ -137,6 +143,7 @@ class TimerMenuWidget extends Gtk.Box {
         });
 
         const btnStopAll = new Gtk.Button({ label: 'Stop all' });
+        GtkA11y.setName(btnStopAll, 'Stop all running timers');
         btnStopAll.connect('clicked', () => {
             const timers = this._timers;
             if (!timers) return;
@@ -147,6 +154,7 @@ class TimerMenuWidget extends Gtk.Box {
         });
 
         const btnCreatePreset = new Gtk.Button({ label: 'Create preset…' });
+        GtkA11y.setName(btnCreatePreset, 'Create preset timer');
         btnCreatePreset.connect('clicked', () => this._showCreatePresetDialog());
 
         bottom.pack_start(btnNewTimer, false, false, 0);
@@ -181,6 +189,8 @@ class TimerMenuWidget extends Gtk.Box {
         label.get_style_context().add_class('dim-label');
 
         const list = new Gtk.ListBox({ selection_mode: Gtk.SelectionMode.SINGLE });
+        GtkA11y.setName(list, title);
+        GtkA11y.setDescription(list, 'Select a timer or press Enter to start');
 
         const scroller = new Gtk.ScrolledWindow({
             vexpand: true,

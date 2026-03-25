@@ -25,6 +25,7 @@ const TimerMenuWidgetModule = imports.platform.standalone.timer_menu_widget;
 const PresetManagementWindowModule = imports.platform.standalone.preset_management_window;
 
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
+const GtkA11y = imports.platform.standalone.gtk_a11y;
 
 /** Default quick timer presets when none are stored (name, duration in seconds). */
 const DEFAULT_QUICK_TIMERS = [
@@ -277,13 +278,16 @@ class StandaloneGtkPlatform extends GObject.Object {
             const img = Gtk.Image.new_from_icon_name('open-menu-symbolic', Gtk.IconSize.BUTTON);
             menuBtn.set_image(img);
             menuBtn.set_tooltip_text('Main menu');
+            GtkA11y.setName(menuBtn, 'Main menu');
         } catch (_e) {
             menuBtn.set_label('Menu');
+            GtkA11y.setName(menuBtn, 'Main menu');
         }
         hb.pack_start(menuBtn);
 
         const btnNew = new Gtk.Button({ label: 'New' });
         btnNew.set_tooltip_text('New timer');
+        GtkA11y.setName(btnNew, 'New timer');
         btnNew.connect('clicked', () => {
             if (this._application && this._application.activate_action) {
                 this._application.activate_action('newTimer', null);
@@ -373,6 +377,8 @@ class StandaloneGtkPlatform extends GObject.Object {
             selection_mode: Gtk.SelectionMode.NONE,
         });
         list.set_activate_on_single_click(true);
+        GtkA11y.setName(list, title);
+        GtkA11y.setDescription(list, 'Press Enter to start the selected timer');
 
         list.connect('row-activated', (_lb, row) => {
             if (!row || !row._timer) return;
@@ -483,11 +489,23 @@ class StandaloneGtkPlatform extends GObject.Object {
             const btnPlus = new Gtk.Button({ label: '+30s' });
             btnPlus.connect('clicked', () => this._adjustTimer(timer, 30));
             controls.pack_start(btnPlus, false, false, 0);
+            GtkA11y.setName(btnMinus, 'Subtract thirty seconds');
+            GtkA11y.setName(btnStop, 'Stop timer');
+            GtkA11y.setName(btnPlus, 'Add thirty seconds');
         }
 
         outer.pack_start(textBox, true, true, 0);
         outer.pack_start(controls, false, false, 0);
         row.add(outer);
+
+        const secondaryText = this._formatTimerSecondary(timer);
+        GtkA11y.setName(row, `${timer.name || 'Timer'}, ${secondaryText}`);
+        GtkA11y.setDescription(
+            row,
+            options.showControls
+                ? 'Running timer; use side buttons to adjust time or stop'
+                : 'Press Enter to start this timer'
+        );
 
         return row;
     }
@@ -725,6 +743,8 @@ class StandaloneGtkPlatform extends GObject.Object {
                 default_width: defW,
                 default_height: defH,
             });
+            GtkA11y.setName(this._window, this.getDisplayName());
+            GtkA11y.setDescription(this._window, 'Kitchen and task timers');
             try {
                 if (typeof this._window.set_icon_name === 'function') {
                     this._window.set_icon_name(this.getIconName());
@@ -799,6 +819,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                 label: '×',
                 relief: Gtk.ReliefStyle.NONE,
             });
+            GtkA11y.setName(bannerClose, 'Dismiss notification');
             bannerClose.connect('clicked', () => this._hideInAppBanner());
 
             bannerBox.add(bannerLabel);
@@ -837,6 +858,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                 label: '×',
                 relief: Gtk.ReliefStyle.NONE,
             });
+            GtkA11y.setName(volumeBannerClose, 'Dismiss volume warning');
             volumeBannerClose.connect('clicked', () => this.setVolumeWarning(false));
             volumeBannerBox.add(volumeBannerIcon);
             volumeBannerBox.add(volumeBannerLabel);
@@ -855,6 +877,8 @@ class StandaloneGtkPlatform extends GObject.Object {
                 orientation: Gtk.Orientation.HORIZONTAL,
                 wide_handle: true,
             });
+            GtkA11y.setName(paned, 'Main content');
+            GtkA11y.setDescription(paned, 'Sidebar with presets on the left; timer lists on the right');
 
             // Sidebar: sort options + quick start + quick timers + presets.
             const sidebar = new Gtk.Box({
@@ -896,6 +920,9 @@ class StandaloneGtkPlatform extends GObject.Object {
             };
             sortCombo.connect('changed', sortApply);
             sortDescending.connect('toggled', sortApply);
+            GtkA11y.setName(sortCombo, 'Sort lists');
+            GtkA11y.setDescription(sortCombo, 'Choose how preset and quick timer lists are ordered');
+            GtkA11y.setName(sortDescending, 'Descending sort');
             sortBox.pack_start(sortCombo, false, false, 0);
             sortBox.pack_start(sortDescending, false, false, 0);
             const sortNote = new Gtk.Label({
@@ -919,6 +946,8 @@ class StandaloneGtkPlatform extends GObject.Object {
 
             const entryName = new Gtk.Entry({ placeholder_text: 'Name (optional)' });
             entryName.set_text('Timer');
+            GtkA11y.setName(entryName, 'Timer name');
+            GtkA11y.setDescription(entryName, 'Optional label for the new timer');
 
             const grid = new Gtk.Grid({ column_spacing: 8, row_spacing: 8 });
             const adjMin = new Gtk.Adjustment({ lower: 0, upper: 999, step_increment: 1 });
@@ -927,13 +956,24 @@ class StandaloneGtkPlatform extends GObject.Object {
             const spinSec = new Gtk.SpinButton({ adjustment: adjSec, numeric: true });
             spinMin.set_value(5);
             spinSec.set_value(0);
+            GtkA11y.setName(spinMin, 'Minutes');
+            GtkA11y.setName(spinSec, 'Seconds');
 
-            grid.attach(new Gtk.Label({ label: 'Minutes', halign: Gtk.Align.START }), 0, 0, 1, 1);
-            grid.attach(spinMin, 1, 0, 1, 1);
-            grid.attach(new Gtk.Label({ label: 'Seconds', halign: Gtk.Align.START }), 0, 1, 1, 1);
-            grid.attach(spinSec, 1, 1, 1, 1);
+            const lblName = new Gtk.Label({ label: '_Name', use_underline: true, halign: Gtk.Align.START });
+            lblName.set_mnemonic_widget(entryName);
+            const lblMin = new Gtk.Label({ label: '_Minutes', use_underline: true, halign: Gtk.Align.START });
+            lblMin.set_mnemonic_widget(spinMin);
+            const lblSec = new Gtk.Label({ label: '_Seconds', use_underline: true, halign: Gtk.Align.START });
+            lblSec.set_mnemonic_widget(spinSec);
+            grid.attach(lblName, 0, 0, 1, 1);
+            grid.attach(entryName, 1, 0, 1, 1);
+            grid.attach(lblMin, 0, 1, 1, 1);
+            grid.attach(spinMin, 1, 1, 1, 1);
+            grid.attach(lblSec, 0, 2, 1, 1);
+            grid.attach(spinSec, 1, 2, 1, 1);
 
             const btnStart = new Gtk.Button({ label: 'Start' });
+            GtkA11y.setName(btnStart, 'Start quick timer');
             btnStart.connect('clicked', () => {
                 const total = (spinMin.get_value_as_int() * 60) + spinSec.get_value_as_int();
                 if (total <= 0) return;
@@ -978,6 +1018,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                 btn.set_tooltip_text(def.name + ' (' + (def.duration / 60) + ' min)');
                 const d = def;
                 btn.connect('clicked', () => this._startQuickTimer(d));
+                GtkA11y.setName(btn, `Start ${def.name} quick timer`);
                 presetsFlow.add(btn);
             }
             const presetsBox = new Gtk.Box({
@@ -995,6 +1036,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             const presetSection = this._buildSidebarSection('Preset timers', []);
 
             const btnManagePresets = new Gtk.Button({ label: 'Manage presets…' });
+            GtkA11y.setName(btnManagePresets, 'Manage preset timers');
             btnManagePresets.connect('clicked', () => this._openPresetManagement());
             presetSection.box.pack_start(btnManagePresets, false, false, 0);
 
@@ -1015,6 +1057,8 @@ class StandaloneGtkPlatform extends GObject.Object {
                 application: this._application,
                 timers: this._application ? this._application._timers : null,
             });
+            GtkA11y.setName(timerWidget, 'Timer lists');
+            GtkA11y.setDescription(timerWidget, 'Running, quick, and preset timers');
 
             const actionsBar = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
@@ -1025,14 +1069,24 @@ class StandaloneGtkPlatform extends GObject.Object {
             const mkIconBtn = (iconName, tooltip) => {
                 const img = Gtk.Image.new_from_icon_name(iconName, Gtk.IconSize.BUTTON);
                 const btn = new Gtk.Button({ image: img, relief: Gtk.ReliefStyle.NONE });
-                if (tooltip) btn.set_tooltip_text(tooltip);
+                if (tooltip) {
+                    btn.set_tooltip_text(tooltip);
+                    GtkA11y.setName(btn, tooltip);
+                } else {
+                    GtkA11y.setName(btn, iconName);
+                }
                 return btn;
             };
 
             const mkIconToggle = (iconName, tooltip) => {
                 const img = Gtk.Image.new_from_icon_name(iconName, Gtk.IconSize.BUTTON);
                 const btn = new Gtk.ToggleButton({ image: img, relief: Gtk.ReliefStyle.NONE });
-                if (tooltip) btn.set_tooltip_text(tooltip);
+                if (tooltip) {
+                    btn.set_tooltip_text(tooltip);
+                    GtkA11y.setName(btn, tooltip);
+                } else {
+                    GtkA11y.setName(btn, iconName);
+                }
                 return btn;
             };
 
@@ -1179,6 +1233,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             bottomBar.get_style_context().add_class('toolbar');
 
             const btnNewTimer = new Gtk.Button({ label: 'New timer…' });
+            GtkA11y.setName(btnNewTimer, 'New timer');
             btnNewTimer.connect('clicked', () => {
                 if (this._application && this._application.activate_action) {
                     this._application.activate_action('newTimer', null);
@@ -1186,6 +1241,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             });
 
             const btnStopAll = new Gtk.Button({ label: 'Stop all' });
+            GtkA11y.setName(btnStopAll, 'Stop all running timers');
             btnStopAll.connect('clicked', () => {
                 const timers = this._application && this._application._timers ? this._application._timers : null;
                 if (!timers) return;
@@ -1197,6 +1253,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             });
 
             const btnTest10 = new Gtk.Button({ label: 'Start 10s test' });
+            GtkA11y.setName(btnTest10, 'Start ten second test timer');
             btnTest10.connect('clicked', () => {
                 if (this._application && typeof this._application.startSmokeTestTimer === 'function') {
                     this._application.startSmokeTestTimer();

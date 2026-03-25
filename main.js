@@ -53,6 +53,7 @@ try {
 const Context = imports.context;
 const Standalone = imports.platform.standalone.gtk_platform;
 const Branding = imports.platform.standalone.branding;
+const GtkA11y = imports.platform.standalone.gtk_a11y;
 
 // Standalone gettext initialization for the "tasktimer" domain. This avoids
 // relying on ExtensionUtils.initTranslations() so the CLI/GTK app can locate
@@ -363,6 +364,7 @@ function _addNewTimerAction(app) {
         app._platform.showMainWindow();
 
         const dialog = new Gtk.Dialog({ title: 'New timer', modal: true });
+        GtkA11y.setName(dialog, 'New timer');
         if (app._platform._window) {
             dialog.set_transient_for(app._platform._window);
         }
@@ -372,17 +374,24 @@ function _addNewTimerAction(app) {
         const box = dialog.get_content_area();
         const grid = new Gtk.Grid({ row_spacing: 8, column_spacing: 8, margin: 12 });
 
-        const nameLabel = new Gtk.Label({ label: 'Name', halign: Gtk.Align.START });
         const nameEntry = new Gtk.Entry({ hexpand: true });
         nameEntry.set_text('Timer');
+        GtkA11y.setName(nameEntry, 'Timer name');
 
-        const minutesLabel = new Gtk.Label({ label: 'Minutes', halign: Gtk.Align.START });
         const minutes = new Gtk.SpinButton({ adjustment: new Gtk.Adjustment({ lower: 0, upper: 999, step_increment: 1 }), numeric: true });
         minutes.set_value(5);
+        GtkA11y.setName(minutes, 'Minutes');
 
-        const secondsLabel = new Gtk.Label({ label: 'Seconds', halign: Gtk.Align.START });
         const seconds = new Gtk.SpinButton({ adjustment: new Gtk.Adjustment({ lower: 0, upper: 59, step_increment: 1 }), numeric: true });
         seconds.set_value(0);
+        GtkA11y.setName(seconds, 'Seconds');
+
+        const nameLabel = new Gtk.Label({ label: '_Name', use_underline: true, halign: Gtk.Align.START });
+        nameLabel.set_mnemonic_widget(nameEntry);
+        const minutesLabel = new Gtk.Label({ label: '_Minutes', use_underline: true, halign: Gtk.Align.START });
+        minutesLabel.set_mnemonic_widget(minutes);
+        const secondsLabel = new Gtk.Label({ label: '_Seconds', use_underline: true, halign: Gtk.Align.START });
+        secondsLabel.set_mnemonic_widget(seconds);
 
         grid.attach(nameLabel, 0, 0, 1, 1);
         grid.attach(nameEntry, 1, 0, 1, 1);

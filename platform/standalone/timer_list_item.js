@@ -13,6 +13,8 @@ imports.gi.versions.Gtk = '3.0';
 
 const { GObject, Gtk, Pango } = imports.gi;
 
+const GtkA11y = imports.platform.standalone.gtk_a11y;
+
 function _safeText(v, fallback = '') {
     if (v === undefined || v === null) return fallback;
     const s = String(v);
@@ -67,6 +69,12 @@ class TimerListItem extends Gtk.ListBoxRow {
         }
 
         this._updateStateClasses();
+
+        try {
+            const sec = this._formatSecondary(t);
+            GtkA11y.setName(this, `${_safeText(t.name)} — ${sec}`);
+            GtkA11y.setDescription(this, 'Timer');
+        } catch (_e) {}
     }
 
     _updateStateClasses() {
@@ -189,6 +197,8 @@ class TimerListItem extends Gtk.ListBoxRow {
         const btnMenu = new Gtk.MenuButton({ label: '⋯' });
         btnMenu.set_valign(Gtk.Align.CENTER);
         btnMenu.set_popover(this._buildPopover());
+        GtkA11y.setName(btnMenu, 'Timer actions');
+        GtkA11y.setDescription(btnMenu, 'Start, stop, snooze, or delete');
 
         outer.pack_start(textBox, true, true, 0);
         outer.pack_start(btnMenu, false, false, 0);
