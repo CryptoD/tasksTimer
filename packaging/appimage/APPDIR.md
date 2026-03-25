@@ -21,7 +21,7 @@ AppDir/
 ├── com.github.cryptod.tasktimer.desktop  # Symlink → usr/share/applications/… (appimagetool)
 ├── com.github.cryptod.tasktimer.png      # Symlink → usr/share/icons/hicolor/256x256/… (appimagetool)
 ├── com.github.cryptod.tasktimer.svg      # Symlink → usr/share/icons/hicolor/scalable/…
-├── main.js                # Copied from repo root (not necessarily tracked in this template tree)
+├── main.js                # Copied from repo root (gitignored; see **Sync** below)
 ├── config.js
 ├── context.js
 ├── i18n.js
@@ -82,9 +82,19 @@ If `appimagetool` is not on `PATH`, the script downloads the continuous build fr
 
 **linuxdeploy** / **appimage-builder** are not used: this is a thin GJS bundle (system `gjs`/GTK). linuxdeploy is aimed at collecting ELF dependencies; appimage-builder expects a recipe file. **appimagetool** is the usual tool for a finished AppDir.
 
+### Sync only (no AppImage)
+
+`main.js`, `config.js`, `platform/`, `taskTimer@CryptoD/`, etc. under `AppDir/` are **gitignored** and must be refreshed after edits or the bundle will be **stale** relative to the repo. From the repository root:
+
+```bash
+make sync-appdir
+```
+
+This runs `bin/sync-appdir.sh` (the same payload copy as step 1 of `build-appimage.sh`). Use it before manual `gjs` tests against `packaging/appimage/AppDir/`.
+
 ### Manual steps
 
-1. Copy or sync the **repository payload** into `AppDir/` before running `appimagetool` (or use `build-appimage.sh`).
+1. Sync the **repository payload** into `AppDir/` (`make sync-appdir` or `build-appimage.sh`).
 2. Run **`packaging/appimage/bundle_appdir.sh`** to refresh **icons** and **locale** `.mo` files under `usr/share/`.
 3. Ensure `AppRun` and `usr/bin/tasktimer` are executable (`chmod +x`).
 

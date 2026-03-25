@@ -2,12 +2,16 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint sync-version check-deps check-deps-appimage test12
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12
 
 all: pack
 
 sync-version:
 	"$(ROOT)/bin/sync-version.py"
+
+# Refresh packaging/appimage/AppDir from repo (ignored in git; use before local AppImage tests)
+sync-appdir:
+	bash "$(ROOT)/bin/sync-appdir.sh" "$(ROOT)"
 
 check-deps:
 	"$(ROOT)/bin/check-deps.sh"

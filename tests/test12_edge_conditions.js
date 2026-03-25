@@ -38,7 +38,7 @@ function rmTree(path) {
 function runGjsScenario(mode, tmpForConfig, expectStderrSubstring) {
     const cwd = GLib.get_current_dir();
     const gjsPath = GLib.find_program_in_path('gjs');
-    const script = GLib.build_filenamev([cwd, 'tests', 'test12_config_scenarios.js']);
+    const script = GLib.build_filenamev([cwd, 'tests', '_test12_config_scenarios.js']);
     assert(gjsPath && Gio.File.new_for_path(script).query_exists(null), 'gjs and scenario script required');
 
     const argv = [gjsPath, script, mode];

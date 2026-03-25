@@ -1,4 +1,5 @@
 // Subprocess scenarios for tests/test12_edge_conditions.js — do not run alone without argv.
+// Prefixed _ so tests/test*.js (make test) does not execute this file directly.
 // Each run must use a fresh gjs process so imports.config picks up XDG_CONFIG_HOME.
 
 imports.gi.versions.Gtk = '3.0';

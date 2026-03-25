@@ -71,18 +71,7 @@ get_appimage_arch() {
 
 sync_payload() {
   echo "[$ME] Syncing application payload into AppDir..." >&2
-  for f in main.js config.js context.js i18n.js app_version.js version.json; do
-    if [ ! -f "$REPO_ROOT/$f" ]; then
-      echo "[$ME] Missing file: $REPO_ROOT/$f" >&2
-      exit 1
-    fi
-    cp -a "$REPO_ROOT/$f" "$APPDIR/"
-  done
-  mkdir -p "$APPDIR/platform" "$APPDIR/taskTimer@CryptoD"
-  rsync -a --delete "$REPO_ROOT/platform/" "$APPDIR/platform/"
-  rsync -a --delete "$REPO_ROOT/taskTimer@CryptoD/" "$APPDIR/taskTimer@CryptoD/"
-  if [ -f "$APPDIR/AppRun" ]; then chmod +x "$APPDIR/AppRun"; fi
-  if [ -f "$APPDIR/usr/bin/tasktimer" ]; then chmod +x "$APPDIR/usr/bin/tasktimer"; fi
+  "$REPO_ROOT/bin/sync-appdir.sh" "$REPO_ROOT"
 }
 
 # appimagetool expects the primary .desktop and icon at the AppDir root (see AppImage docs).
