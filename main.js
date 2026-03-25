@@ -93,6 +93,43 @@ const _CLI_KNOWN_OPTIONS = {
     '--test-notification': true,
 };
 
+/**
+ * If argv contains --help/-h or --version/-v, return which early-exit to perform.
+ * Used from main() before Gtk.Application.run so help/version do not run vfunc_startup().
+ * @param {string[]} args - Typically ARGV (includes program name).
+ * @returns {'help'|'version'|null}
+ */
+function _earlyCliExitKind(args) {
+    const has = flag => args.indexOf(flag) >= 0;
+    if (has('--version') || has('-v')) {
+        return 'version';
+    }
+    if (has('--help') || has('-h')) {
+        return 'help';
+    }
+    return null;
+}
+
+/** Shared by main() early exit and TaskTimerApplication._printHelp */
+function _printCliHelp(programName) {
+    const scriptBase = GLib.path_get_basename(_APP_MAIN_SCRIPT);
+    let name = scriptBase;
+    if (typeof programName === 'string' && programName.length > 0 && programName.charAt(0) !== '-') {
+        name = programName;
+    }
+    print(`Usage: ${name} [OPTIONS]
+
+${APP_DISPLAY_NAME} – kitchen and task timer.
+
+Options:
+  -h, --help              Show this help and exit.
+  -v, --version           Show version and exit.
+  --minimized             Start with the main window hidden (tray icon only if tray is available).
+  --test-notification     Show a test notification on startup (for testing).
+
+Run with no options to open the main window.`);
+}
+
 /** Action IDs used by Gio.Notification buttons; must match names registered on GApplication. */
 const TIMER_ACTION_DISMISS = 'timerDismiss';
 const TIMER_ACTION_RESTART = 'timerRestart';
@@ -742,20 +779,7 @@ class TaskTimerApplication extends Gtk.Application {
     }
 
     _printHelp(programName) {
-        const name = typeof programName === 'string' && programName.length > 0
-            ? programName
-            : APP_DISPLAY_NAME;
-        print(`Usage: ${name} [OPTIONS]
-
-${APP_DISPLAY_NAME} – kitchen and task timer.
-
-Options:
-  -h, --help              Show this help and exit.
-  -v, --version           Show version and exit.
-  --minimized             Start with the main window hidden (tray icon only if tray is available).
-  --test-notification     Show a test notification on startup (for testing).
-
-Run with no options to open the main window.`);
+        _printCliHelp(programName);
     }
 
     /**
@@ -799,6 +823,18 @@ Run with no options to open the main window.`);
 });
 
 function main(argv) {
+    const args = Array.prototype.slice.call(argv);
+    const early = _earlyCliExitKind(args);
+    if (early === 'version') {
+        print(`${APP_DISPLAY_NAME} ${APP_VERSION}`);
+        return 0;
+    }
+    if (early === 'help') {
+        const programName = args.length > 0 ? args[0] : null;
+        _printCliHelp(programName);
+        return 0;
+    }
+
     const app = new TaskTimerApplication();
     return app.run(argv);
 }
