@@ -1,5 +1,7 @@
 # TEST 14: Accessibility baseline (standalone GTK)
 
+**Beta testing:** To coordinate pre-release AppImages, testers, and feedback before a stable release, see **[TEST14-beta-coordination.md](TEST14-beta-coordination.md)**.
+
 ## Implemented in code
 
 - **`platform/standalone/gtk_a11y.js`** — helpers for Atk **name** / **description** and label–widget **mnemonics** (`Gtk.Label.set_mnemonic_widget`).

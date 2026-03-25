@@ -123,6 +123,8 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 |-----|---------|
 | **[CHANGELOG.md](CHANGELOG.md)** | Release history, migration notes (extension ↔ standalone) |
 | **[BUILD.md](BUILD.md)** | Build requirements, `make` targets, tests, AppImage, extension zip |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to report issues, run tests/lint, and submit pull requests |
+| **[tests/TEST14-beta-coordination.md](tests/TEST14-beta-coordination.md)** | Beta AppImages, TEST 14 accessibility testing, feedback before stable releases |
 | `doc/` | Design notes and phase docs where present |
 | `tests/*.md` | Manual test scenarios (tray, notifications, accessibility, etc.) |
 
@@ -134,4 +136,4 @@ See [LICENSE](LICENSE).
 
 ## Contributing
 
-Contributions are welcome. See **[BUILD.md](BUILD.md)** to run tests and lint locally before submitting changes.
+Contributions are welcome. Start with **[CONTRIBUTING.md](CONTRIBUTING.md)** for issue/PR expectations, and **[BUILD.md](BUILD.md)** for dependencies, `make` targets, and running tests and lint locally.

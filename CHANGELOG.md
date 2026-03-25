@@ -46,5 +46,16 @@ Exact per-commit **1.0** release notes were not kept in this file; future releas
 
 1. Edit **`version.json`** (`version`, `release_date`).
 2. Run **`make sync-version`** (updates `taskTimer@CryptoD/metadata.json` and AppStream metadata under the AppImage tree).
-3. Update **CHANGELOG.md** with a new `## [x.y] — YYYY-MM-DD` section.
-4. Tag and publish per your workflow (GitHub Releases, extensions.gnome.org, AppImage artifacts).
+3. Update **CHANGELOG.md** with a new `## [x.y] — YYYY-MM-DD` section (this block is what GitHub Releases use for notes).
+4. Commit and push, then create a **git tag** whose value matches **`version`** after stripping an optional leading `v` (examples: `v1.2` or `1.2`):
+   ```bash
+   git tag -a v1.2 -m "taskTimer 1.2"
+   git push origin v1.2
+   ```
+   Pushing a matching tag runs **GitHub Actions** (`.github/workflows/release.yml`): `make lint`, `make test`, `make appimage`, **SHA256** checksums, and a **GitHub Release** titled `taskTimer <tag>` with the AppImage and `SHA256SUMS` attached. The release description is filled from the **`## [x.y]`** section in **CHANGELOG.md** via `bin/extract_changelog_section.py`.
+5. The workflow **fails** if the tag does not match `version.json`, or if **CHANGELOG.md** has no section for that version. For other distribution channels (extensions.gnome.org, etc.), follow their usual steps.
+
+### Beta (pre-release) and TEST 14
+
+- Tags whose name contains **`-beta`**, **`-rc`**, or **`-alpha`** (for example `v1.2-beta.1`) produce a GitHub **Pre-release** instead of the default latest stable release. **`version.json`** must still match the tag (e.g. `1.2-beta.1`).
+- To coordinate **beta AppImages**, external testers, and feedback before a stable release — including **TEST 14** (accessibility) — use **`tests/TEST14-beta-coordination.md`**.

@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Build & development docs
+    url: https://github.com/CryptoD/taskTimer/blob/main/BUILD.md
+    about: Dependencies, make targets, tests, and packaging.
+  - name: Contributing guide
+    url: https://github.com/CryptoD/taskTimer/blob/main/CONTRIBUTING.md
+    about: How to report issues and submit pull requests.
+  - name: Beta testing (TEST 14)
+    url: https://github.com/CryptoD/taskTimer/blob/main/tests/TEST14-beta-coordination.md
+    about: Pre-release AppImages, inviting testers, and feedback before stable releases.

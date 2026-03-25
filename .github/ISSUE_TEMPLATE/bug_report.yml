@@ -1,0 +1,86 @@
+name: Bug report
+description: Report unexpected behavior or a crash
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Please fill in what you can; the environment section helps a lot for Linux desktop apps.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong in one or two sentences?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do before the issue happened? Numbered steps are ideal.
+      placeholder: |
+        1. …
+        2. …
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: false
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Product
+      description: Which taskTimer surface are you using?
+      options:
+        - Standalone app (`gjs main.js`)
+        - GNOME Shell extension
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Standalone — output of `gjs main.js --version`. Extension — version shown in Extensions or in `taskTimer@CryptoD/metadata.json`.
+      placeholder: e.g. 1.2.3
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / distro
+      placeholder: e.g. Ubuntu 24.04, Fedora 41, Arch
+    validations:
+      required: false
+
+  - type: input
+    id: desktop
+    attributes:
+      label: Desktop environment
+      placeholder: e.g. GNOME 47, KDE Plasma, Xfce
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, or anything else that helps reproduce or understand the issue.
+    validations:
+      required: false

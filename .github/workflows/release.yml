@@ -1,10 +1,12 @@
-# Build AppImage and attach it to a GitHub Release when a tag is pushed.
+# Build AppImage and publish a GitHub Release when a version tag is pushed.
+# Release notes come from the matching ## [x.y] section in CHANGELOG.md (see bin/extract_changelog_section.py).
 name: Release
 
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
+      - '*.*'
 
 permissions:
   contents: write
@@ -20,6 +22,9 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify tag matches version.json
+        run: python3 bin/verify_release_tag.py
 
       - name: Install dependencies
         run: |
@@ -52,10 +57,46 @@ jobs:
       - name: List AppImage artifacts
         run: ls -la packaging/appimage/dist/
 
+      - name: Generate checksums
+        run: |
+          cd packaging/appimage/dist
+          sha256sum *.AppImage | tee SHA256SUMS
+
+      - name: Prepare release notes from CHANGELOG.md
+        run: |
+          set -euo pipefail
+          VER=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+          NOTES="${{ runner.temp }}/release-notes.md"
+          python3 bin/extract_changelog_section.py "$VER" > "$NOTES"
+          {
+            echo ""
+            echo "---"
+            echo "Full changelog: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md"
+          } >> "$NOTES"
+
+      - name: Stable vs pre-release (beta / rc / alpha tags)
+        id: relmeta
+        run: |
+          TAG="${{ github.ref_name }}"
+          case "$TAG" in
+            *-beta*|*-rc*|*-alpha*)
+              echo "prerelease=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "prerelease=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: packaging/appimage/dist/*.AppImage
-          generate_release_notes: true
+          name: taskTimer ${{ github.ref_name }}
+          body_path: ${{ runner.temp }}/release-notes.md
+          generate_release_notes: false
+          prerelease: ${{ steps.relmeta.outputs.prerelease == 'true' }}
+          files: |
+            packaging/appimage/dist/*.AppImage
+            packaging/appimage/dist/SHA256SUMS
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -93,6 +93,8 @@ make sync-version
 
 This updates `taskTimer@CryptoD/metadata.json` and `packaging/appimage/AppDir/usr/share/metainfo/com.github.cryptod.tasktimer.appdata.xml` (when present).
 
+Pushing a **version tag** that matches `version.json` runs **`.github/workflows/release.yml`**, which builds the AppImage, writes **SHA256** checksums, and creates a **GitHub Release** whose notes are taken from the matching `## [x.y]` section in **CHANGELOG.md** (see **CHANGELOG.md** — Release process). Tags containing **`-beta`**, **`-rc`**, or **`-alpha`** become **Pre-releases**; see **`tests/TEST14-beta-coordination.md`** to run a beta program (TEST 14) before a stable tag.
+
 ---
 
 ## Packaging
