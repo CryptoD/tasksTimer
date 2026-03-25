@@ -43,6 +43,9 @@ try {
 const DEFAULT_DATA_DIR = GLib.build_filenamev([GLib.get_user_data_dir(), 'tasktimer']);
 const DEFAULT_TIMERS_FILE = 'timers.json';
 
+/** Min interval between periodic timers.json writes while ticks run (shared across all timers). */
+const PERIODIC_TIMERS_FILE_SAVE_MS = 30000;
+
 function _timersPathFor(timers) {
     const services = timers && timers._services ? timers._services : {};
     if (services.storage && services.storage.timersPath) {
@@ -125,6 +128,23 @@ var TimersCore = class TimersCore extends Array {
 
         this._lookup = {};
         this.warn_volume = true;
+        /** Throttles periodic save from timer ticks (see maybePeriodicSaveTimersFile). */
+        this._lastPeriodicTimersFileSaveMs = 0;
+    }
+
+    /**
+     * Persist timers.json at most once per PERIODIC_TIMERS_FILE_SAVE_MS while timers tick.
+     * Every running timer used to call saveAllTimersCore on the same wall-clock windows,
+     * causing O(N) redundant writes and heavy I/O with many concurrent timers.
+     *
+     * @param {number} nowMs - Date.now() from the tick.
+     */
+    maybePeriodicSaveTimersFile(nowMs) {
+        if (nowMs - this._lastPeriodicTimersFileSaveMs < PERIODIC_TIMERS_FILE_SAVE_MS) {
+            return;
+        }
+        this._lastPeriodicTimersFileSaveMs = nowMs;
+        saveAllTimersCore(this);
     }
 
     get settings() {
@@ -650,13 +670,10 @@ var TimerCore = class TimerCore {
             timer.timers.inhibitor.inhibit_timer(timer);
         }
 
-        const hms = timer.remaining_hms(now);
-        // Core does not manipulate UI elements; higher-level presenters
-        // can observe timer state and update labels/icons as needed.
+        // Updates _end when alarm_timer matches; keep even though core has no UI.
+        timer.remaining_hms(now);
 
-        if (now % 30000 < timer._interval_ms) {
-            saveAllTimersCore(timer.timers);
-        }
+        timer.timers.maybePeriodicSaveTimersFile(now);
 
         return true;
     }

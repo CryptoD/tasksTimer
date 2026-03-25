@@ -39,6 +39,9 @@ const ProgressIcon = Me.imports.progress_icon.ProgressIcon;
 const Storage = Me.imports.storage.Storage;
 const TIMERS_SAVE_PATH = GLib.build_filenamev([GLib.get_user_data_dir(), 'tasktimer', 'timers.json']);
 
+/** Same throttle as timers_core PERIODIC_TIMERS_FILE_SAVE_MS (extension timers.json). */
+const PERIODIC_TIMERS_SAVE_MS = 30000;
+
 // Utility to save all timers
 function saveAllTimers(timersInstance) {
     // Save all timers (active, expired, etc.)
@@ -69,6 +72,9 @@ var Timers = class Timers extends Array {
 
     // id => timer
     this._lookup = {};
+
+    /** Throttles periodic save from timer ticks (see maybePeriodicSaveTimersJson). */
+    this._lastPeriodicTimersSaveMs = 0;
 
     this._settings = new Settings();
     this._attached = false;
@@ -106,6 +112,18 @@ var Timers = class Timers extends Array {
     // requires this._settings
     this._notifier = new Notifier.Annoyer(this);
     this._inhibitor = new SessionManagerInhibitor(this.settings);
+  }
+
+  /**
+   * Persist timers.json at most once per PERIODIC_TIMERS_SAVE_MS while timers tick.
+   * Avoids N redundant writes when N timers share the same save window.
+   */
+  maybePeriodicSaveTimersJson(nowMs) {
+    if (nowMs - this._lastPeriodicTimersSaveMs < PERIODIC_TIMERS_SAVE_MS) {
+      return;
+    }
+    this._lastPeriodicTimersSaveMs = nowMs;
+    saveAllTimers(this);
   }
 
   static attach(indicator) {
@@ -898,10 +916,7 @@ var Timer = class Timer {
       }
       timersInstance.set_panel_label(panel_label);
     }
-    // Periodically save timer state (every 30 seconds)
-    if (now % 30000 < timer._interval_ms) {
-      saveAllTimers(timersInstance);
-    }
+    timersInstance.maybePeriodicSaveTimersJson(now);
 
     return true;
   }
