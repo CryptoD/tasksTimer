@@ -121,6 +121,7 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 
 | Doc | Purpose |
 |-----|---------|
+| **[CHANGELOG.md](CHANGELOG.md)** | Release history, migration notes (extension ↔ standalone) |
 | **[BUILD.md](BUILD.md)** | Build requirements, `make` targets, tests, AppImage, extension zip |
 | `doc/` | Design notes and phase docs where present |
 | `tests/*.md` | Manual test scenarios (tray, notifications, accessibility, etc.) |
