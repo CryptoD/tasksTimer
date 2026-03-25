@@ -1,112 +1,136 @@
 # taskTimer
 
-## Description
- taskTimer is a forked and rebranded version of the original Kitchen Timer project. The extension is now presented to users as "taskTimer" throughout the UI and documentation. This fork introduces updates and improvements while adhering to the same core principles.
+**taskTimer** is a kitchen and task timer for Linux. The **recommended way to use it** is the **standalone GTK application** (`gjs main.js`): a normal desktop window with lists, quick start, system notifications, optional tray icon, and JSON configuration—so it runs on **GNOME, KDE, Xfce, and other desktops**, not only GNOME Shell.
 
-## Features
-- Timer functionality for tasks
-- Customizable settings
-- Theme customization (Light, Dark, Default)
-- Menu width customization
+This repository also contains a **GNOME Shell extension** (`taskTimer@CryptoD`) for users who prefer a panel indicator; it shares the same timer logic but targets the Shell UI and GSettings.
 
-## Installation (for GNOME Shell users)
-1. Copy the extension folder to your local extensions directory:
-   - mkdir -p ~/.local/share/gnome-shell/extensions
-   - cp -r taskTimer@CryptoD ~/.local/share/gnome-shell/extensions/
-2. Compile the GSettings schema (the extension includes a helper script):
-   - bash ~/.local/share/gnome-shell/extensions/taskTimer@CryptoD/bin/compile_schemas.sh
-3. (Optional) Compile translations if you maintain them:
-   - msgfmt -o ~/.local/share/gnome-shell/extensions/taskTimer@CryptoD/locale/<lang>/LC_MESSAGES/tasktimer.mo taskTimer@CryptoD/po/<lang>.po
-4. Restart GNOME Shell (Alt+F2, r, Enter) or logout/login for changes to take effect.
+---
 
-Alternative: package and upload to extensions.gnome.org following their packaging guidelines (ensure the UUID in metadata.json is unique and matches the directory/package name).
+## Screenshots
 
-## Standalone GTK application entry point (`main.js`)
+<p align="center">
+  <img src="doc/screenshots/standalone-main-window.png" alt="taskTimer main window: sidebar with quick start and presets, main area with running timers and controls" width="800">
+</p>
 
-The repository now also contains a **standalone GTK application entry point** in `main.js`. This is intended to gradually replace `extension.js` as the primary entry for non-GNOME Shell environments while reusing the same timer logic.
+*Main window: quick start, presets, running timers, and toolbar actions. Actual theme follows your system or in-app **Theme** setting (Preferences → General).*
 
-- **File**: `main.js` (repository root)
-- **Type**: GJS `Gtk.Application` with `Gio.ApplicationFlags.HANDLES_COMMAND_LINE`
-- **Application class**: `TaskTimerApplication` (extends `Gtk.Application`)
-- **Current behavior**:
-  - Implements the GTK application lifecycle (`vfunc_startup`, `vfunc_activate`, `vfunc_shutdown`) with timers, JSON settings, tray, and notifications.
-  - Parses command-line options in `vfunc_command_line()` / `_handleCommandLine()` in `main.js` (see **Command-line flags** below).
-  - **Startup notification** ([freedesktop spec](https://specifications.freedesktop.org/startup-notification-spec/)): when launched from a `.desktop` or panel with `DESKTOP_STARTUP_ID`, the main window calls `Gtk.Window.set_startup_id()` and, after the first `present()`, `Gdk.notify_startup_complete()` once (see `StandaloneGtkPlatform` in `platform/standalone/gtk_platform.js`). This clears the “starting” / busy launcher feedback and avoids confusion when the app stays in the tray (`--minimized`). Autostart entries use `StartupNotify=true`.
-- **Planned behavior (future phases)**:
-  - Optional CLI operations such as starting timers directly from the terminal (non-flag arguments).
+---
 
-### Running the GTK application
+## Standalone app — feature overview
 
-From the repository root:
+| Area | What you get |
+|------|----------------|
+| **Timers** | Preset timers, one-click quick presets, “Quick start” entry (natural language / durations), running list with snooze, pause, ±30s, stop |
+| **Desktop integration** | `Gio.Notification` alerts when a timer ends; optional **system tray** (StatusNotifier / legacy status icon); **minimize to tray**; **autostart on login** (XDG autostart `.desktop`) |
+| **Look & feel** | **Theme**: System / Light / Dark; display toggles for labels, time, progress, end time |
+| **Data** | Settings and timers stored under **`~/.config/tasktimer/`** and **`~/.local/share/tasktimer/`** (JSON); portable and easy to back up |
+| **Sound** | Alarm sounds via GStreamer; volume hints when the mixer is available |
+| **Shortcuts** | In-app shortcuts when the window has focus; see **Preferences** and `BUILD.md` for details |
+
+---
+
+## Installation (standalone)
+
+### 1. Dependencies
+
+You need **GJS**, **GTK 3** (GObject Introspection), and **GStreamer** GI bindings. Typical package names:
+
+- **Debian / Ubuntu:** `gjs`, `gir1.2-gtk-3.0`, `gir1.2-gstreamer-1.0` (plus `gir1.2-gio-2.0` as pulled in by GTK)
+- **Fedora:** `gjs`, `gtk3`, `gstreamer1-plugins-base` + introspection packages
+- **Arch:** `gjs`, `gtk3`, `gst-plugins-base-libs`
+
+Optional: **libayatana-appindicator** or **libappindicator** GI bindings for a better tray on many desktops. See `bin/check-deps.sh` and **[BUILD.md](BUILD.md)** for a full contributor-oriented list.
+
+### 2. From source (this repository)
 
 ```bash
-gjs main.js [arguments...]
+git clone https://github.com/CryptoD/taskTimer.git
+cd taskTimer
+bin/check-deps.sh --runtime
+gjs main.js
 ```
 
-Examples:
+To install a **`.desktop`** entry for your session (optional), use your distro’s “create launcher” flow, or run from a terminal / app grid after packaging.
+
+### 3. AppImage (release builds)
+
+If your project publishes AppImages, they are produced with `make appimage` (see **[BUILD.md](BUILD.md)**). Install the downloaded `.AppImage`, `chmod +x`, and run it.
+
+---
+
+## Running the application
 
 ```bash
-gjs main.js
-gjs main.js --minimized
+gjs main.js              # main window
+gjs main.js --minimized  # start hidden; use tray if available
 gjs main.js --version
 gjs main.js --help
 ```
 
-### Command-line flags
-
-Parsed in `_handleCommandLine()` (`main.js`). Unknown options (`-…` tokens that are not listed) log a warning and suggest `--help`.
-
 | Flag | Short | Meaning |
 |------|--------|---------|
-| `--help` | `-h` | Print usage and exit (does not start the UI). |
-| `--version` | `-v` | Print name and version and exit (does not start the UI). |
-| `--minimized` | — | After startup, keep the main window hidden (use tray if available). |
-| `--test-notification` | — | After startup, show a one-off test notification (for debugging). |
+| `--help` | `-h` | Print usage and exit (no UI). |
+| `--version` | `-v` | Print name and version and exit. |
+| `--minimized` | — | Open with the main window hidden (tray only if supported). |
+| `--test-notification` | — | Show a test notification once after startup (debugging). |
 
-Developers adding new flags should update `_CLI_KNOWN_OPTIONS`, `_handleCommandLine`, `_printHelp`, and this table.
+**Branding** (application ID, name, icon) is centralized in `platform/standalone/branding.js` and matches the **About** dialog and notifications.
 
-### Branding (standalone)
+**Autostart:** Preferences → **General** → **Start when you log in** writes `~/.config/autostart/tasktimer.desktop` (removed when turned off). Paths use absolute locations so login works regardless of current directory.
 
-Single source of truth: `platform/standalone/branding.js` (`APP_ID`, `DISPLAY_NAME`, `ICON_NAME`). `main.js` uses these for `Gtk.Application` (`application_id`), default window icons, and About dialog text. `StandaloneGtkPlatform` passes the same display name and icon to the main window, tray, `Gio.Notification` (including `set_application_name` when supported), and the autostart `.desktop` file (`Name`, `Icon`, `StartupWMClass`).
+---
 
-### Autostart on login (standalone)
+## Standalone vs GNOME Shell extension
 
-The standalone app can register an [XDG autostart](https://specifications.freedesktop.org/autostart-spec/autostart-spec-latest.html) entry so it launches after you log in:
+| Topic | Standalone (`main.js`) | GNOME extension |
+|--------|-------------------------|-----------------|
+| **Where it runs** | Any desktop with GTK 3 + GJS | **GNOME Shell only** |
+| **UI** | Full window + optional tray | **Panel indicator** + popup menus |
+| **Settings storage** | **JSON** under `~/.config/tasktimer/` | **GSettings** / schema in `taskTimer@CryptoD` |
+| **Global shortcuts** | **In-app** when the window is focused | Can use **Shell-global** accelerators (best on X11; Wayland has limits) |
+| **Import / export settings** | Edit JSON or use files manually; **no** full import/export UI in standalone prefs | **Import/export** available in extension **Preferences** (when using `prefs.js`) |
+| **Theme / menu width** | Window theme + GTK preferences; no Shell stylesheet | Shell **stylesheet** + **menu max width** for the panel menu |
 
-| What | Where |
-|------|--------|
-| **Setting** | Preferences → General → **Start when you log in** (JSON key `autostart` in `~/.config/tasktimer/config.json`) |
-| **File created** | `~/.config/autostart/tasktimer.desktop` |
-| **When removed** | Turn the setting off — the file is deleted |
+Both paths share core timer code (`taskTimer@CryptoD/*`, `platform/standalone/*`). Pick one surface per session; mixing two installs is usually unnecessary.
 
-**Code path:** `Settings.autostart` → `Settings._onAutostartChange` (assigned in `main.js` during startup) → `StandaloneGtkPlatform.updateAutostartDesktop(enabled)`. On each app start, the `.desktop` file is synced with the saved boolean. `Exec`/`Path` use absolute paths from `StandaloneContext` (`appRoot`, `mainScriptPath`) so login works even if the install directory is not the current working directory.
+---
 
-## Implementation details
+## GNOME Shell extension (optional)
 
-Theme customization is handled via the `theme-variant` and `menu-max-width` GSettings keys.
+For users who want the **classic panel applet** only on GNOME Shell:
 
-### Themes
-The indicator's menu actor is assigned classes `kitchentimer-dark-theme` or `kitchentimer-light-theme` based on the user's choice. These classes are defined in `stylesheet.css`.
+1. Copy `taskTimer@CryptoD` to `~/.local/share/gnome-shell/extensions/`
+2. Compile schemas: `bash taskTimer@CryptoD/bin/compile_schemas.sh`
+3. Restart Shell (e.g. log out/in) and enable the extension in **Extensions** or **extensions.gnome.org**
 
-- `default`: No additional class is applied, following the system shell theme.
-- `dark`: Applies a dark background and light text.
-- `light`: Applies a light background and dark text.
+Details and packaging: **[BUILD.md](BUILD.md)**.
 
-### Menu Width
-The max-width of the menu is set dynamically on the menu's actor using the inline style property `max-width`.
+---
 
-### Settings
-Settings are managed in `prefs.js` and defined in `settings40.ui`. These settings are bound to the GSettings keys, ensuring changes are saved and applied in real-time.
+## Configuration paths (standalone)
 
-### Keyboard shortcuts
-The app supports configurable keyboard shortcuts (e.g. show end time, stop next timer). **Truly global shortcuts** (active when the app or extension menu does not have focus) are **limited or unavailable on Wayland and in AppImage/standalone builds**; they work when running as a GNOME Shell extension, which can register accelerators with the compositor. The **standalone GTK application primarily supports in-app shortcuts**—key combinations that work when the app window has focus. Configure shortcuts in the **Shortcuts** tab of the preferences.
+| Data | Location |
+|------|----------|
+| User settings | `~/.config/tasktimer/config.json` |
+| Timer persistence | `~/.local/share/tasktimer/timers.json` (and related) |
+| Autostart | `~/.config/autostart/tasktimer.desktop` when enabled |
 
-## Notes
-- The gettext domain is `tasktimer` and schemas are under org.gnome.shell.extensions.kitchen-timer-blackjackshellac (no functional change to schema id unless you choose to rename it).
-- If you change the schemas id or gettext domain, be sure to update translations and metadata appropriately.
+---
+
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| **[BUILD.md](BUILD.md)** | Build requirements, `make` targets, tests, AppImage, extension zip |
+| `doc/` | Design notes and phase docs where present |
+| `tests/*.md` | Manual test scenarios (tray, notifications, accessibility, etc.) |
+
+---
 
 ## License
-See the LICENSE file for license details.
+
+See [LICENSE](LICENSE).
 
 ## Contributing
-Contributions are welcome. Please review the LICENSE file before contributing.
+
+Contributions are welcome. See **[BUILD.md](BUILD.md)** to run tests and lint locally before submitting changes.
