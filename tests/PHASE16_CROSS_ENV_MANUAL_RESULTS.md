@@ -6,6 +6,8 @@ This log records **core user flows** (timers, tray, notifications, audio, prefer
 
 **Reference:** Flow detail lives in `tests/TEST4-tray.md`, `tests/TEST6-notifications.md`, `tests/TEST10-advanced-features.md`, and `doc/PHASE16_TEST_MATRIX.md`.
 
+**Final pass (aggregated status + known issues):** `tests/PHASE16_FINAL_CROSS_PLATFORM_PASS.md`
+
 ---
 
 ## Host / session (automated smoke, 2025-03-25)

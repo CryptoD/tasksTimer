@@ -121,4 +121,6 @@ Run these **on at least one GNOME and one non-Gnome GTK** configuration per majo
 2. **Full:** All **Required** cells for the DEs you claim in the README.
 3. **Regression:** When changing `main.js`, platform code, or extension Shell APIs, re-run the affected rows plus **notifications** and **tray** columns.
 
+**Final cross-platform pass:** For a consolidated sign-off checklist (automated runs, TEST 13 performance, remaining known issues), see `tests/PHASE16_FINAL_CROSS_PLATFORM_PASS.md`.
+
 Update this document when adding features (e.g. new CLI flags, new tray backends) or when officially expanding supported DEs.
