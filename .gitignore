@@ -1,4 +1,5 @@
 *~
+node_modules/
 taskTimer@CryptoD.*shell-extension*.zip
 tasktimer_settings.json
 *.po.old

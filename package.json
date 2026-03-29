@@ -1,0 +1,7 @@
+{
+  "name": "tasktimer",
+  "private": true,
+  "version": "1.1.0",
+  "description": "Placeholder package.json so CI can use actions/setup-node cache: npm. The app is GJS/GTK; there are no npm runtime dependencies.",
+  "scripts": {}
+}
