@@ -1,0 +1,9 @@
+# Faster, smaller docker build context
+.git
+.github
+node_modules
+packaging/appimage/dist
+*.AppImage
+taskTimer@CryptoD.*shell-extension*.zip
+tests/.tmp-test11-*
+*~

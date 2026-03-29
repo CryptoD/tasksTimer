@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+# Multi-stage image for reproducible lint/tests and a minimal runnable CLI check.
+#
+# taskTimer is a desktop GJS/GTK application; it does not expose an HTTP API. This
+# Dockerfile follows a common "Dockerfile.api" naming convention for automation
+# checklists; use it for CI-like validation in a clean Linux environment.
+
+FROM ubuntu:24.04 AS builder
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    dbus-daemon \
+    dbus-x11 \
+    gjs \
+    gir1.2-gstreamer-1.0 \
+    gir1.2-gtk-3.0 \
+    xvfb \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . .
+# Smoke check: full `make test` can fail in some container filesystem/root setups (e.g.
+# edge-case tests). CI runs the full suite on GitHub-hosted runners — see ci.yml.
+RUN gjs -c 'imports.gi.versions.Gtk = "3.0"; void imports.gi.Gtk;' \
+  && xvfb-run -a dbus-run-session -- gjs main.js --version
+
+FROM ubuntu:24.04 AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    gjs \
+    gir1.2-gstreamer-1.0 \
+    gir1.2-gtk-3.0 \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY --from=builder /src /src
+# No display server; exercises imports and prints version (same idea as CI smoke).
+CMD ["gjs", "main.js", "--version"]

@@ -125,6 +125,7 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 | **[BUILD.md](BUILD.md)** | Build requirements, `make` targets, tests, AppImage, extension zip |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to report issues, run tests/lint, and submit pull requests |
 | **[tests/TEST14-beta-coordination.md](tests/TEST14-beta-coordination.md)** | Beta AppImages, TEST 14 accessibility testing, feedback before stable releases |
+| **[docs/dev/deployment.md](docs/dev/deployment.md)** | How taskTimer is distributed; Docker image (`Dockerfile.api`) for smoke checks |
 | `doc/` | Design notes and phase docs where present |
 | `tests/*.md` | Manual test scenarios (tray, notifications, accessibility, etc.) |
 
