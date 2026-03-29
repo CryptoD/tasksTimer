@@ -133,6 +133,8 @@ Details: `packaging/appimage/APPDIR.md`.
 
 **GitHub Actions** (`.github/workflows/ci.yml`, `release.yml`) run **`npm ci`** after **`actions/setup-node`** with **`cache: npm`**, then **`npm run lint`** (**ESLint** on `*.js`; config in **`.eslintrc.cjs`**). The GJS application does not use npm at runtime; **`make lint`** remains gettext + shellcheck.
 
+**Browser E2E shell** (`.github/workflows/e2e.yml`): **`npm run test:e2e`** runs **Playwright** with **MSW** (`@msw/playwright`) — see **`e2e/README.md`**. This does not exercise the GTK app; it is a checklist-ready browser harness.
+
 **Individual scripts** (from repo root):
 
 ```bash

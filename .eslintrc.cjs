@@ -21,7 +21,7 @@ module.exports = {
         sourceType: 'script',
     },
     extends: ['eslint:recommended'],
-    ignorePatterns: ['node_modules/**', 'packaging/appimage/AppDir/**'],
+    ignorePatterns: ['node_modules/**', 'packaging/appimage/AppDir/**', 'e2e/**'],
     rules: {
         // GJS / GObject code uses patterns ESLint's default rules misread (imports.gi,
         // optional catch, gettext `_`, etc.). Prefer `make lint` + tests for correctness.

@@ -3,10 +3,18 @@
   "private": true,
   "version": "1.1.0",
   "description": "Dev tooling (ESLint, CI cache). The app is GJS/GTK; there are no npm runtime dependencies.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "playwright test --config=e2e/playwright.config.mjs"
   },
   "devDependencies": {
-    "eslint": "^8.57.0"
+    "@msw/playwright": "^0.6.6",
+    "@playwright/test": "^1.58.2",
+    "eslint": "^8.57.0",
+    "msw": "^2.12.14",
+    "playwright": "^1.58.2"
   }
 }
