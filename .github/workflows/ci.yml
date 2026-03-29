@@ -28,6 +28,9 @@ jobs:
       - name: npm ci
         run: npm ci
 
+      - name: ESLint (npm run lint)
+        run: npm run lint
+
       - name: Install dependencies
         run: |
           sudo apt-get update

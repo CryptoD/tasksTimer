@@ -48,6 +48,8 @@ bin/check-deps.sh --runtime   # gjs, GTK 3, GStreamer imports
 Before opening a PR, run the same checks as CI:
 
 ```bash
+npm ci
+npm run lint
 make lint
 make test
 ```

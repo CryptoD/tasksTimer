@@ -31,6 +31,9 @@ jobs:
       - name: npm ci
         run: npm ci
 
+      - name: ESLint (npm run lint)
+        run: npm run lint
+
       - name: Verify tag matches version.json
         run: python3 bin/verify_release_tag.py
 

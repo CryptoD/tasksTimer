@@ -131,7 +131,7 @@ Details: `packaging/appimage/APPDIR.md`.
 | `make lint` | gettext + project linters |
 | `bash tests/test12_full_build_local.sh` or `make test12` | Lint + tests + AppImage (+ pack if `gnome-extensions` exists) |
 
-**GitHub Actions** (`.github/workflows/ci.yml`, `release.yml`) run **`npm ci`** after **`actions/setup-node`** with **`cache: npm`**. The repo has a minimal **`package.json`** / **`package-lock.json`** only so that cache can key off the lockfile; the GJS application does not use npm packages at runtime.
+**GitHub Actions** (`.github/workflows/ci.yml`, `release.yml`) run **`npm ci`** after **`actions/setup-node`** with **`cache: npm`**, then **`npm run lint`** (**ESLint** on `*.js`; config in **`.eslintrc.cjs`**). The GJS application does not use npm at runtime; **`make lint`** remains gettext + shellcheck.
 
 **Individual scripts** (from repo root):
 
