@@ -32,3 +32,4 @@ Checklist advice such as **“minimize diff in `main.go`”** or **“keep `Setu
 
 - **Do not** suggest splitting or slimming **`main.go`**, extracting **`SetupRouter`** for tests, or injecting a router for unit tests—those files and APIs **do not exist**.
 - **Do** treat **[`main.js`](../../main.js)** as the real entry; prefer **small, local changes** that match existing GJS style. For testability, use **`tests/test*.js`** and shared modules under **`taskTimer@CryptoD/`**, not HTTP router extraction.
+- **Do not** add **new globals** (`globalThis.foo`, stray `var` at top level) for features; keep **module scope** and **`imports`**. Keep **`main.js`** to **wiring + `Gtk.Application.run()`**—see **“Done when (thin `main` + no stray globals — GJS analogue)”** in [architecture.md](architecture.md).

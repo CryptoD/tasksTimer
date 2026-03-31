@@ -17,6 +17,19 @@ After reading this file, you should be able to answer:
 
 ---
 
+## Done when (thin `main` + no stray globals — GJS analogue)
+
+Some checklists require: **no new globals**; **`main` is mostly wiring and `Run`**. This project has **`main.js`**, not `main.go`, and the event loop is **`Gtk.Application.run()`** (and Shell’s extension lifecycle for the extension)—**not** `http.ListenAndServe`.
+
+| Intent | In taskTimer |
+|--------|----------------|
+| **Avoid new globals** | Prefer **`const` / `let`** at module top level and **`imports.*`** bindings. Do **not** introduce new **`globalThis.*`** (or ad-hoc `var` on the global object) for feature work. Follow existing patterns (e.g. gettext `_` in [`main.js`](../../main.js)). |
+| **Thin entry + one “run”** | **[`main.js`](../../main.js)** should stay **bootstrap**: imports, CLI early exit (`--help` / `--version`), `Gtk.Application` construction, then **`app.run()`**. Substantive UI and timer behavior belong in **`platform/standalone/`** (e.g. `gtk_platform.js`) and **`taskTimer@CryptoD/`**, not large new blocks only in `main.js`. |
+
+**Done when:** A change keeps **`main.js`** mostly **wiring** (imports, CLI, app creation, **`run()`**) and does **not** add unnecessary **global** surface; new logic lives in **modules** alongside existing code.
+
+---
+
 ## Mental model in one minute
 
 **taskTimer** is a **desktop** kitchen/task timer for Linux. All application code is **JavaScript** executed by **`gjs`**, using **GTK** for the standalone window and **GNOME Shell APIs** for the optional panel extension.
@@ -154,6 +167,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | **HTTP stack dependencies in one composition root** (e.g. `NewServer`, `NewHTTPServer` wiring DB + router + middleware) | **N/A** — there is **no** HTTP stack; nothing to construct or inject for a listener. Desktop deps are **system packages** (GTK, GJS, GStreamer—see [BUILD.md](../../BUILD.md)), not app-composed HTTP layers. |
 | **`db.InitDB`**, **service** construction, **`server.SetupRouter`** behind one **typed constructor** shared by **`main`** and **tests** | **N/A** — no SQL `InitDB`, no Go services/router, no `main.go`/`main_test.go` split. **Tests** are **`tests/test*.js`** run by **`gjs`**; they do not bootstrap the same constructor as **`main.js`** because there is no shared HTTP/DB wiring layer. |
 | **“Minimize diff in `main.go`”** / **“keep `SetupRouter` testable”** (AI/LLM Go refactors) | **N/A** — no **`main.go`**, no **`SetupRouter`**; see **[llm-context.md](llm-context.md)**. |
+| **“No new globals; `main` is wiring + `Run`”** (Go) | **GJS analogue:** section **“Done when (thin `main` + no stray globals — GJS analogue)”** below — not `main.go` / `http.Server`. |
 | `GET /users` in `internal/server/users.go` | **N/A** — no HTTP API. |
 | Cross-user tasks in `main_test.go` | **N/A** — no multi-user Go API. |
 | `frontend/src/...`, React tests | **N/A** — no React app. |
