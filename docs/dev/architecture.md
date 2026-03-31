@@ -2,7 +2,7 @@
 
 This document describes **this repository** as it exists today: a **GJS + GTK** desktop timer with an optional **GNOME Shell extension**. It replaces any placeholder or outdated text that assumed a **Go HTTP server** (`main.go`, `router.go`, `db.go`), `handlers_test.go`, or a **React `frontend/`** tree—**those are not part of taskTimer**.
 
-For packaging and CI, see [deployment.md](deployment.md) and [BUILD.md](../../BUILD.md).
+For packaging and CI, see [deployment.md](deployment.md) and [BUILD.md](../../BUILD.md). For how a **former long checklist** (many numbered items) maps to this repo, see [checklist-mapping.md](checklist-mapping.md).
 
 ---
 
