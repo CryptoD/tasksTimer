@@ -267,13 +267,15 @@ class StandaloneGtkPlatform extends GObject.Object {
         menuModel.append('New timer…', 'app.newTimer');
         menuModel.append('Preferences…', 'app.preferences');
         menuModel.append('About', 'app.about');
+        // Set use_popover before menu_model so GTK 3 does not reparent the
+        // built menu twice (avoids gtk_box_pack: child already has a parent).
         const menuBtn = new Gtk.MenuButton({
-            menu_model: menuModel,
             direction: Gtk.ArrowType.NONE,
         });
         try {
             menuBtn.set_use_popover(true);
         } catch (_e) {}
+        menuBtn.menu_model = menuModel;
         try {
             const img = Gtk.Image.new_from_icon_name('open-menu-symbolic', Gtk.IconSize.BUTTON);
             menuBtn.set_image(img);
