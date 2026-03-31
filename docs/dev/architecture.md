@@ -150,7 +150,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | Handlers in `main.go`, DB in `db.go` | **N/A** — no Go backend. |
 | `rateLimitMiddleware` on `POST /login` | **N/A** — no HTTP login API. |
 | `handlers_test.go` (password reset, …) | **N/A** — no Go HTTP handlers. |
-| `NewServer` / HTTP server wiring | **N/A** — `gjs main.js` / `extension.js` only. |
+| **Explicit server / router constructor** (e.g. `NewServer`, `NewRouter`, `http.Server` wiring) | **N/A** — no HTTP listener or route table; process entry is **`gjs main.js`** (`Gtk.Application`) and **`taskTimer@CryptoD/extension.js`** (Shell extension). |
 | `GET /users` in `internal/server/users.go` | **N/A** — no HTTP API. |
 | Cross-user tasks in `main_test.go` | **N/A** — no multi-user Go API. |
 | `frontend/src/...`, React tests | **N/A** — no React app. |

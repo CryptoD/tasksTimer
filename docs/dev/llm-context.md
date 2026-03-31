@@ -12,7 +12,7 @@ The following are **not** in the repository (do not invent or “read” them as
 | **`internal/service/`** (or similar Go service package) | **Absent** — no Go service layer. |
 | **`internal/db/`**, `db.go`, SQL migrations | **Absent** — persistence is **JSON** (standalone) and **GSettings** (extension). |
 
-There is **no** `main.go` with HTTP route registration.
+There is **no** `main.go` with HTTP route registration, and **no** explicit **server or router constructor** (`NewServer`, mux, etc.)—checklist item **“2. Explicit server / router constructor”** does not apply.
 
 ## Canonical sources
 
