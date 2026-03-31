@@ -31,6 +31,11 @@ When splitting complex functions, **prefer helpers in the same place first**, th
 
 This matches how the codebase already groups **extension** code under **`taskTimer@CryptoD/`** and **standalone GTK** under **`platform/standalone/`**.
 
+## Behavior and tests
+
+- **Preserve behavior** — treat refactors as **behavior-preserving** unless the task explicitly calls for a user-visible or API change. When in doubt, compare before/after flows and run **`make test`**.
+- **Add or adjust tests before large edits** — for substantial changes (big refactors, new timer/settings paths, GTK wiring), extend **`tests/test*.js`** or add a focused script **first** so **`make test`** guards the change; then apply the edit. Smaller fixes can follow tests-in-the-same-PR. See **[BUILD.md](../../BUILD.md)** for how tests are run.
+
 ## Wording
 
 - **Do not** reuse vague checklist lines like **“handlers in main”** (HTTP handlers wired in `main.go`).  
