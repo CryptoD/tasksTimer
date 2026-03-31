@@ -22,6 +22,10 @@ Until work is done and maintained in **this** tree, the *spirit* of a high bar s
 
 Track concrete gaps with **GitHub Issues** and **PRs** using **taskTimer-specific** wording, not foreign checklist IDs alone.
 
+## License at repository root
+
+[**`LICENSE`**](../../LICENSE) (GNU **GPLv3** full text) **is** present at the repository root. [README.md](../../README.md) points to it under **License**. Any checklist or audit that claims **no** `LICENSE` at root is **stale** or referred to another fork or revision.
+
 ## Summary
 
 - **18–19, 21–25, 26–47, …** — Many rows are **backend/frontend-specific** → **N/A** or **separate repo**.
