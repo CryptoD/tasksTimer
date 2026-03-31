@@ -19,6 +19,54 @@ There is **no** `internal/server` package, **no** `main.go`, and **no** central 
 
 ---
 
+## Dependency diagrams
+
+Many runbooks sketch **HTTP handlers → service layer → database**. **taskTimer** has no SQL DB or HTTP stack; persistence is **JSON** (standalone) and **GSettings** (extension). The diagrams below contrast the **checklist shape** with **this codebase**.
+
+### Reference: handlers → service → DB (typical backend; **not** in this repo)
+
+```mermaid
+flowchart LR
+  H[Handlers / router] --> S[Application services]
+  S --> R[Repositories]
+  R --> D[(Database)]
+```
+
+### Actual: UI → timer core → persistence (**taskTimer**)
+
+```mermaid
+flowchart TB
+  subgraph entry[Entry]
+    M[main.js]
+    E[extension.js]
+  end
+  subgraph ui[UI]
+    GTK[platform/standalone]
+    SH[Shell UI: indicator, menus, prefs]
+  end
+  subgraph core[Core modules]
+    TC[timers_core.js]
+    TS[timer_services.js]
+    AM[alarm_timer.js, storage.js, …]
+  end
+  subgraph store[Persistence]
+    JSON[(JSON under XDG)]
+    GS[GSettings + schema]
+  end
+  M --> GTK
+  E --> SH
+  GTK --> TC
+  SH --> TC
+  TC --> TS
+  TS --> AM
+  AM --> JSON
+  SH --> GS
+```
+
+Standalone prefs and `config.js` read/write **JSON**; the extension path also uses **GSettings** for schema-backed settings.
+
+---
+
 ## Repository layout (current)
 
 Top-level areas (see also [README.md](../../README.md)):
@@ -43,11 +91,7 @@ Top-level areas (see also [README.md](../../README.md)):
 
 ## Shared timer logic vs surfaces
 
-- **Timer engine and persistence helpers** live under **`taskTimer@CryptoD/`** (e.g. `timers_core.js`, `alarm_timer.js`, `timer_services.js`, `storage.js`).
-- **Standalone** reads/writes JSON under XDG paths via `config.js` / standalone prefs.
-- **Extension** uses GSettings and schema under **`taskTimer@CryptoD/schemas/`** where installed.
-
-There is **no** shared **SQL** “repository” layer or `db.go`; storage is **file-based** (JSON) or **GSettings**.
+Shared modules live under **`taskTimer@CryptoD/`** (`timers_core.js`, `timer_services.js`, `alarm_timer.js`, `storage.js`, …). **Standalone** uses **JSON** on disk; **extension** uses **GSettings** where the schema is installed—**no** SQL repository or `db.go`.
 
 ---
 
