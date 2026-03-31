@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write # upload-artifact (gocyclo report when go.mod exists)
 
 jobs:
   lint-test:
@@ -49,3 +50,23 @@ jobs:
 
       - name: Test
         run: xvfb-run -a dbus-run-session -- make test
+
+      # Go complexity baseline (only when this repo contains a Go module).
+      - uses: actions/setup-go@v5
+        if: hashFiles('go.mod') != ''
+        with:
+          go-version: '1.25'
+
+      - name: gocyclo complexity report (artifact)
+        if: hashFiles('go.mod') != ''
+        run: |
+          go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+          PATH="$PATH:$(go env GOPATH)/bin"
+          gocyclo -top 50 -ignore node_modules . > gocyclo-report.txt
+          test -s gocyclo-report.txt || echo "(no Go functions matched)" > gocyclo-report.txt
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('go.mod') != ''
+        with:
+          name: gocyclo-complexity
+          path: gocyclo-report.txt
