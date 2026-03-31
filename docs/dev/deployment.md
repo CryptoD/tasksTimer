@@ -2,6 +2,8 @@
 
 taskTimer is a **Linux desktop** application. There is **no separate HTTP API service** in this repository; distribution targets are the **standalone AppImage**, the **GNOME Shell extension** zip, and running **from source** with GJS.
 
+For code layout and what is **not** in this repo (Go `main.go`, `handlers_test.go`, etc.), see **[architecture.md](architecture.md)**.
+
 ## End users
 
 | Channel | Notes |
