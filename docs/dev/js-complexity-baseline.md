@@ -15,6 +15,13 @@
 
 **Not enforced in CI** today (ESLint does not enable `complexity` in `.eslintrc.cjs`); reviewers and contributors use this policy manually.
 
+### Done when (hotspot / wave refactors)
+
+1. **All tests pass** — run **`make test`** (full GJS suite under `tests/`).
+2. **Cyclomatic complexity is reduced** on the targeted functions (measure with the `npx eslint … complexity` recipe below), **or** an **ADR** under [`docs/dev/adr/`](adr/) explains why reduction is **deferred** (exception).
+
+Wave 1 (former top three from task 3) met (1) and (2); see **[ADR 0001](adr/0001-wave1-cyclomatic-hotspots.md)**. No exception ADR was required.
+
 ---
 
 ## Stored list: top 15 (highest complexity)
@@ -63,3 +70,4 @@ r.slice(0,15).forEach((x,i)=>console.log((i+1)+'.',x.c,x.line,x.msg));
 
 - Go (if added later): [`go-complexity-baseline.md`](go-complexity-baseline.md).
 - Where to put extracted helpers: same file / same import root first — see **Refactoring & helpers** in [`llm-context.md`](llm-context.md).
+- **ADRs** (exceptions to “done when”): [`adr/README.md`](adr/README.md).
