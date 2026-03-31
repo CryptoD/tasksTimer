@@ -767,6 +767,31 @@ class StandaloneGtkPlatform extends GObject.Object {
             } catch (_e) {}
             this._addHeaderBar(this._window);
 
+            // When the window is destroyed (app shutdown / quit), GTK may dispose
+            // the underlying object before vfunc_shutdown runs. Clear our reference
+            // so shutdown paths don't touch a disposed GtkWindow.
+            this._window.connect('destroy', () => {
+                try {
+                    if (this._bannerTimeoutId && typeof this._bannerTimeoutId === 'number' && this._bannerTimeoutId > 0) {
+                        GLib.Source.remove(this._bannerTimeoutId);
+                    }
+                } catch (_e) {}
+                this._bannerTimeoutId = null;
+                try {
+                    if (this._uiUpdateId && typeof this._uiUpdateId === 'number' && this._uiUpdateId > 0) {
+                        GLib.Source.remove(this._uiUpdateId);
+                    }
+                } catch (_e) {}
+                this._uiUpdateId = null;
+                try {
+                    if (this._trayUpdateId && typeof this._trayUpdateId === 'number' && this._trayUpdateId > 0) {
+                        GLib.Source.remove(this._trayUpdateId);
+                    }
+                } catch (_e) {}
+                this._trayUpdateId = null;
+                this._window = null;
+            });
+
             this._window.connect('delete-event', () => {
                 const settings = this._application && this._application._services
                     ? this._application._services.settings
