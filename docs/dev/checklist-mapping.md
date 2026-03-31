@@ -4,7 +4,7 @@ Some teams keep a **numbered quality checklist** (e.g. items **18–19**, **21�
 
 ## What does *not* transfer literally
 
-Many of those rows reference files or patterns that **do not exist** in taskTimer (`internal/server/…`, `main_test.go`, `router.go`, `frontend/src/…`). Treat them as **N/A** for this repo unless you maintain a **separate** service; see the table in **[architecture.md](architecture.md)** and **[deployment.md](deployment.md)**.
+Many of those rows reference files or patterns that **do not exist** in taskTimer (e.g. `internal/server/router.go`, `internal/service`, `internal/db`, `main_test.go`, `frontend/src/…`). Treat them as **N/A** for this repo unless you maintain a **separate** service; see **[architecture.md](architecture.md)**, **[llm-context.md](llm-context.md)**, and **[deployment.md](deployment.md)**.
 
 Completing “**all** IDs” here is **not** the goal when the ID maps to another codebase.
 

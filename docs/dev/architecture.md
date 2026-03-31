@@ -2,7 +2,7 @@
 
 This document describes **this repository** as it exists today. **taskTimer** is a **GJS + GTK** desktop timer with an optional **GNOME Shell extension**.
 
-**Checklist templates** sometimes assume a **Go** layout (`internal/server`, `cmd/…`, background **jobs** started from `main`, HTTP **repos**). **None of that exists here.** This file documents the **actual** modules and directories. For N/A checklist rows, see the table under [Checklist items from other stacks](#checklist-items-from-other-stacks-not-applicable).
+There is **no** Go backend: paths such as **`internal/server/router.go`**, **`internal/service/`**, and **`internal/db`** are **not** part of this project (no HTTP router package, no Go service layer, no SQL DB in-tree). Checklist templates that assume that layout do not apply; see [llm-context.md](llm-context.md) for assistant-oriented notes. For N/A checklist rows, see the table under [Checklist items from other stacks](#checklist-items-from-other-stacks-not-applicable).
 
 For packaging and CI, see [deployment.md](deployment.md) and [BUILD.md](../../BUILD.md). For the former long checklist, see [checklist-mapping.md](checklist-mapping.md).
 
@@ -15,7 +15,7 @@ For packaging and CI, see [deployment.md](deployment.md) and [BUILD.md](../../BU
 | **Standalone app** | [`main.js`](../../main.js) (repo root) | Parses CLI (`--help`, `--version`, …), runs `Gtk.Application`, loads UI from `platform/standalone/`, imports shared logic from `taskTimer@CryptoD/`. **Not** an HTTP server `main` and **not** a job scheduler—just the desktop process entry. |
 | **GNOME Shell extension** | [`taskTimer@CryptoD/extension.js`](../../taskTimer@CryptoD/extension.js) | `enable()` / `disable()` hooks, panel indicator, Shell UI; uses the same shared JS modules for timers. |
 
-There is **no** `internal/server` package, **no** `main.go`, and **no** central HTTP router.
+There is **no** central HTTP router and **no** `main.go`.
 
 ---
 

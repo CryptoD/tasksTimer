@@ -127,6 +127,7 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 | **[tests/TEST14-beta-coordination.md](tests/TEST14-beta-coordination.md)** | Beta AppImages, TEST 14 accessibility testing, feedback before stable releases |
 | **[docs/dev/architecture.md](docs/dev/architecture.md)** | Entry points, modules, data; clarifies non-Go / non-web checklist items |
 | **[docs/dev/checklist-mapping.md](docs/dev/checklist-mapping.md)** | Former long checklist IDs vs taskTimer (N/A vs quality bar here) |
+| **[docs/dev/llm-context.md](docs/dev/llm-context.md)** | AI/LLM: paths that do not exist (`internal/server/router.go`, …); `main.js` vs `main.go` |
 | **[docs/dev/deployment.md](docs/dev/deployment.md)** | How taskTimer is distributed; Docker image (`Dockerfile.api`) for smoke checks |
 | **[e2e/README.md](e2e/README.md)** | Playwright + MSW browser E2E shell (`npm run test:e2e`; not the GTK UI) |
 | `doc/` | Design notes and phase docs where present |
