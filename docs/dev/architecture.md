@@ -63,6 +63,7 @@ Automation templates sometimes mention:
 | `rateLimitMiddleware` on `POST /login` | **Does not apply** — no HTTP login API. |
 | `handlers_test.go` (password reset happy path, expired token, …) | **Does not apply** — no Go handlers; no HTTP password reset. |
 | `NewServer` / constructor-style wiring for an HTTP server | **Does not apply** — no Go `Server` type; startup is `gjs main.js` / `extension.js` loading GTK/Shell modules. |
+| `GET /users` admin list with `limit`/`offset` in `internal/server/users.go` | **Does not apply** — no HTTP API, no `users.go`, no admin user listing. |
 | `frontend/src/...`, React lazy routes, `DataManager.test.js` | **Does not apply** — no React SPA in this tree. |
 
 If you need a **web** or **API** service alongside taskTimer, treat it as a **separate** project; this repository stays focused on the desktop/extension experience.
