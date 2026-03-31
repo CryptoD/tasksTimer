@@ -64,6 +64,7 @@ Automation templates sometimes mention:
 | `handlers_test.go` (password reset happy path, expired token, …) | **Does not apply** — no Go handlers; no HTTP password reset. |
 | `NewServer` / constructor-style wiring for an HTTP server | **Does not apply** — no Go `Server` type; startup is `gjs main.js` / `extension.js` loading GTK/Shell modules. |
 | `GET /users` admin list with `limit`/`offset` in `internal/server/users.go` | **Does not apply** — no HTTP API, no `users.go`, no admin user listing. |
+| Cross-user **task** access tests vs comments/attachments (`main_test.go`) | **Does not apply** — no Go `main_test.go`, no multi-user task API; tests are GJS `tests/test*.js`. |
 | `frontend/src/...`, React lazy routes, `DataManager.test.js` | **Does not apply** — no React SPA in this tree. |
 
 If you need a **web** or **API** service alongside taskTimer, treat it as a **separate** project; this repository stays focused on the desktop/extension experience.
