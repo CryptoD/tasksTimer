@@ -207,9 +207,15 @@ class TimerListItem extends Gtk.ListBoxRow {
         textBox.pack_start(this._secondary, false, false, 0);
         textBox.pack_start(this._progress, false, false, 0);
 
-        const btnMenu = new Gtk.MenuButton({ label: '⋯' });
+        // Popover first, then MenuButton — setting popover after `new MenuButton({ label })`
+        // can trigger gtk_box_pack (child already has a parent) on GTK 3.
+        const pop = this._buildPopover();
+        const btnMenu = new Gtk.MenuButton();
+        btnMenu.set_popover(pop);
+        if (typeof btnMenu.set_label === 'function') {
+            btnMenu.set_label('⋯');
+        }
         btnMenu.set_valign(Gtk.Align.CENTER);
-        btnMenu.set_popover(this._buildPopover());
         GtkA11y.setName(btnMenu, 'Timer actions');
         GtkA11y.setDescription(btnMenu, 'Start, stop, snooze, or delete');
 
