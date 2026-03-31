@@ -21,6 +21,12 @@ function _safeText(v, fallback = '') {
     return s.length ? s : fallback;
 }
 
+function _removeStyleClasses(ctx, classNames) {
+    classNames.forEach(c => {
+        try { ctx.remove_class(c); } catch (_e) {}
+    });
+}
+
 var TimerListItem = GObject.registerClass(
 class TimerListItem extends Gtk.ListBoxRow {
     _init(params = {}) {
@@ -77,13 +83,8 @@ class TimerListItem extends Gtk.ListBoxRow {
         } catch (_e) {}
     }
 
-    _updateStateClasses() {
-        const t = this._timer;
-        const ctx = this.get_style_context();
-        const stateClasses = ['timer-running', 'timer-paused', 'timer-expired'];
-        stateClasses.forEach(c => {
-            try { ctx.remove_class(c); } catch (_e) {}
-        });
+    _updateRowContainerStateClasses(ctx, t) {
+        _removeStyleClasses(ctx, ['timer-running', 'timer-paused', 'timer-expired']);
         const expired = t && t.expired;
         const running = t && t.running;
         const paused = t && t.paused;
@@ -94,7 +95,10 @@ class TimerListItem extends Gtk.ListBoxRow {
         } else if (paused) {
             ctx.add_class('timer-paused');
         }
+        return { expired, running, paused };
+    }
 
+    _updateTitleEmphasis({ expired, running, paused }) {
         const emphasisClass = 'timer-title-emphasis';
         try {
             const titleCtx = this._title.get_style_context();
@@ -103,11 +107,11 @@ class TimerListItem extends Gtk.ListBoxRow {
                 titleCtx.add_class(emphasisClass);
             }
         } catch (_e) {}
+    }
 
+    _updateSecondaryStateClasses(t, { expired, running, paused }) {
         const secCtx = this._secondary.get_style_context();
-        ['timer-secondary-running', 'timer-secondary-expired', 'timer-secondary-paused'].forEach(c => {
-            try { secCtx.remove_class(c); } catch (_e) {}
-        });
+        _removeStyleClasses(secCtx, ['timer-secondary-running', 'timer-secondary-expired', 'timer-secondary-paused']);
         try { secCtx.add_class('dim-label'); } catch (_e2) {}
         if (expired) {
             try { secCtx.remove_class('dim-label'); } catch (_e3) {}
@@ -119,11 +123,11 @@ class TimerListItem extends Gtk.ListBoxRow {
             try { secCtx.remove_class('dim-label'); } catch (_e3) {}
             secCtx.add_class('timer-secondary-paused');
         }
+    }
 
+    _updateProgressStateClasses(t) {
         const progressCtx = this._progress.get_style_context();
-        ['timer-progress-active', 'timer-progress-expired'].forEach(c => {
-            try { progressCtx.remove_class(c); } catch (_e2) {}
-        });
+        _removeStyleClasses(progressCtx, ['timer-progress-active', 'timer-progress-expired']);
         const showProgress = this._settings ? Boolean(this._settings.show_progress) : false;
         const canProgress = Boolean(t && showProgress && (t.running || t.paused) && typeof t.duration === 'number' && t.duration > 0);
         if (canProgress && t) {
@@ -133,6 +137,15 @@ class TimerListItem extends Gtk.ListBoxRow {
                 progressCtx.add_class('timer-progress-active');
             }
         }
+    }
+
+    _updateStateClasses() {
+        const t = this._timer;
+        const ctx = this.get_style_context();
+        const flags = this._updateRowContainerStateClasses(ctx, t);
+        this._updateTitleEmphasis(flags);
+        this._updateSecondaryStateClasses(t, flags);
+        this._updateProgressStateClasses(t);
     }
 
     _formatSecondary(timer) {

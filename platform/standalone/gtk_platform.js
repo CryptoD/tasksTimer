@@ -730,11 +730,7 @@ class StandaloneGtkPlatform extends GObject.Object {
         }
     }
 
-    showMainWindow() {
-        if (!this._window) {
-            const settings = this._application && this._application._services
-                ? this._application._services.settings
-                : null;
+    _createStandaloneMainWindow(settings) {
             const defW = (settings && settings.window_width >= 400) ? settings.window_width : 900;
             const defH = (settings && settings.window_height >= 300) ? settings.window_height : 560;
             this._window = new Gtk.ApplicationWindow({
@@ -783,7 +779,9 @@ class StandaloneGtkPlatform extends GObject.Object {
                 }
                 return false;
             });
+    }
 
+    _buildMainWindowBody(settings) {
             const mainVbox = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 0,
@@ -1284,6 +1282,16 @@ class StandaloneGtkPlatform extends GObject.Object {
             this._rebuildSidebarLists();
             this._startUiRefreshLoop();
             updateActionsState();
+
+    }
+
+    showMainWindow() {
+        if (!this._window) {
+            const settings = this._application && this._application._services
+                ? this._application._services.settings
+                : null;
+            this._createStandaloneMainWindow(settings);
+            const mainVbox = this._buildMainWindowBody(settings);
 
             this._window.add(mainVbox);
 

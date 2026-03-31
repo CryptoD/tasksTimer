@@ -60,6 +60,13 @@ const SHORTCUT_ACTIONS = [
   { key: 'accel-stop-next', label: _('Stop next timer'), tooltip: _('Stop the next running timer') }
 ];
 
+function prefsAddChild(container, child) {
+  if (container.append) container.append(child);
+  else if (container.add) container.add(child);
+  else if (container.pack_start) container.pack_start(child, false, false, 0);
+  else throw new Error('Unable to add child to container');
+}
+
 var PreferencesBuilder = class PreferencesBuilder {
   /**
    * @param {Settings} settings - Optional Settings instance. When provided
@@ -228,223 +235,206 @@ var PreferencesBuilder = class PreferencesBuilder {
     this._bo('tv_timers').hide();
   }
 
-  build() {
-    this._viewport = new Gtk.Viewport();
-    this._widget = new Gtk.ScrolledWindow();
-
-    if (false) {
-      this._builder.add_from_file(GLib.build_filenamev([this._basePath || (typeof Me !== 'undefined' && Me.path) || '', 'settings.ui']));
-      this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
-      this._viewport.add(this._taskTimer_settings);
-      this._widget.add(this._viewport);
-    } else {
-      const basePath = this._basePath || (typeof Me !== 'undefined' ? Me.path : '');
-      let loaded = false;
+  _tryLoadSettingsUiFile(basePath) {
+    try {
+      this._builder.add_from_file(GLib.build_filenamev([basePath, 'settings40.ui']));
+      this._layoutKind = 'gtk4';
+      return true;
+    } catch (e) {
       try {
-        // Prefer GTK4 settings UI when supported
-        this._builder.add_from_file(GLib.build_filenamev([basePath, 'settings40.ui']));
-        loaded = true;
-        this._layoutKind = 'gtk4';
-      } catch (e) {
-        // On GTK3 systems this will fail with a Gtk.BuilderError; fall back to GTK3 UI.
-        try {
-          this.logger.error('Failed to load settings40.ui, falling back to settings.ui: ' + e);
-        } catch (_e) {}
-        try {
-          this._builder.add_from_file(GLib.build_filenamev([basePath, 'settings.ui']));
-          loaded = true;
-          this._layoutKind = 'gtk3';
-        } catch (e2) {
-          try {
-            this.logger.error('Failed to load both settings40.ui and settings.ui: ' + e2);
-          } catch (_e2) {}
-        }
-      }
-
-      // settings40.ui uses a different root ID (kitchenTimer_settings) compared to
-      // the GTK3 settings.ui (taskTimer_settings). Try the GTK4 root id first
-      // and fall back to the GTK3 id if necessary.
-      const gtk4RootIds = ['kitchenTimer_settings', 'taskTimer_settings'];
-      this._taskTimer_settings = null;
-      for (let rid of gtk4RootIds) {
-        try {
-          let obj = this._builder.get_object(rid);
-          if (obj) {
-            this._taskTimer_settings = obj;
-            break;
-          }
-        } catch (e) {
-          // ignore and continue
-        }
-      }
-
-      if (!this._taskTimer_settings) {
-        this.logger.error('Unable to find root settings widget in settings40.ui (tried ' + gtk4RootIds.join(', ') + '). Preferences may be blank.');
-        // As a last resort, try to use the builder's first object if available
-        try {
-          let objects = this._builder.get_objects();
-          if (objects && objects.length > 0) {
-            this._taskTimer_settings = objects[0];
-            this.logger.debug('Falling back to first builder object as root.');
-          }
-        } catch (e) {
-          this.logger.error('Failed to fallback to first builder object: ' + e);
-        }
-      }
-
-      // We will wrap the settings widget into a top-level container so we can
-      // display a helpful error message to the user if some UI elements are missing.
-      let topWrapper;
+        this.logger.error('Failed to load settings40.ui, falling back to settings.ui: ' + e);
+      } catch (_e) {}
       try {
-        topWrapper = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 12});
-      } catch (e) {
-        // Some environments may not accept object literal constructors; fallback
-        topWrapper = new Gtk.Box();
-        topWrapper.set_orientation(Gtk.Orientation.VERTICAL);
-        topWrapper.set_spacing(12);
-      }
-
-      function addChild(container, child) {
-        // Support both GTK3 and GTK4 container child APIs
-        if (container.append) container.append(child);
-        else if (container.add) container.add(child);
-        else if (container.pack_start) container.pack_start(child, false, false, 0);
-        else throw new Error('Unable to add child to container');
-      }
-
-      // List of widget IDs that are used later in prefs.js. For GTK4
-      // (settings40.ui) we expect the full set of IDs; for the legacy
-      // GTK3 settings.ui we only require the core timer editor widgets.
-      let requiredIds;
-      if (this._layoutKind === 'gtk3') {
-        requiredIds = [
-          'timers_liststore','timers_combo','spin_hours','spin_mins','spin_secs',
-          'quick_radio','timers_add','timers_remove','timer_enabled','timers_combo_entry',
-          'tv_timers','timer_box'
-        ];
-      } else {
-        requiredIds = [
-          'version','description','timers_liststore','timers_combo','spin_hours','spin_mins','spin_secs',
-          'quick_radio','timers_add','timers_remove','timer_enabled','timers_combo_entry','tv_timers',
-          'timer_icon','timer_icon_button','link_bmac','audio_files_filter','json_files_filter','import_export_msg',
-          'sound_path','label_sound_file','play_sound','play_sound2','sound_loops','show_time','show_progress','show_label',
-          'sort_by_duration','sort_descending','save_quick_timers','detect_dupes','volume_level_warn','volume_threshold',
-          'accel_enable','minimize_to_tray','autostart','notification','notification_sticky','theme_variant','menu_max_width','timer_validation_label',
-          'shortcuts_list'
-        ];
-      }
-
-      let missing = [];
-      for (let id of requiredIds) {
+        this._builder.add_from_file(GLib.build_filenamev([basePath, 'settings.ui']));
+        this._layoutKind = 'gtk3';
+        return true;
+      } catch (e2) {
         try {
-          if (!this._builder.get_object(id)) {
-            missing.push(id);
-          }
-        } catch (e) {
+          this.logger.error('Failed to load both settings40.ui and settings.ui: ' + e2);
+        } catch (_e2) {}
+        return false;
+      }
+    }
+  }
+
+  _resolveTaskTimerSettingsRoot() {
+    const gtk4RootIds = ['kitchenTimer_settings', 'taskTimer_settings'];
+    this._taskTimer_settings = null;
+    for (let rid of gtk4RootIds) {
+      try {
+        let obj = this._builder.get_object(rid);
+        if (obj) {
+          this._taskTimer_settings = obj;
+          break;
+        }
+      } catch (e) {
+        // ignore and continue
+      }
+    }
+    if (!this._taskTimer_settings) {
+      this.logger.error('Unable to find root settings widget in settings40.ui (tried ' + gtk4RootIds.join(', ') + '). Preferences may be blank.');
+      try {
+        let objects = this._builder.get_objects();
+        if (objects && objects.length > 0) {
+          this._taskTimer_settings = objects[0];
+          this.logger.debug('Falling back to first builder object as root.');
+        }
+      } catch (e) {
+        this.logger.error('Failed to fallback to first builder object: ' + e);
+      }
+    }
+  }
+
+  _createPrefsTopWrapperBox() {
+    try {
+      return new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 12 });
+    } catch (e) {
+      const topWrapper = new Gtk.Box();
+      topWrapper.set_orientation(Gtk.Orientation.VERTICAL);
+      topWrapper.set_spacing(12);
+      return topWrapper;
+    }
+  }
+
+  _requiredPrefsWidgetIds() {
+    if (this._layoutKind === 'gtk3') {
+      return [
+        'timers_liststore', 'timers_combo', 'spin_hours', 'spin_mins', 'spin_secs',
+        'quick_radio', 'timers_add', 'timers_remove', 'timer_enabled', 'timers_combo_entry',
+        'tv_timers', 'timer_box'
+      ];
+    }
+    return [
+      'version', 'description', 'timers_liststore', 'timers_combo', 'spin_hours', 'spin_mins', 'spin_secs',
+      'quick_radio', 'timers_add', 'timers_remove', 'timer_enabled', 'timers_combo_entry', 'tv_timers',
+      'timer_icon', 'timer_icon_button', 'link_bmac', 'audio_files_filter', 'json_files_filter', 'import_export_msg',
+      'sound_path', 'label_sound_file', 'play_sound', 'play_sound2', 'sound_loops', 'show_time', 'show_progress', 'show_label',
+      'sort_by_duration', 'sort_descending', 'save_quick_timers', 'detect_dupes', 'volume_level_warn', 'volume_threshold',
+      'accel_enable', 'minimize_to_tray', 'autostart', 'notification', 'notification_sticky', 'theme_variant', 'menu_max_width', 'timer_validation_label',
+      'shortcuts_list'
+    ];
+  }
+
+  _collectMissingPrefsWidgetIds(requiredIds) {
+    const missing = [];
+    for (let id of requiredIds) {
+      try {
+        if (!this._builder.get_object(id)) {
           missing.push(id);
         }
+      } catch (e) {
+        missing.push(id);
       }
+    }
+    return missing;
+  }
 
-      if (missing.length > 0) {
-        this.logger.error('Preferences UI missing the following widgets: ' + missing.join(', '));
-
-        // Create a visible message to inform the user about missing widgets
-        let msg;
-        try {
-          msg = new Gtk.Label({halign: Gtk.Align.START});
-        } catch (e) {
-          msg = new Gtk.Label();
-          try {
-            msg.set_halign(Gtk.Align.START);
-          } catch (e2) {
-            try { msg.set_xalign(0); } catch (_e3) {}
-          }
-        }
-
-        const textLines = [
-          'Preferences failed to load correctly.',
-          'The following UI elements are missing from the loaded settings file:',
-          '',
-          ...missing.map(x => '- ' + x),
-          '',
-          'Please check your extension installation or the settings file.'
-        ];
-        try {
-          msg.set_text(textLines.join('\n'));
-        } catch (e) {
-          // As a last resort, ignore; the label will stay empty.
-        }
-
-        try {
-          if (typeof msg.set_wrap === 'function') {
-            msg.set_wrap(true);
-          } else if (typeof msg.set_line_wrap === 'function') {
-            msg.set_line_wrap(true);
-          }
-        } catch (_e) {}
-
-        try {
-          if (typeof msg.set_selectable === 'function') {
-            msg.set_selectable(true);
-          }
-        } catch (_e) {}
-
-        addChild(topWrapper, msg);
+  _appendPrefsMissingWidgetsMessage(topWrapper, missing) {
+    if (missing.length === 0) {
+      return;
+    }
+    this.logger.error('Preferences UI missing the following widgets: ' + missing.join(', '));
+    let msg;
+    try {
+      msg = new Gtk.Label({ halign: Gtk.Align.START });
+    } catch (e) {
+      msg = new Gtk.Label();
+      try {
+        msg.set_halign(Gtk.Align.START);
+      } catch (e2) {
+        try { msg.set_xalign(0); } catch (_e3) {}
       }
+    }
+    const textLines = [
+      'Preferences failed to load correctly.',
+      'The following UI elements are missing from the loaded settings file:',
+      '',
+      ...missing.map(x => '- ' + x),
+      '',
+      'Please check your extension installation or the settings file.'
+    ];
+    try {
+      msg.set_text(textLines.join('\n'));
+    } catch (e) {
+      // As a last resort, ignore; the label will stay empty.
+    }
+    try {
+      if (typeof msg.set_wrap === 'function') {
+        msg.set_wrap(true);
+      } else if (typeof msg.set_line_wrap === 'function') {
+        msg.set_line_wrap(true);
+      }
+    } catch (_e) {}
+    try {
+      if (typeof msg.set_selectable === 'function') {
+        msg.set_selectable(true);
+      }
+    } catch (_e) {}
+    prefsAddChild(topWrapper, msg);
+  }
 
-      if (this._taskTimer_settings) {
-        try {
-          addChild(topWrapper, this._taskTimer_settings);
-        } catch (e) {
-          this.logger.error('Failed to attach settings widget to wrapper: ' + e);
-        }
+  _attachPrefsWrapperToViewport(topWrapper) {
+    try {
+      this._viewport.set_child(topWrapper);
+      this._widget.set_child(this._viewport);
+    } catch (e) {
+      try {
+        this._viewport.add(topWrapper);
+        this._widget.add(this._viewport);
+      } catch (e2) {
+        this.logger.error('Failed to attach preferences wrapper to viewport/scrolledwindow: ' + e2);
+      }
+    }
+  }
 
-        // Attach wrapper to viewport / scrolled window for GTK4
-        try {
-          this._viewport.set_child(topWrapper);
-          this._widget.set_child(this._viewport);
-        } catch (e) {
-          // Some older GJS/GTK4 combos may not have set_child on ScrolledWindow
-          try {
-            this._viewport.add(topWrapper);
-            this._widget.add(this._viewport);
-          } catch (e2) {
-            this.logger.error('Failed to attach preferences wrapper to viewport/scrolledwindow: ' + e2);
-          }
-        }
+  _connectExportLogsInBuilder() {
+    try {
+      let exportLogsBtn = this._builder.get_object('export_logs_button');
+      if (exportLogsBtn) {
+        exportLogsBtn.connect('clicked', () => { this._export_logs(); });
+      }
+    } catch (e) {
+      this.logger.debug('export_logs_button not present or failed to connect: %s', e);
+    }
+  }
 
-        // If the export logs button exists in the builder, connect it
+  _assemblePrefsFromBuilder(basePath) {
+    this._tryLoadSettingsUiFile(basePath);
+    this._resolveTaskTimerSettingsRoot();
+    const topWrapper = this._createPrefsTopWrapperBox();
+    const missing = this._collectMissingPrefsWidgetIds(this._requiredPrefsWidgetIds());
+    this._appendPrefsMissingWidgetsMessage(topWrapper, missing);
+
+    if (this._taskTimer_settings) {
+      try {
+        prefsAddChild(topWrapper, this._taskTimer_settings);
+      } catch (e) {
+        this.logger.error('Failed to attach settings widget to wrapper: ' + e);
+      }
+      this._attachPrefsWrapperToViewport(topWrapper);
+      this._connectExportLogsInBuilder();
+    } else {
+      this.logger.error('No valid root widget found - returning a wrapper with an error message to avoid crash.');
+      try {
+        this._viewport.set_child(topWrapper);
+        this._widget.set_child(this._viewport);
+      } catch (e) {
         try {
-          let exportLogsBtn = this._builder.get_object('export_logs_button');
-          if (exportLogsBtn) {
-            exportLogsBtn.connect('clicked', () => { this._export_logs(); });
-          }
-        } catch (e) {
-          this.logger.debug('export_logs_button not present or failed to connect: %s', e);
-        }
-      } else {
-        // prevent calling set_child with null which can crash or show blank UI
-        this.logger.error('No valid root widget found - returning a wrapper with an error message to avoid crash.');
-        try {
-          this._viewport.set_child(topWrapper);
-          this._widget.set_child(this._viewport);
-        } catch (e) {
-          try {
-            this._viewport.add(topWrapper);
-            this._widget.add(this._viewport);
-          } catch (e2) {
-            this.logger.error('Failed to attach top wrapper in fallback: ' + e2);
-          }
+          this._viewport.add(topWrapper);
+          this._widget.add(this._viewport);
+        } catch (e2) {
+          this.logger.error('Failed to attach top wrapper in fallback: ' + e2);
         }
       }
     }
+  }
 
+  _wirePrefsTimerSection() {
     const version = (typeof Me !== 'undefined' && Me.metadata && Me.metadata.version) ? Me.metadata.version : '?';
     const description = (typeof Me !== 'undefined' && Me.metadata && Me.metadata.description) ? Me.metadata.description.split(/\n/)[0] : 'taskTimer';
     this._bo('version').set_text("Version " + version);
     this._bo('description').set_text(description);
 
-    // Connect Export Logs button if present (both GTK3 & GTK4 UI)
     try {
       let exportLogsBtn = this._builder.get_object('export_logs_button');
       if (exportLogsBtn) {
@@ -454,42 +444,26 @@ var PreferencesBuilder = class PreferencesBuilder {
       try { this.logger.debug('export_logs_button not present or failed to connect: %s', e); } catch (e2) {}
     }
 
-    // Timers
-
     this.timers_liststore = this._bo('timers_liststore');
     this.timers_combo = this._bo('timers_combo');
-
-    //let entry_name = this._bo('entry_name');
     this.spin_hours = this._bo('spin_hours');
     this.spin_mins = this._bo('spin_mins');
     this.spin_secs = this._bo('spin_secs');
-
     this.quick_radio = this._bo('quick_radio');
     this.timers_add = this._bo('timers_add');
     this.timers_remove = this._bo('timers_remove');
     this.timer_enabled = this._bo('timer_enabled');
     this.timer_validation_label = this._bo('timer_validation_label');
 
-    this.spin_hours.connect('value-changed', (spin) => {
+    const onSpinChanged = () => {
       this._validate_timer_form();
       if (this._update_active_liststore_from_tab()) {
         this._save_liststore();
       }
-     });
-
-    this.spin_mins.connect('value-changed', (spin) => {
-      this._validate_timer_form();
-      if (this._update_active_liststore_from_tab()) {
-        this._save_liststore();
-      }
-    });
-
-    this.spin_secs.connect('value-changed', (spin) => {
-      this._validate_timer_form();
-      if (this._update_active_liststore_from_tab()) {
-        this._save_liststore();
-      }
-    });
+    };
+    this.spin_hours.connect('value-changed', onSpinChanged);
+    this.spin_mins.connect('value-changed', onSpinChanged);
+    this.spin_secs.connect('value-changed', onSpinChanged);
 
     this.timer_enabled.connect('toggled', () => {
       if (this._update_active_liststore_from_tab()) {
@@ -497,11 +471,10 @@ var PreferencesBuilder = class PreferencesBuilder {
       }
     });
 
-    this.quick_radio.connect('toggled', (quick_radio) => {
+    this.quick_radio.connect('toggled', () => {
       this._populate_liststore();
     });
 
-    // Connect timer name entry for validation
     try {
       let entry = this.timers_combo.get_child();
       if (entry) {
@@ -515,9 +488,24 @@ var PreferencesBuilder = class PreferencesBuilder {
 
     this._populate_liststore();
     this._validate_timer_form();
-
     this._build_shortcuts_tab();
+  }
 
+  build() {
+    this._viewport = new Gtk.Viewport();
+    this._widget = new Gtk.ScrolledWindow();
+
+    if (false) {
+      this._builder.add_from_file(GLib.build_filenamev([this._basePath || (typeof Me !== 'undefined' && Me.path) || '', 'settings.ui']));
+      this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
+      this._viewport.add(this._taskTimer_settings);
+      this._widget.add(this._viewport);
+    } else {
+      const basePath = this._basePath || (typeof Me !== 'undefined' ? Me.path : '');
+      this._assemblePrefsFromBuilder(basePath);
+    }
+
+    this._wirePrefsTimerSection();
     return this._widget;
   }
 

@@ -37,25 +37,25 @@ r.slice(0,15).forEach((x,i)=>console.log((i+1)+'.',x.c,x.line,x.msg));
 "
 ```
 
-**Last updated:** 2026-03-29 (repository state at that date).
+**Last updated:** 2026-03-29. **Wave 1 refactor** split former hotspots: [`prefs.js`](../../taskTimer@CryptoD/prefs.js) `build` (now ~7, helpers `_assemblePrefsFromBuilder`, `_wirePrefsTimerSection`, …), [`gtk_platform.js`](../../platform/standalone/gtk_platform.js) `showMainWindow` (now ~13; body in `_buildMainWindowBody`), [`timer_list_item.js`](../../platform/standalone/timer_list_item.js) `_updateStateClasses` (now ~1; helpers for row/title/secondary/progress).
 
 | Rank | Score | Location | Function / note |
 |------|------:|----------|-----------------|
-| 1 | 52 | [`taskTimer@CryptoD/prefs.js`](../../taskTimer@CryptoD/prefs.js) `L231` | Method `build` |
-| 2 | 33 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L733` | Method `showMainWindow` |
-| 3 | 29 | [`platform/standalone/timer_list_item.js`](../../platform/standalone/timer_list_item.js) `L80` | Method `_updateStateClasses` |
-| 4 | 27 | [`platform/standalone/notification_gio.js`](../../platform/standalone/notification_gio.js) `L51` | Method `notify` |
-| 5 | 21 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L611` | Method `_saveWindowState` |
-| 6 | 21 | [`platform/standalone/timer_menu_widget.js`](../../platform/standalone/timer_menu_widget.js) `L208` | Method `_startFromEntry` |
-| 7 | 19 | [`main.js`](../../main.js) `L462` | Function `checkVolume` |
-| 8 | 19 | [`platform/standalone/preferences_window.js`](../../platform/standalone/preferences_window.js) `L62` | Method `_buildStandalonePrefsWidget` |
-| 9 | 18 | [`taskTimer@CryptoD/settings.js`](../../taskTimer@CryptoD/settings.js) `L355` | Method `import_json` |
-| 10 | 17 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L675` | Method `updateAutostartDesktop` |
-| 11 | 17 | [`taskTimer@CryptoD/audio_manager.js`](../../taskTimer@CryptoD/audio_manager.js) `L88` | Method `_buildUri` |
-| 12 | 17 | [`taskTimer@CryptoD/audio_manager.js`](../../taskTimer@CryptoD/audio_manager.js) `L161` | Arrow function |
-| 13 | 16 | [`main.js`](../../main.js) `L205` | Function `_applyThemeAndCss` |
-| 14 | 16 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L977` | Arrow function |
-| 15 | 16 | [`platform/standalone/timer_list_item.js`](../../platform/standalone/timer_list_item.js) `L208` | Method `_buildPopover` |
+| 1 | 27 | [`platform/standalone/notification_gio.js`](../../platform/standalone/notification_gio.js) `L51` | Method `notify` |
+| 2 | 21 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L611` | Method `_saveWindowState` |
+| 3 | 21 | [`platform/standalone/timer_menu_widget.js`](../../platform/standalone/timer_menu_widget.js) `L208` | Method `_startFromEntry` |
+| 4 | 19 | [`main.js`](../../main.js) `L462` | Function `checkVolume` |
+| 5 | 19 | [`platform/standalone/preferences_window.js`](../../platform/standalone/preferences_window.js) `L62` | Method `_buildStandalonePrefsWidget` |
+| 6 | 18 | [`taskTimer@CryptoD/settings.js`](../../taskTimer@CryptoD/settings.js) `L355` | Method `import_json` |
+| 7 | 17 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L675` | Method `updateAutostartDesktop` |
+| 8 | 17 | [`taskTimer@CryptoD/audio_manager.js`](../../taskTimer@CryptoD/audio_manager.js) `L88` | Method `_buildUri` |
+| 9 | 17 | [`taskTimer@CryptoD/audio_manager.js`](../../taskTimer@CryptoD/audio_manager.js) `L161` | Arrow function |
+| 10 | 16 | [`main.js`](../../main.js) `L205` | Function `_applyThemeAndCss` |
+| 11 | 16 | [`platform/standalone/gtk_platform.js`](../../platform/standalone/gtk_platform.js) `L975` | Arrow function |
+| 12 | 16 | [`platform/standalone/timer_list_item.js`](../../platform/standalone/timer_list_item.js) `L221` | Method `_buildPopover` |
+| 13 | 16 | [`taskTimer@CryptoD/indicator.js`](../../taskTimer@CryptoD/indicator.js) `L40` | Method `_init` |
+| 14 | 16 | [`taskTimer@CryptoD/prefs.js`](../../taskTimer@CryptoD/prefs.js) `L78` | Constructor |
+| 15 | 16 | [`taskTimer@CryptoD/timers.js`](../../taskTimer@CryptoD/timers.js) `L940` | Method `stop_callback` |
 
 ---
 
