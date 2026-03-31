@@ -1296,6 +1296,7 @@ class StandaloneGtkPlatform extends GObject.Object {
             this._startUiRefreshLoop();
             updateActionsState();
 
+            return mainVbox;
     }
 
     showMainWindow() {
