@@ -35,7 +35,7 @@ try {
         const _origPackStart = Gtk.Box.prototype.pack_start;
         const _origPackEnd = Gtk.Box.prototype.pack_end;
 
-        function _maybeLogAndDetach(methodName, box, child) {
+        function _maybeLog(methodName, box, child) {
             try {
                 if (!child || typeof child.get_parent !== 'function') return;
                 const parent = child.get_parent();
@@ -43,10 +43,7 @@ try {
                 const pType = parent && parent.constructor ? parent.constructor.name : String(parent);
                 const cType = child && child.constructor ? child.constructor.name : String(child);
                 const bType = box && box.constructor ? box.constructor.name : String(box);
-                log(`Gtk-PACK-DEBUG: ${methodName} ${bType} <- ${cType} (already parented by ${pType}); detaching`);
-                if (parent.remove && typeof parent.remove === 'function') {
-                    parent.remove(child);
-                }
+                log(`Gtk-PACK-DEBUG: ${methodName} ${bType} <- ${cType} (already parented by ${pType})`);
                 // Best-effort JS stack for where this call came from.
                 try {
                     throw new Error('Gtk-PACK-DEBUG stack');
@@ -59,11 +56,11 @@ try {
         }
 
         Gtk.Box.prototype.pack_start = function (child, expand, fill, padding) {
-            _maybeLogAndDetach('pack_start', this, child);
+            _maybeLog('pack_start', this, child);
             return _origPackStart.call(this, child, expand, fill, padding);
         };
         Gtk.Box.prototype.pack_end = function (child, expand, fill, padding) {
-            _maybeLogAndDetach('pack_end', this, child);
+            _maybeLog('pack_end', this, child);
             return _origPackEnd.call(this, child, expand, fill, padding);
         };
     }

@@ -1009,7 +1009,7 @@ class StandaloneGtkPlatform extends GObject.Object {
                 }
             });
 
-            quickStartBox.pack_start(entryName, false, false, 0);
+            // entryName is already attached to the grid; do not pack it twice.
             quickStartBox.pack_start(grid, false, false, 0);
             quickStartBox.pack_start(btnStart, false, false, 0);
             quickStartFrame.add(quickStartBox);

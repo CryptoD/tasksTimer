@@ -43,6 +43,11 @@ class TimerMenuWidget extends Gtk.Box {
 
         this._uiUpdateId = null;
         this._selectedTimer = null;
+        this._destroyed = false;
+        this.connect('destroy', () => {
+            this._destroyed = true;
+            try { this.stopAutoRefresh(); } catch (_e) {}
+        });
 
         this._buildUi();
         this.refresh();
@@ -583,6 +588,10 @@ class TimerMenuWidget extends Gtk.Box {
         // stress GTK on some desktops.
         this._uiUpdateId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
             try {
+                if (this._destroyed) {
+                    this._uiUpdateId = null;
+                    return false;
+                }
                 // Stop refreshing when widget is destroyed/unrealized to avoid
                 // GTK critical warnings from operating on stale widgets.
                 if (!this.get_toplevel || !this.get_toplevel()) {
