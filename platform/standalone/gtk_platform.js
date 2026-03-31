@@ -263,19 +263,30 @@ class StandaloneGtkPlatform extends GObject.Object {
         });
 
         // Primary menu: New, Preferences, About (GApplication actions app.*).
-        const menuModel = new Gio.Menu();
-        menuModel.append('New timer…', 'app.newTimer');
-        menuModel.append('Preferences…', 'app.preferences');
-        menuModel.append('About', 'app.about');
-        // Set use_popover before menu_model so GTK 3 does not reparent the
-        // built menu twice (avoids gtk_box_pack: child already has a parent).
-        const menuBtn = new Gtk.MenuButton({
-            direction: Gtk.ArrowType.NONE,
-        });
+        // Use Gtk.Menu + set_popup instead of Gio.Menu + popover: some GTK 3 stacks
+        // hit gtk_box_pack (child already parented) when building the model popover.
+        const menu = new Gtk.Menu();
+        const mkItem = (label, action) => {
+            const it = new Gtk.MenuItem({ label });
+            it.connect('activate', () => {
+                if (this._application && this._application.activate_action) {
+                    this._application.activate_action(action, null);
+                }
+            });
+            menu.append(it);
+        };
+        mkItem('New timer…', 'newTimer');
+        mkItem('Preferences…', 'preferences');
+        mkItem('About', 'about');
+
+        const menuBtn = new Gtk.MenuButton({ direction: Gtk.ArrowType.NONE });
         try {
-            menuBtn.set_use_popover(true);
-        } catch (_e) {}
-        menuBtn.menu_model = menuModel;
+            menuBtn.set_popup(menu);
+        } catch (_e) {
+            try {
+                menuBtn.set_menu(menu);
+            } catch (_e2) {}
+        }
         try {
             const img = Gtk.Image.new_from_icon_name('open-menu-symbolic', Gtk.IconSize.BUTTON);
             menuBtn.set_image(img);
