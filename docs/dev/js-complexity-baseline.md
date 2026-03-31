@@ -62,3 +62,4 @@ r.slice(0,15).forEach((x,i)=>console.log((i+1)+'.',x.c,x.line,x.msg));
 ## Related
 
 - Go (if added later): [`go-complexity-baseline.md`](go-complexity-baseline.md).
+- Where to put extracted helpers: same file / same import root first — see **Refactoring & helpers** in [`llm-context.md`](llm-context.md).

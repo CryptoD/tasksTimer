@@ -21,6 +21,16 @@ There is **no** `main.go` with HTTP route registration, **no** explicit **server
 - **[deployment.md](deployment.md)** — AppImage, Docker shell, CI overview.
 - **[BUILD.md](../../BUILD.md)** — `make` targets and tests.
 
+## Refactoring & helpers
+
+When splitting complex functions, **prefer helpers in the same place first**, then widen only if reuse or clarity demands it:
+
+1. **Same file** — private functions at module top level (e.g. `function prefsAddChild(...)` next to the class in `prefs.js`), or **methods on the same class** (`_foo` helpers on `PreferencesBuilder`).
+2. **Same “package”** — the same import root: e.g. only **`taskTimer@CryptoD/`** modules, or only **`platform/standalone/`**, before introducing new cross-tree coupling.
+3. **New files** — add only when a helper is **shared** by multiple modules or the original file would become hard to navigate.
+
+This matches how the codebase already groups **extension** code under **`taskTimer@CryptoD/`** and **standalone GTK** under **`platform/standalone/`**.
+
 ## Wording
 
 - **Do not** reuse vague checklist lines like **“handlers in main”** (HTTP handlers wired in `main.go`).  
