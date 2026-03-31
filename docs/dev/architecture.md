@@ -69,5 +69,6 @@ Automation templates sometimes mention:
 | `frontend/jest.config.cjs` with `collectCoverage: false` / CI coverage thresholds | **Does not apply** — no Jest frontend; JS tooling is ESLint + GJS tests (`make test`). |
 | Overlapping **`.github/workflows/ci.yml`** and **`tests.yml`** both running **Go** tests | **Does not apply** — no `tests.yml` for Go; [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) runs `make lint` / `make test` (GJS) + npm lint; **[`e2e.yml`](../../.github/workflows/e2e.yml)** is Playwright only. |
 | **`golangci-lint`** / **`staticcheck`** in CI | **Does not apply** — no Go code; shell + gettext via `make lint`, ESLint via `npm run lint`. |
+| **OpenAPI** (`openapi.yaml` / Swagger) in repo root or `docs/` | **Does not apply** — no HTTP API to document; app is desktop GJS/GTK. |
 
 If you need a **web** or **API** service alongside taskTimer, treat it as a **separate** project; this repository stays focused on the desktop/extension experience.
