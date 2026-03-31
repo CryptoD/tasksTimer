@@ -25,3 +25,10 @@ There is **no** `main.go` with HTTP route registration, **no** explicit **server
 
 - **Do not** reuse vague checklist lines like **“handlers in main”** (HTTP handlers wired in `main.go`).  
 - **Do** refer to **`main.js`** as the **GJS** standalone entry (`Gtk.Application`, CLI flags), and **`taskTimer@CryptoD/extension.js`** for the GNOME Shell extension.
+
+## Do **not** apply Go “`main` + `SetupRouter`” refactors
+
+Checklist advice such as **“minimize diff in `main.go`”** or **“keep `SetupRouter` testable”** targets a **Go HTTP** codebase. **This repo has no `main.go` and no `SetupRouter`.**
+
+- **Do not** suggest splitting or slimming **`main.go`**, extracting **`SetupRouter`** for tests, or injecting a router for unit tests—those files and APIs **do not exist**.
+- **Do** treat **[`main.js`](../../main.js)** as the real entry; prefer **small, local changes** that match existing GJS style. For testability, use **`tests/test*.js`** and shared modules under **`taskTimer@CryptoD/`**, not HTTP router extraction.
