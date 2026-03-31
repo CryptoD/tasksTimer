@@ -213,7 +213,9 @@ class StandaloneGtkPlatform extends GObject.Object {
             return;
         }
         if (this._bannerTimeoutId) {
-            GLib.Source.remove(this._bannerTimeoutId);
+            if (typeof this._bannerTimeoutId === 'number' && this._bannerTimeoutId > 0) {
+                GLib.Source.remove(this._bannerTimeoutId);
+            }
             this._bannerTimeoutId = null;
         }
         const text = body ? `${title}\n${body}` : (title || '');
@@ -228,7 +230,9 @@ class StandaloneGtkPlatform extends GObject.Object {
 
     _hideInAppBanner() {
         if (this._bannerTimeoutId) {
-            GLib.Source.remove(this._bannerTimeoutId);
+            if (typeof this._bannerTimeoutId === 'number' && this._bannerTimeoutId > 0) {
+                GLib.Source.remove(this._bannerTimeoutId);
+            }
             this._bannerTimeoutId = null;
         }
         if (this._bannerRevealer) {
@@ -627,6 +631,8 @@ class StandaloneGtkPlatform extends GObject.Object {
             ? this._application._services.settings
             : null;
         if (!win || !settings || typeof settings.window_width === 'undefined') return;
+        // During shutdown the underlying GtkWindow may already be disposed by C/GTK.
+        // Keep this method fully best-effort and never throw.
         try {
             if (typeof win.get_in_destruction === 'function' && win.get_in_destruction()) {
                 return;
