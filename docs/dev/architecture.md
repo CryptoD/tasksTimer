@@ -1,35 +1,53 @@
 # Architecture (taskTimer)
 
-This document describes **this repository** as it exists today: a **GJS + GTK** desktop timer with an optional **GNOME Shell extension**. It replaces any placeholder or outdated text that assumed a **Go HTTP server** (`main.go`, `router.go`, `db.go`), `handlers_test.go`, or a **React `frontend/`** tree—**those are not part of taskTimer**.
+This document describes **this repository** as it exists today. **taskTimer** is a **GJS + GTK** desktop timer with an optional **GNOME Shell extension**.
 
-For packaging and CI, see [deployment.md](deployment.md) and [BUILD.md](../../BUILD.md). For how a **former long checklist** (many numbered items) maps to this repo, see [checklist-mapping.md](checklist-mapping.md).
+**Checklist templates** sometimes assume a **Go** layout (`internal/server`, `cmd/…`, background **jobs** started from `main`, HTTP **repos**). **None of that exists here.** This file documents the **actual** modules and directories. For N/A checklist rows, see the table under [Checklist items from other stacks](#checklist-items-from-other-stacks-not-applicable).
+
+For packaging and CI, see [deployment.md](deployment.md) and [BUILD.md](../../BUILD.md). For the former long checklist, see [checklist-mapping.md](checklist-mapping.md).
 
 ---
 
 ## Entry points
 
 | Surface | Entry | Role |
-|-----------|--------|------|
-| **Standalone app** | [`main.js`](../../main.js) (repo root) | `Gtk.Application`, loads GTK UI under `platform/standalone/`, shared timer logic under `taskTimer@CryptoD/`. |
-| **GNOME Shell extension** | [`taskTimer@CryptoD/extension.js`](../../taskTimer@CryptoD/extension.js) | Panel indicator, Shell UI, GSettings; same shared modules for timers. |
+|--------|--------|------|
+| **Standalone app** | [`main.js`](../../main.js) (repo root) | Parses CLI (`--help`, `--version`, …), runs `Gtk.Application`, loads UI from `platform/standalone/`, imports shared logic from `taskTimer@CryptoD/`. **Not** an HTTP server `main` and **not** a job scheduler—just the desktop process entry. |
+| **GNOME Shell extension** | [`taskTimer@CryptoD/extension.js`](../../taskTimer@CryptoD/extension.js) | `enable()` / `disable()` hooks, panel indicator, Shell UI; uses the same shared JS modules for timers. |
 
-There is **no** server `main.go` and **no** central HTTP router: the app runs in-process on the user’s desktop.
+There is **no** `internal/server` package, **no** `main.go`, and **no** central HTTP router.
 
 ---
 
-## Code layout (high level)
+## Repository layout (current)
 
-```
-main.js                    # Standalone GTK entry (CLI flags, window)
-config.js, context.js, i18n.js, app_version.js
-platform/
-  interface.js             # Abstract interfaces
-  standalone/              # GTK windows, tray, notifications, prefs
-taskTimer@CryptoD/         # Core timer logic + extension UI (indicator, menus, …)
-tests/test*.js             # GJS unit/smoke tests (see make test)
-```
+Top-level areas (see also [README.md](../../README.md)):
 
-**Shared timer and storage logic** lives primarily under `taskTimer@CryptoD/` (e.g. `timers_core.js`, `settings.js`, `storage.js`) and is used by both the extension and `platform/standalone/`.
+| Path | Purpose |
+|------|---------|
+| **`main.js`**, **`config.js`**, **`context.js`**, **`i18n.js`**, **`app_version.js`** | Standalone bootstrap, paths, gettext, version metadata. |
+| **`platform/interface.js`** | Abstract “platform” interfaces (tray, notifications, shortcuts, config). |
+| **`platform/standalone/`** | GTK main window, preferences, tray providers, notifications, shortcuts—**standalone-only** UI. |
+| **`taskTimer@CryptoD/`** | **Shared** timer core (`timers_core.js`, `settings.js`, `storage.js`, …), **plus** extension-only UI (`indicator.js`, `menus.js`, `extension.js`, `prefs.js`, …), schemas, icons, PO files. |
+| **`tests/`** | GJS tests (`test*.js`) run by **`make test`**. |
+| **`bin/`** | Maintainer scripts: dependency checks, lint helpers, packaging, version sync. |
+| **`packaging/appimage/`** | AppImage AppDir, build scripts, metadata (see [BUILD.md](../../BUILD.md)). |
+| **`docs/dev/`** | Developer docs (this file, deployment, checklist mapping). |
+| **`doc/`** | Design notes, screenshots, phase docs. |
+| **`e2e/`** | Playwright + MSW **browser shell** only—not GTK automation. |
+| **`.github/workflows/`** | **`ci.yml`** — `make lint`, `make test`, `npm run lint`; **`e2e.yml`** — `npm run test:e2e`; **`release.yml`** — AppImage + GitHub Release on tags. |
+
+**Version source of truth:** [`version.json`](../../version.json) (synced into extension metadata and AppStream via `make sync-version`).
+
+---
+
+## Shared timer logic vs surfaces
+
+- **Timer engine and persistence helpers** live under **`taskTimer@CryptoD/`** (e.g. `timers_core.js`, `alarm_timer.js`, `timer_services.js`, `storage.js`).
+- **Standalone** reads/writes JSON under XDG paths via `config.js` / standalone prefs.
+- **Extension** uses GSettings and schema under **`taskTimer@CryptoD/schemas/`** where installed.
+
+There is **no** shared **SQL** “repository” layer or `db.go`; storage is **file-based** (JSON) or **GSettings**.
 
 ---
 
@@ -38,18 +56,20 @@ tests/test*.js             # GJS unit/smoke tests (see make test)
 | Mode | Storage |
 |------|---------|
 | **Standalone** | JSON under `~/.config/tasktimer/` and `~/.local/share/tasktimer/` (see [README.md](../../README.md)). |
-| **Extension** | GSettings + schema in `taskTimer@CryptoD/schemas/`; no SQLite `db.go` in this repo. |
+| **Extension** | GSettings + compiled schema; see `taskTimer@CryptoD/schemas/`. |
 
 ---
 
-## Testing (what exists here)
+## Testing and automation
 
-- **`make test`** — runs `tests/test*.js` with `gjs` ([BUILD.md](../../BUILD.md)).
-- **`make lint`** — gettext + shellcheck (and shell scripts).
-- **`npm run lint`** — ESLint on JavaScript sources (`package.json`).
-- **`npm run test:e2e`** — Playwright + MSW **browser shell** only ([e2e/README.md](../../e2e/README.md)); it does **not** drive the GTK app.
+| Layer | Command / location |
+|-------|-------------------|
+| GJS tests | `make test` → `tests/test*.js` |
+| Shell / gettext | `make lint` → `bin/lint.sh`, `bin/check-deps.sh` |
+| ESLint | `npm run lint` |
+| Browser shell | `npm run test:e2e` → `e2e/` |
 
-There is **no** `handlers_test.go` or Go **password** / **forgot-reset** flow in this codebase.
+There is **no** `handlers_test.go` or Go test suite.
 
 ---
 
