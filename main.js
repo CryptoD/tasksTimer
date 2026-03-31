@@ -27,6 +27,48 @@ try {
     // Ignore if log handlers aren't supported in this runtime.
 }
 
+// Optional debugging hook for gtk_box_pack "child already has a parent" issues.
+// Enable by running: TASKTIMER_DEBUG_GTK_PACK=1 gjs main.js
+try {
+    const debugPack = String(GLib.getenv('TASKTIMER_DEBUG_GTK_PACK') || '') === '1';
+    if (debugPack && Gtk && Gtk.Box && Gtk.Box.prototype) {
+        const _origPackStart = Gtk.Box.prototype.pack_start;
+        const _origPackEnd = Gtk.Box.prototype.pack_end;
+
+        function _maybeLogAndDetach(methodName, box, child) {
+            try {
+                if (!child || typeof child.get_parent !== 'function') return;
+                const parent = child.get_parent();
+                if (!parent) return;
+                const pType = parent && parent.constructor ? parent.constructor.name : String(parent);
+                const cType = child && child.constructor ? child.constructor.name : String(child);
+                const bType = box && box.constructor ? box.constructor.name : String(box);
+                log(`Gtk-PACK-DEBUG: ${methodName} ${bType} <- ${cType} (already parented by ${pType}); detaching`);
+                if (parent.remove && typeof parent.remove === 'function') {
+                    parent.remove(child);
+                }
+                // Best-effort JS stack for where this call came from.
+                try {
+                    throw new Error('Gtk-PACK-DEBUG stack');
+                } catch (e) {
+                    if (e && e.stack) {
+                        log(String(e.stack));
+                    }
+                }
+            } catch (_e) {}
+        }
+
+        Gtk.Box.prototype.pack_start = function (child, expand, fill, padding) {
+            _maybeLogAndDetach('pack_start', this, child);
+            return _origPackStart.call(this, child, expand, fill, padding);
+        };
+        Gtk.Box.prototype.pack_end = function (child, expand, fill, padding) {
+            _maybeLogAndDetach('pack_end', this, child);
+            return _origPackEnd.call(this, child, expand, fill, padding);
+        };
+    }
+} catch (_e) {}
+
 // Absolute path to this script (works when cwd is not the repo; used for
 // imports.searchPath and autostart `.desktop` Exec=/Path=).
 const _APP_MAIN_SCRIPT = (typeof imports.system.programPath === 'string' && imports.system.programPath.length > 0)
