@@ -10,7 +10,8 @@ The following are **not** in the repository (do not invent or “read” them as
 |--------------|---------|
 | **`internal/server/router.go`** | **Absent** — no Go HTTP router. |
 | **`internal/service/`** (or similar Go service package) | **Absent** — no Go service layer. |
-| **`internal/db/`**, `db.go`, SQL migrations | **Absent** — persistence is **JSON** (standalone) and **GSettings** (extension). |
+| **`internal/db/`**, `db.go`, SQL migrations, **`db.InitDB`** | **Absent** — persistence is **JSON** (standalone) and **GSettings** (extension). |
+| **`server.SetupRouter`**, shared **typed constructor** for `main` + tests | **Absent** — no HTTP router setup; tests are GJS scripts, not a Go test harness reusing `NewApp(...)`. |
 
 There is **no** `main.go` with HTTP route registration, **no** explicit **server or router constructor** (`NewServer`, mux, etc.), and **no** single place that wires **HTTP stack dependencies** (`NewHTTPServer`, DB + router + middleware). Checklist patterns about **composition roots for an HTTP server** do not apply; runtime deps are **OS packages** (see [BUILD.md](../../BUILD.md)), not an in-process HTTP stack.
 
