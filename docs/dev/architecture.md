@@ -151,6 +151,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | `rateLimitMiddleware` on `POST /login` | **N/A** — no HTTP login API. |
 | `handlers_test.go` (password reset, …) | **N/A** — no Go HTTP handlers. |
 | **Explicit server / router constructor** (e.g. `NewServer`, `NewRouter`, `http.Server` wiring) | **N/A** — no HTTP listener or route table; process entry is **`gjs main.js`** (`Gtk.Application`) and **`taskTimer@CryptoD/extension.js`** (Shell extension). |
+| **HTTP stack dependencies in one composition root** (e.g. `NewServer`, `NewHTTPServer` wiring DB + router + middleware) | **N/A** — there is **no** HTTP stack; nothing to construct or inject for a listener. Desktop deps are **system packages** (GTK, GJS, GStreamer—see [BUILD.md](../../BUILD.md)), not app-composed HTTP layers. |
 | `GET /users` in `internal/server/users.go` | **N/A** — no HTTP API. |
 | Cross-user tasks in `main_test.go` | **N/A** — no multi-user Go API. |
 | `frontend/src/...`, React tests | **N/A** — no React app. |
