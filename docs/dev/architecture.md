@@ -111,7 +111,7 @@ Standalone prefs and [`config.js`](../../config.js) read/write **JSON**; extensi
 | **`tests/`** | GJS tests (`test*.js`); **`make test`** runs them all. |
 | **`bin/`** | Scripts: `check-deps.sh`, `lint.sh`, packaging, `sync-version.py`. |
 | **`packaging/appimage/`** | AppImage AppDir and build; copies/syncs app files for the image. |
-| **`docs/dev/`** | Developer docs (this file, deployment, checklist mapping, [`llm-context.md`](llm-context.md)). |
+| **`docs/dev/`** | Developer docs (this file, deployment, checklist mapping, [`llm-context.md`](llm-context.md), [`js-complexity-baseline.md`](js-complexity-baseline.md)). |
 | **`doc/`** | Design notes, screenshots, phase write-ups. |
 | **`e2e/`** | Playwright + MSW **browser** smoke tests only—not GTK. |
 | **`.github/workflows/`** | **`ci.yml`** — `make lint`, `make test`, `npm run lint`; **`e2e.yml`** — `npm run test:e2e`; **`release.yml`** — AppImage + GitHub Release on version tags. |
