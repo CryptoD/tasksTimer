@@ -141,6 +141,32 @@ There is **no** shared SQL layer or `db.go`.
 
 ---
 
+## Transaction boundaries (atomic multi-step mutations)
+
+Many backend-oriented checklists talk about DB transactions around multi-step mutations like
+“create task + tags” or “delete task and related rows” or “bulk import”. **Those concepts are
+N/A in this repository** because:
+
+- There is **no Go backend** (`CreateTask`, `DeleteTask`, import handlers, DB transactions, etc. do not exist here).
+- Persistence is **files (JSON)** and **GSettings**, not an RDBMS.
+
+### What must be atomic in this repo
+
+Within the desktop app, the closest equivalents are **timer list mutations** that must not leave the
+user with partially-updated state:
+
+- **Add/start quick timer**: create timer object → add to in-memory list → start → persist (best-effort)
+- **Edit/delete preset**: update in-memory list → persist
+- **Reorder presets/quick timers**: reorder in-memory list → persist
+
+### Atomicity mechanism
+
+- **In-memory state updates** are performed synchronously.
+- **Persistence** is a best-effort JSON write (see `storage.js` and standalone settings provider). If a write fails,
+  the app should remain usable and avoid crashing; UI may show an in-app banner when relevant.
+
+---
+
 ## Testing and automation
 
 | What | How |
