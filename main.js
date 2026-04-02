@@ -783,12 +783,11 @@ class TaskTimerApplication extends Gtk.Application {
         // This method is called once when the application is exiting.
         // Use it to flush state (e.g. save timers) and clean up resources.
         log('taskTimer: application shutdown');
-        // Persist main window geometry (tray Quit does not emit window delete-event).
-        try {
-            if (this._platform && typeof this._platform.saveWindowState === 'function') {
-                this._platform.saveWindowState();
-            }
-        } catch (_e) {}
+        // Persisting window geometry during Gtk shutdown can race with GTK
+        // disposing the Gtk.ApplicationWindow, which shows up as:
+        //   "Object Gtk.ApplicationWindow ... has been already disposed"
+        // Instead, we save geometry on the normal window delete-event and
+        // when quitting via the tray menu (see tray_* providers).
         // Ensure GStreamer elements are released cleanly (avoid READY disposal warnings).
         try {
             if (this._services && this._services.audio && typeof this._services.audio.shutdown === 'function') {

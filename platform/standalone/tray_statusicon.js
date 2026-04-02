@@ -172,6 +172,11 @@ var StatusIconTrayProvider = class StatusIconTrayProvider extends Platform.TrayP
         const quit = new Gtk.MenuItem({ label: 'Quit' });
         quit.connect('activate', () => {
             if (app && app.quit) {
+                try {
+                    if (this._platform && typeof this._platform.saveWindowState === 'function') {
+                        this._platform.saveWindowState();
+                    }
+                } catch (_e) {}
                 app.quit();
             }
         });
