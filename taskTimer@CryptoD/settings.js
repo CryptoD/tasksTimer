@@ -293,17 +293,17 @@ var Settings = class Settings {
 
     if (this.save_quick_timers) {
       this.logger.debug(`Saving quick timers`);
-      var atimers = [];
+      var quickTimers = [];
       timers.forEach( (timer) => {
         if (timer.quick && timer.duration > 0) {
           this.logger.debug(`Saving quick timer ${timer.name}`);
           var atimer = GLib.Variant.new('a{sv}', this.pack_timer(timer, true));
-          atimers.push(atimer);
+          quickTimers.push(atimer);
         }
       });
-      var glvtype = atimers.length == 0 ? GLib.Variant.new('a{sv}').get_type() : atimers[0].get_type();
-      var pack = GLib.Variant.new_array(glvtype, atimers);
-      this.settings.set_value('quick-timers', pack);
+      var qType = quickTimers.length == 0 ? GLib.Variant.new('a{sv}').get_type() : quickTimers[0].get_type();
+      var qPack = GLib.Variant.new_array(qType, quickTimers);
+      this.settings.set_value('quick-timers', qPack);
     }
   }
 

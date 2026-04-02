@@ -988,9 +988,9 @@ var Timer = class Timer {
     var time=new Date(now).toLocaleTimeString();
 
     timersInstance.notifier.notify(this, text, "%s %s", reason, time);
-    var hms = new HMS(this.duration);
+    var hms2 = new HMS(this.duration);
 
-    this.label_progress(hms);
+    this.label_progress(hms2);
     this.icon_progress();
 
     timersInstance.set_panel_name("");

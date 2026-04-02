@@ -77,8 +77,6 @@ function testSorting() {
 
     let list = timers.sorted({ running: false });
     assert(list.length >= 3, 'sorted returns list');
-    const namesDefault = list.map(t => t.name);
-    const durationsDefault = list.map(t => t.duration);
 
     settings.sort_by_duration = true;
     settings.sort_descending = false;

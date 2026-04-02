@@ -94,7 +94,6 @@ function testReadonlyConfig() {
 }
 
 function testNotificationFallback() {
-    const cwd = GLib.get_current_dir();
     runGjsScenario('notification_fallback', '_unused_', 'send_notification failed');
 }
 

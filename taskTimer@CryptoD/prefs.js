@@ -81,24 +81,22 @@ var PreferencesBuilder = class PreferencesBuilder {
     this._builder = new Gtk.Builder();
     this.logger = new Logger('kt prefs', this._settings);
 
-    if (true) {
-      let iconPath = this._basePath
-        ? GLib.build_filenamev([this._basePath, 'icons'])
-        : (typeof Me !== 'undefined' && Me.dir ? Me.dir.get_child('icons').get_path() : '');
-      if (iconPath) {
-        let iconTheme = null;
-        try {
-          if (Gtk.IconTheme.get_for_display && Gdk.Display.get_default) {
-            iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
-          } else if (Gtk.IconTheme.get_default) {
-            iconTheme = Gtk.IconTheme.get_default();
-          }
-        } catch (e) {
-          iconTheme = null;
+    let iconPath = this._basePath
+      ? GLib.build_filenamev([this._basePath, 'icons'])
+      : (typeof Me !== 'undefined' && Me.dir ? Me.dir.get_child('icons').get_path() : '');
+    if (iconPath) {
+      let iconTheme = null;
+      try {
+        if (Gtk.IconTheme.get_for_display && Gdk.Display.get_default) {
+          iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+        } else if (Gtk.IconTheme.get_default) {
+          iconTheme = Gtk.IconTheme.get_default();
         }
-        if (iconTheme && typeof iconTheme.add_search_path === 'function') {
-          iconTheme.add_search_path(iconPath);
-        }
+      } catch (e) {
+        iconTheme = null;
+      }
+      if (iconTheme && typeof iconTheme.add_search_path === 'function') {
+        iconTheme.add_search_path(iconPath);
       }
     }
   }
@@ -495,15 +493,8 @@ var PreferencesBuilder = class PreferencesBuilder {
     this._viewport = new Gtk.Viewport();
     this._widget = new Gtk.ScrolledWindow();
 
-    if (false) {
-      this._builder.add_from_file(GLib.build_filenamev([this._basePath || (typeof Me !== 'undefined' && Me.path) || '', 'settings.ui']));
-      this._taskTimer_settings = this._builder.get_object('taskTimer_settings');
-      this._viewport.add(this._taskTimer_settings);
-      this._widget.add(this._viewport);
-    } else {
-      const basePath = this._basePath || (typeof Me !== 'undefined' ? Me.path : '');
-      this._assemblePrefsFromBuilder(basePath);
-    }
+    const basePath = this._basePath || (typeof Me !== 'undefined' ? Me.path : '');
+    this._assemblePrefsFromBuilder(basePath);
 
     this._wirePrefsTimerSection();
     return this._widget;
@@ -1037,7 +1028,6 @@ var PreferencesBuilder = class PreferencesBuilder {
       iter_n_children: () => 0,
       get_model: () => null,
       get_value: () => null,
-      append: () => null,
       remove: () => false,
       clear: () => {},
       set_value: () => {},

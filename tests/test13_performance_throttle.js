@@ -7,8 +7,6 @@
 
 imports.searchPath.unshift('.');
 
-const { GLib } = imports.gi;
-
 const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 const TimerCore = TimersCoreModule.TimerCore;
 const TimersCore = TimersCoreModule.TimersCore;

@@ -12,7 +12,7 @@
 
 imports.gi.versions.Gtk = '3.0';
 
-const { Gtk, GLib } = imports.gi;
+const { Gtk } = imports.gi;
 
 const Branding = imports.platform.standalone.branding;
 const GtkA11y = imports.platform.standalone.gtk_a11y;

@@ -119,8 +119,7 @@ class KitchenTimerCreatePreset extends PopupMenu.PopupSubMenuMenuItem {
     if (result) {
       ctext.set_text("%s %s".format(result.name, result.hms.toString()));
       var timer = KitchenTimerMenuItem.addTimerStart(result, this._timers);
-      if (timer === undefined) {
-      } else {
+      if (timer !== undefined) {
         this.menu.close();
       }
     }
