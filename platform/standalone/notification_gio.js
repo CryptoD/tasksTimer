@@ -19,6 +19,67 @@ const ACTION_RESTART = 'app.timerRestart';
 const ACTION_SNOOZE = 'app.timerSnooze';
 
 var GioNotificationProvider = class GioNotificationProvider extends Platform.NotificationProvider {
+    _forceInApp(options) {
+        // TEST 6: force in-app fallback (env or per-call option).
+        const forceInAppEnv = GLib.getenv('TASKTIMER_FORCE_INAPP_NOTIFICATIONS');
+        return options.forceInApp || (forceInAppEnv === '1' || forceInAppEnv === 'true');
+    }
+
+    _createNotification(title, body, options = {}) {
+        const notification = new Gio.Notification();
+        notification.set_title(title || '');
+        notification.set_body(body || '');
+
+        if (this._applicationName && typeof notification.set_application_name === 'function') {
+            try {
+                notification.set_application_name(this._applicationName);
+            } catch (_e) {}
+        }
+
+        const icon = options.icon && options.icon instanceof Gio.Icon
+            ? options.icon
+            : this._defaultIcon;
+        if (icon) {
+            notification.set_icon(icon);
+        }
+
+        if (this._settings && this._settings.notification_sticky &&
+            typeof notification.set_priority === 'function') {
+            try {
+                const urgent = (typeof Gio.NotificationPriority !== 'undefined' && Gio.NotificationPriority.URGENT !== undefined)
+                    ? Gio.NotificationPriority.URGENT : 3;
+                notification.set_priority(urgent);
+            } catch (_e) {}
+        }
+
+        const timerId = options.timerId && String(options.timerId);
+        if (timerId &&
+            typeof notification.set_default_action_and_target_value === 'function' &&
+            typeof notification.add_button_with_target_value === 'function') {
+            const targetId = new GLib.Variant('s', timerId);
+            notification.set_default_action_and_target_value(ACTION_RESTART, targetId);
+            notification.add_button_with_target_value('Dismiss', ACTION_DISMISS, targetId);
+            notification.add_button_with_target_value('Snooze 30s', ACTION_SNOOZE, new GLib.Variant('s', timerId + ':30'));
+            notification.add_button_with_target_value('Snooze 5m', ACTION_SNOOZE, new GLib.Variant('s', timerId + ':300'));
+        }
+
+        return notification;
+    }
+
+    _sendNotificationOrFallback(id, title, body, notification) {
+        try {
+            this._application.send_notification(id || null, notification);
+        } catch (e) {
+            logError(e, 'GioNotificationProvider: send_notification failed (no notification daemon, portal, or session bus?)');
+            if (this._fallback) {
+                log('GioNotificationProvider: showing in-app fallback instead of system notification');
+                this._fallback(id, title, body);
+            } else {
+                log('GioNotificationProvider: no fallback available; timer completion may be easy to miss');
+            }
+        }
+    }
+
     /**
      * @param {Gtk.Application} application - Gtk.Application (or any GApplication)
      *        with send_notification() and withdraw_notification().
@@ -49,61 +110,15 @@ var GioNotificationProvider = class GioNotificationProvider extends Platform.Not
      * @param {Object} options - optional; icon (GIcon), timerId (string) for action buttons.
      */
     notify(id, title, body, options = {}) {
-        if (!this._application) {
-            return;
-        }
-        // For TEST 6: force in-app fallback (env or per-call option).
-        const forceInAppEnv = GLib.getenv('TASKTIMER_FORCE_INAPP_NOTIFICATIONS');
-        const forceInApp = options.forceInApp || (forceInAppEnv === '1' || forceInAppEnv === 'true');
-        if (forceInApp && this._fallback) {
+        if (!this._application) return;
+
+        if (this._forceInApp(options) && this._fallback) {
             this._fallback(id, title, body);
             return;
         }
-        const notification = new Gio.Notification();
-        notification.set_title(title || '');
-        notification.set_body(body || '');
-        if (this._applicationName && typeof notification.set_application_name === 'function') {
-            try {
-                notification.set_application_name(this._applicationName);
-            } catch (_e) {}
-        }
-        const icon = options.icon && options.icon instanceof Gio.Icon
-            ? options.icon
-            : this._defaultIcon;
-        if (icon) {
-            notification.set_icon(icon);
-        }
-        if (this._settings && this._settings.notification_sticky &&
-            typeof notification.set_priority === 'function') {
-            try {
-                const urgent = (typeof Gio.NotificationPriority !== 'undefined' && Gio.NotificationPriority.URGENT !== undefined)
-                    ? Gio.NotificationPriority.URGENT : 3;
-                notification.set_priority(urgent);
-            } catch (_e) {}
-        }
 
-        const timerId = options.timerId && String(options.timerId);
-        if (timerId &&
-            typeof notification.set_default_action_and_target_value === 'function' &&
-            typeof notification.add_button_with_target_value === 'function') {
-            const targetId = new GLib.Variant('s', timerId);
-            notification.set_default_action_and_target_value(ACTION_RESTART, targetId);
-            notification.add_button_with_target_value('Dismiss', ACTION_DISMISS, targetId);
-            notification.add_button_with_target_value('Snooze 30s', ACTION_SNOOZE, new GLib.Variant('s', timerId + ':30'));
-            notification.add_button_with_target_value('Snooze 5m', ACTION_SNOOZE, new GLib.Variant('s', timerId + ':300'));
-        }
-
-        try {
-            this._application.send_notification(id || null, notification);
-        } catch (e) {
-            logError(e, 'GioNotificationProvider: send_notification failed (no notification daemon, portal, or session bus?)');
-            if (this._fallback) {
-                log('GioNotificationProvider: showing in-app fallback instead of system notification');
-                this._fallback(id, title, body);
-            } else {
-                log('GioNotificationProvider: no fallback available; timer completion may be easy to miss');
-            }
-        }
+        const notification = this._createNotification(title, body, options);
+        this._sendNotificationOrFallback(id, title, body, notification);
     }
 
     /**

@@ -18,6 +18,7 @@ const TimersCoreModule = imports['taskTimer@CryptoD'].timers_core;
 const GtkA11y = imports.platform.standalone.gtk_a11y;
 const Parser = imports['taskTimer@CryptoD'].timer_entry_parser;
 const TimerListItemModule = imports.platform.standalone.timer_list_item;
+const QuickEntryFallback = imports.platform.standalone.quick_entry_fallback;
 
 function _safeText(v, fallback = '') {
     if (v === undefined || v === null) return fallback;
@@ -214,66 +215,92 @@ class TimerMenuWidget extends Gtk.Box {
         const timers = this._timers;
         if (!timers) return;
 
-        const entry = (this._quickEntry && this._quickEntry.get_text) ? this._quickEntry.get_text().trim() : '';
+        const entry = this._quickEntryText();
         if (!entry) return;
 
+        const parsed = this._parseQuickEntry(entry);
+        if (!parsed) return;
+
+        if (parsed.kind === 'parsed') {
+            this._startParsedQuickTimer(timers, parsed);
+            return;
+        }
+
+        // Fallback: allow plain seconds ("90") or mm:ss ("25:00").
+        this._startFallbackQuickTimer(timers, parsed.seconds);
+    }
+
+    _quickEntryText() {
+        return (this._quickEntry && this._quickEntry.get_text) ? this._quickEntry.get_text().trim() : '';
+    }
+
+    /**
+     * @returns {{kind:'parsed', name:string, seconds:number, alarm_timer:any}|{kind:'fallback', seconds:number}|null}
+     */
+    _parseQuickEntry(entry) {
         let parse = null;
         try {
             parse = Parser && typeof Parser.parseTimerEntry === 'function'
                 ? Parser.parseTimerEntry(entry, true)
                 : null;
-        } catch (e) {
+        } catch (_e) {
             parse = null;
         }
 
         if (parse && parse.has_time && parse.hms && typeof parse.hms.toSeconds === 'function') {
-            const TimerCore = TimersCoreModule.TimerCore;
-            const t = new TimerCore(timers, _safeText(parse.name, 'Timer'), parse.hms.toSeconds());
-            t.quick = true;
-            t.alarm_timer = parse.alarm_timer;
-            const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
-            if (result === t) {
-                t.start();
-                this._persistTimers();
-            } else if (result !== undefined) {
-                this._showDuplicateBanner();
-            }
-            this._quickEntry.set_text('');
-            return;
+            return {
+                kind: 'parsed',
+                name: _safeText(parse.name, 'Timer'),
+                seconds: parse.hms.toSeconds(),
+                alarm_timer: parse.alarm_timer,
+            };
         }
 
-        // Fallback: allow plain seconds ("90") or mm:ss ("25:00").
-        const seconds = this._parseDurationFallback(entry);
-        if (seconds > 0) {
-            const TimerCore = TimersCoreModule.TimerCore;
-            const t = new TimerCore(timers, 'Timer', seconds);
-            t.quick = true;
-            const result = typeof timers.add_check_dupes === 'function' ? timers.add_check_dupes(t) : (timers.add(t) ? t : undefined);
-            if (result === t) {
-                t.start();
-                this._persistTimers();
-            } else if (result !== undefined) {
-                this._showDuplicateBanner();
-            }
-            this._quickEntry.set_text('');
+        return { kind: 'fallback', seconds: this._parseDurationFallback(entry) };
+    }
+
+    _startParsedQuickTimer(timers, parsed) {
+        const TimerCore = TimersCoreModule.TimerCore;
+        const t = new TimerCore(timers, parsed.name, parsed.seconds);
+        t.quick = true;
+        t.alarm_timer = parsed.alarm_timer;
+
+        const result = typeof timers.add_check_dupes === 'function'
+            ? timers.add_check_dupes(t)
+            : (timers.add(t) ? t : undefined);
+
+        if (result === t) {
+            t.start();
+            this._persistTimers();
+        } else if (result !== undefined) {
+            this._showDuplicateBanner();
         }
+        this._quickEntry.set_text('');
+    }
+
+    _startFallbackQuickTimer(timers, seconds) {
+        if (!seconds || seconds <= 0) return;
+
+        const TimerCore = TimersCoreModule.TimerCore;
+        const t = new TimerCore(timers, 'Timer', seconds);
+        t.quick = true;
+
+        const result = typeof timers.add_check_dupes === 'function'
+            ? timers.add_check_dupes(t)
+            : (timers.add(t) ? t : undefined);
+
+        if (result === t) {
+            t.start();
+            this._persistTimers();
+        } else if (result !== undefined) {
+            this._showDuplicateBanner();
+        }
+        this._quickEntry.set_text('');
     }
 
     _parseDurationFallback(text) {
-        const s = (text || '').trim();
-        if (!s) return 0;
-        if (/^\d+$/.test(s)) {
-            return parseInt(s, 10);
-        }
-        const m = /^(\d+):(\d+)$/.exec(s);
-        if (m) {
-            const mm = parseInt(m[1], 10);
-            const ss = parseInt(m[2], 10);
-            if (Number.isFinite(mm) && Number.isFinite(ss) && ss >= 0 && ss < 60) {
-                return (mm * 60) + ss;
-            }
-        }
-        return 0;
+        // Delegate to a GTK-agnostic helper so it can be unit tested.
+        return QuickEntryFallback.parseDurationFallback(text);
     }
 
     _persistTimers() {

@@ -35,6 +35,53 @@ const DEFAULT_QUICK_TIMERS = [
     { name: '25 min', duration: 1500 },
 ];
 
+function _safeGetInDestruction(win) {
+    try {
+        if (typeof win.get_in_destruction === 'function') {
+            return Boolean(win.get_in_destruction());
+        }
+    } catch (_e) {}
+    return false;
+}
+
+/**
+ * Best-effort read window geometry.
+ * Returns null if window is not realized or any call fails.
+ */
+function _tryReadWindowGeometry(win) {
+    try {
+        if (win.get_realized && typeof win.get_realized === 'function') {
+            if (!win.get_realized()) {
+                return null;
+            }
+        }
+
+        const [w, h] = win.get_size ? win.get_size() : [900, 560];
+        const [x, y] = win.get_position ? win.get_position() : [-1, -1];
+
+        let maximized = false;
+        if (win.get_window && typeof win.get_window === 'function') {
+            const gdkWin = win.get_window();
+            if (gdkWin && typeof gdkWin.get_state === 'function') {
+                maximized = Boolean(gdkWin.get_state() & Gdk.WindowState.MAXIMIZED);
+            }
+        }
+
+        return { w, h, x, y, maximized };
+    } catch (_e) {
+        return null;
+    }
+}
+
+function _applyWindowGeometryToSettings(settings, geom) {
+    if (!geom) return;
+    settings.window_width = Math.max(400, geom.w);
+    settings.window_height = Math.max(300, geom.h);
+    settings.window_maximized = Boolean(geom.maximized);
+    settings.window_x = Number.isFinite(geom.x) ? geom.x : -1;
+    settings.window_y = Number.isFinite(geom.y) ? geom.y : -1;
+}
+
 let AppIndicatorTrayProvider = null;
 let AppIndicatorAvailable = false;
 try {
@@ -631,30 +678,13 @@ class StandaloneGtkPlatform extends GObject.Object {
             ? this._application._services.settings
             : null;
         if (!win || !settings || typeof settings.window_width === 'undefined') return;
-        // During shutdown the underlying GtkWindow may already be disposed by C/GTK.
-        // Keep this method fully best-effort and never throw.
+
+        // Best-effort and never throw (GTK shutdown can dispose the window
+        // while vfunc_shutdown is still running).
         try {
-            if (typeof win.get_in_destruction === 'function' && win.get_in_destruction()) {
-                return;
-            }
-        } catch (_e) {}
-        try {
-            if (win.get_realized && win.get_realized()) {
-                const [w, h] = win.get_size ? win.get_size() : [900, 560];
-                const [x, y] = win.get_position ? win.get_position() : [-1, -1];
-                let maximized = false;
-                if (win.get_window) {
-                    const gdkWin = win.get_window();
-                    if (gdkWin && typeof gdkWin.get_state === 'function') {
-                        maximized = Boolean(gdkWin.get_state() & Gdk.WindowState.MAXIMIZED);
-                    }
-                }
-                settings.window_width = Math.max(400, w);
-                settings.window_height = Math.max(300, h);
-                settings.window_maximized = maximized;
-                settings.window_x = Number.isFinite(x) ? x : -1;
-                settings.window_y = Number.isFinite(y) ? y : -1;
-            }
+            if (_safeGetInDestruction(win)) return;
+            const geom = _tryReadWindowGeometry(win);
+            _applyWindowGeometryToSettings(settings, geom);
         } catch (e) {
             log('taskTimer: save window state failed: ' + (e && e.message ? e.message : e));
         }

@@ -498,50 +498,65 @@ function _setupVolumeWarning(app, notifier) {
         return;
     }
 
-    function checkVolume() {
-        if (!app._services.settings) {
-            return;
+    function _setPlatformWarningOffOnly() {
+        // Preserve historical behavior: when volume monitoring is unavailable
+        // or warnings are disabled, we turn off only the UI, not the internal
+        // _volumeWarned/_volumeWarningLow state.
+        if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
+            app._platform.setVolumeWarning(false);
         }
+    }
+
+    function _clearLowWarningState() {
+        app._volumeWarned = false;
+        app._volumeWarningLow = false;
+        if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
+            app._platform.setVolumeWarning(false);
+        }
+    }
+
+    function _applyLowWarningState(level, muted) {
+        app._volumeWarningLow = true;
+        app._volumeWarningLevel = level;
+        app._volumeWarningMuted = muted;
+
+        const running = app._timers.sort_by_running();
+        if (running.length > 0 && !app._volumeWarned) {
+            app._volumeWarned = true;
+            const timer = running[0];
+            notifier.warning(timer, timer.name, VOLUME_LOW_MSG, level);
+        }
+        if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
+            app._platform.setVolumeWarning(true, level, muted);
+        }
+    }
+
+    function checkVolume() {
+        if (!app._services.settings) return;
+
         const stream = mixerControl.get_default_sink();
         if (!stream) {
-            if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
-                app._platform.setVolumeWarning(false);
-            }
+            _setPlatformWarningOffOnly();
             return;
         }
+
+        const threshold = app._services.settings.volume_threshold || 0;
+        const warnEnabled = app._services.settings.play_sound && app._services.settings.volume_level_warn;
+        if (!warnEnabled) {
+            _setPlatformWarningOffOnly();
+            return;
+        }
+
         const max = mixerControl.get_vol_max_norm();
         const level = max > 0 ? Math.floor(stream.volume * 100 / max) : 0;
         const muted = stream.is_muted;
-        const threshold = app._services.settings.volume_threshold || 0;
-        const warnEnabled = app._services.settings.play_sound && app._services.settings.volume_level_warn;
 
-        if (!warnEnabled) {
-            if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
-                app._platform.setVolumeWarning(false);
-            }
+        if (muted || level < threshold) {
+            _applyLowWarningState(level, muted);
             return;
         }
 
-        if (muted || level < threshold) {
-            app._volumeWarningLow = true;
-            app._volumeWarningLevel = level;
-            app._volumeWarningMuted = muted;
-            const running = app._timers.sort_by_running();
-            if (running.length > 0 && !app._volumeWarned) {
-                app._volumeWarned = true;
-                const timer = running[0];
-                notifier.warning(timer, timer.name, VOLUME_LOW_MSG, level);
-            }
-            if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
-                app._platform.setVolumeWarning(true, level, muted);
-            }
-        } else {
-            app._volumeWarned = false;
-            app._volumeWarningLow = false;
-            if (app._platform && typeof app._platform.setVolumeWarning === 'function') {
-                app._platform.setVolumeWarning(false);
-            }
-        }
+        _clearLowWarningState();
     }
 
     try {
