@@ -167,6 +167,15 @@ user with partially-updated state:
 
 ---
 
+## Background jobs extracted from `main` (backend pattern)
+
+Some checklists refer to Go “background jobs” (goroutines) living under `internal/jobs` with `Start(ctx)` / `Stop()`
+and taking `*db.Database` + config. This is **N/A** in this repository (no Go backend).
+
+If you’re looking for that pattern, see `docs/dev/background-jobs.md` for the backend-repo outline.
+
+---
+
 ## Testing and automation
 
 | What | How |
