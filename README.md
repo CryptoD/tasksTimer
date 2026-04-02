@@ -135,6 +135,15 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 
 ---
 
+## API (pagination contract)
+
+This repository does **not** implement an HTTP API. The canonical pagination contract for list endpoints
+(for the backend service repo) is documented here:
+
+- **`docs/api/pagination-contract.md`**
+
+---
+
 ## License
 
 See [LICENSE](LICENSE).
