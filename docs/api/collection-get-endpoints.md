@@ -21,3 +21,9 @@ In this repo those files do not exist.
 |------|------|------------------|---------|------|
 | *(none — no backend routes in this repo)* | — | — | — | — |
 
+### Task 7 note: `GET /users` pagination (admin user list)
+
+The Task 7 objective references a Go backend route `GET /users` plus `database.ListUsers`,
+`validation.ParsePagination`, and a `listProjects` response shape. None of these exist in this repository,
+so there is nothing to implement or test here.
+
