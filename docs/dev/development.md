@@ -21,6 +21,7 @@ Policy:
 
 CI runs Go quality checks only when the repository contains a Go module (`go.mod`).
 
+- **Toolchain**: Go **1.22** (keep consistent across `go.mod`, CI, and any container tooling if Go is introduced)
 - **`go vet`**: `go vet ./...` (fails CI on findings)
 - **`staticcheck`**: installed with a **pinned** version and run as `staticcheck ./...`
 - **`golangci-lint`**: runs with repo config (`.golangci.yml`) and blocks merges on failures
