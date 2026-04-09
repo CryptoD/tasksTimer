@@ -17,6 +17,10 @@ Policy:
 - **`e2e.yml`** is **not** part of the primary PR gate; it is **path-filtered** to run only when `e2e/**` or Node tooling inputs change.
 - **`release.yml`** runs on **version tags only**.
 
+### CI job order (fail fast)
+
+`ci.yml` is ordered to fail fast: lightweight checks (ESLint and Go linters like `go vet` / `staticcheck` / `golangci-lint` when applicable) run **before** installing heavier GTK/Xvfb deps and running the longer GJS test suite.
+
 ## Standard developer commands (use `make` first)
 
 - **Lint**: `make lint`

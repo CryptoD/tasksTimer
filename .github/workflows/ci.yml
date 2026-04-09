@@ -37,26 +37,7 @@ jobs:
       - name: ESLint (npm run lint)
         run: npm run lint
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            dbus-daemon \
-            dbus-x11 \
-            gettext \
-            gjs \
-            gir1.2-gstreamer-1.0 \
-            gir1.2-gtk-3.0 \
-            shellcheck \
-            xvfb
-
-      - name: Lint
-        run: make lint
-
-      - name: Test
-        run: xvfb-run -a dbus-run-session -- make test
-
-      # Go complexity baseline (only when this repo contains a Go module).
+      # Fail fast on Go quality gates (only when this repo contains a Go module).
       - uses: actions/setup-go@v5
         if: hashFiles('go.mod') != ''
         with:
@@ -79,6 +60,25 @@ jobs:
         with:
           version: v2.11.4
           args: --timeout=5m
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dbus-daemon \
+            dbus-x11 \
+            gettext \
+            gjs \
+            gir1.2-gstreamer-1.0 \
+            gir1.2-gtk-3.0 \
+            shellcheck \
+            xvfb
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: xvfb-run -a dbus-run-session -- make test
 
       - name: gocyclo complexity report (artifact)
         if: hashFiles('go.mod') != ''
