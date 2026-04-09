@@ -1,4 +1,8 @@
 # Browser E2E shell: Playwright + MSW (@msw/playwright). Not the GTK app (see e2e/README.md).
+#
+# NOTE: This workflow is intentionally NOT part of the canonical PR “full suite”.
+# It is path-filtered (below) to avoid silently duplicating CI workload that is already
+# covered by `.github/workflows/ci.yml` on every PR.
 name: E2E
 
 on:

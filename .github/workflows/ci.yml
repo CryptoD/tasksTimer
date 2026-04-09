@@ -1,3 +1,8 @@
+# Canonical PR workflow.
+# This is the single primary PR gate for this repository (lint + unit/smoke tests).
+# Any other workflows (like Playwright E2E) must be path-filtered or otherwise scoped
+# so we don’t silently run duplicate “full suite” jobs on every PR.
+#
 # Lint and tests on every push (branches + tags) and on pull requests.
 name: CI
 
