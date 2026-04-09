@@ -2,7 +2,7 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race e2e build
 
 all: pack
 
@@ -26,6 +26,7 @@ test12:
 lint:
 	"$(ROOT)/bin/check-deps.sh" --compile
 	"$(ROOT)/bin/lint.sh"
+	npm run lint
 
 mo:
 	"$(ROOT)/bin/po_compile.sh"
@@ -52,6 +53,9 @@ test:
 	cd "$(ROOT)" && set -e && for f in tests/test*.js; do \
 		echo "==> $$f"; gjs "$$f"; \
 	done
+	@if [ -f "$(ROOT)/go.mod" ]; then \
+		go test ./...; \
+	fi
 
 # Go race detector (only when this repo contains a Go module).
 #
@@ -72,3 +76,14 @@ test-race:
 		echo "test-race: excluded packages: $(RACE_EXCLUDE)"; \
 	fi
 	go test -race $(RACE_PKGS)
+
+e2e:
+	npx playwright install chromium
+	npm run test:e2e
+
+build:
+	@if [ -f "$(ROOT)/go.mod" ]; then \
+		go build ./...; \
+	else \
+		echo "build: no go.mod; skipping go build"; \
+	fi

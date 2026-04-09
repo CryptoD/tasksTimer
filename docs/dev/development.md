@@ -17,6 +17,14 @@ Policy:
 - **`e2e.yml`** is **not** part of the primary PR gate; it is **path-filtered** to run only when `e2e/**` or Node tooling inputs change.
 - **`release.yml`** runs on **version tags only**.
 
+## Standard developer commands (use `make` first)
+
+- **Lint**: `make lint`
+- **Tests**: `make test`
+- **Race tests (Go only)**: `make test-race`
+- **Browser E2E shell**: `make e2e`
+- **Build (Go only)**: `make build`
+
 ## Go quality gates (only when `go.mod` exists)
 
 CI runs Go quality checks only when the repository contains a Go module (`go.mod`).
