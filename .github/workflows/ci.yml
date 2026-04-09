@@ -73,6 +73,13 @@ jobs:
           PATH="$PATH:$(go env GOPATH)/bin"
           staticcheck ./...
 
+      - name: golangci-lint (pinned)
+        if: hashFiles('go.mod') != ''
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.11.4
+          args: --timeout=5m
+
       - name: gocyclo complexity report (artifact)
         if: hashFiles('go.mod') != ''
         run: |

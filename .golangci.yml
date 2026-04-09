@@ -1,0 +1,23 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  # Keep the default linter set sensible for new modules.
+  default: standard
+  enable:
+    # Enforce `//nolint` hygiene and require ticket references.
+    - nolintlint
+
+linters-settings:
+  nolintlint:
+    allow-leading-space: false
+    allow-unused: false
+    require-specific: true
+    require-explanation: true
+    # Require a ticket reference in the explanation, e.g.:
+    #   //nolint:errcheck // #1234
+    #   //nolint:gosec // KT-42
+    require-explanation-pattern: '^(#\d+|[A-Z]{2,10}-\d+)\b.*$'
+
