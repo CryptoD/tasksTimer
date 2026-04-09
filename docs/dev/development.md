@@ -9,19 +9,24 @@ For repo structure and how to run lint/tests, see:
 
 ## Coverage exclusions (documented)
 
-This repository does not currently run a code-coverage tool in CI, but we still track explicit coverage exclusions so they remain intentional and reviewable.
+**Done when:** This section matches the repository’s **`go tool cover` configuration**.
+
+### Status in this repository
+
+This repository currently contains **no Go code** (`*.go`, `go.mod`, or any `go tool cover` / `-coverprofile` usage). As a result, there is **no `go tool cover` configuration to match**, and there are **no Go coverage exclusions** to document.
 
 ### Current exclusions
 
 **None.**
 
-No `// coverage:ignore` markers (or equivalents like `/* istanbul ignore next */`, `/* c8 ignore next */`, etc.) and no known package/module-level “skip from coverage” rules exist in the repository at this time.
+No `go tool cover`-driven exclusions exist because `go test -coverprofile` is not used here.
 
-### Policy (if you add one)
+### Policy (if Go coverage is added later)
 
-If you introduce a coverage exclusion anywhere in the codebase, you must add an entry here with:
+If Go code and coverage reporting are added later, document any exclusions exactly as expressed by the `go test` / `go tool cover` workflow used in the repo (typically via `go test -coverprofile=...` plus any package selection through `-coverpkg=...`, and/or any post-processing of the generated coverprofile), and list each exclusion here with:
 
-- **Location**: file path and the exact directive/pattern used
+- **Mechanism**: the exact flag/pattern/script step (e.g. `-coverpkg=...` selection or coverprofile filtering rule)
+- **Scope**: which packages/files are excluded
 - **Reason**: why excluding is correct (e.g. platform-specific code paths, hard-to-stimulate error branch, defensive crash guard)
 - **Owner / follow-up** (optional): when/what would allow removing the exclusion
 
