@@ -66,6 +66,13 @@ jobs:
         if: hashFiles('go.mod') != ''
         run: go vet ./...
 
+      - name: staticcheck (pinned)
+        if: hashFiles('go.mod') != ''
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@2026.1
+          PATH="$PATH:$(go env GOPATH)/bin"
+          staticcheck ./...
+
       - name: gocyclo complexity report (artifact)
         if: hashFiles('go.mod') != ''
         run: |

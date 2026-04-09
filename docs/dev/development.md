@@ -17,6 +17,19 @@ Policy:
 - **`e2e.yml`** is **not** part of the primary PR gate; it is **path-filtered** to run only when `e2e/**` or Node tooling inputs change.
 - **`release.yml`** runs on **version tags only**.
 
+## Go quality gates (only when `go.mod` exists)
+
+CI runs Go quality checks only when the repository contains a Go module (`go.mod`).
+
+- **`go vet`**: `go vet ./...` (fails CI on findings)
+- **`staticcheck`**: installed with a **pinned** version and run as `staticcheck ./...`
+
+### Install locally
+
+```bash
+go install honnef.co/go/tools/cmd/staticcheck@2026.1
+```
+
 ## Coverage exclusions (documented)
 
 **Done when:** This section matches the repository’s **`go tool cover` configuration**.
