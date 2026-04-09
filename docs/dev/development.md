@@ -24,6 +24,7 @@ CI runs Go quality checks only when the repository contains a Go module (`go.mod
 - **`go vet`**: `go vet ./...` (fails CI on findings)
 - **`staticcheck`**: installed with a **pinned** version and run as `staticcheck ./...`
 - **`golangci-lint`**: runs with repo config (`.golangci.yml`) and blocks merges on failures
+- **Race detector**: `make test-race` (runs `go test -race`; see exclusions below)
 
 ### Install locally
 
@@ -35,6 +36,10 @@ go install honnef.co/go/tools/cmd/staticcheck@2026.1
 
 Any `//nolint` directive must include a **ticket reference only**, for example `#1234` or `KT-42`.
 CI enforces this via the `nolintlint` linter configured in `.golangci.yml`.
+
+### Race detector scope / exclusions
+
+The default is all packages (`./...`). If we ever need to exclude packages from race runs, they must be listed via `RACE_EXCLUDE` and justified (no silent skips).
 
 ## Coverage exclusions (documented)
 

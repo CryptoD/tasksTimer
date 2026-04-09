@@ -2,7 +2,7 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race
 
 all: pack
 
@@ -52,3 +52,23 @@ test:
 	cd "$(ROOT)" && set -e && for f in tests/test*.js; do \
 		echo "==> $$f"; gjs "$$f"; \
 	done
+
+# Go race detector (only when this repo contains a Go module).
+#
+# Default scope is all packages; override with:
+#   make test-race RACE_PKGS=./internal/router/...
+#
+# If any packages must be excluded (e.g. platform-specific or cgo-heavy), list them
+# explicitly via RACE_EXCLUDE and keep the rationale in docs/dev/development.md.
+RACE_PKGS ?= ./...
+RACE_EXCLUDE ?=
+
+test-race:
+	@if [ ! -f "$(ROOT)/go.mod" ]; then \
+		echo "test-race: no go.mod; skipping"; \
+		exit 0; \
+	fi
+	@if [ -n "$(RACE_EXCLUDE)" ]; then \
+		echo "test-race: excluded packages: $(RACE_EXCLUDE)"; \
+	fi
+	go test -race $(RACE_PKGS)
