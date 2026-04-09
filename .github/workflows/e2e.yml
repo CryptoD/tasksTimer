@@ -3,7 +3,17 @@ name: E2E
 
 on:
   push:
+    paths:
+      - 'e2e/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/e2e.yml'
   pull_request:
+    paths:
+      - 'e2e/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/e2e.yml'
   workflow_dispatch:
 
 concurrency:

@@ -7,6 +7,16 @@ For repo structure and how to run lint/tests, see:
 - [architecture.md](architecture.md)
 - [deployment.md](deployment.md)
 
+## CI/CD: canonical workflow and policy
+
+**Canonical PR workflow:** `.github/workflows/ci.yml`
+
+Policy:
+
+- **`ci.yml`** is the **single primary** workflow for PR validation (lint + GJS tests; plus optional Go quality reporting when `go.mod` exists).
+- **`e2e.yml`** is **not** part of the primary PR gate; it is **path-filtered** to run only when `e2e/**` or Node tooling inputs change.
+- **`release.yml`** runs on **version tags only**.
+
 ## Coverage exclusions (documented)
 
 **Done when:** This section matches the repository’s **`go tool cover` configuration**.
