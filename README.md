@@ -41,6 +41,10 @@ You need **GJS**, **GTK 3** (GObject Introspection), and **GStreamer** GI bindin
 
 Optional: **libayatana-appindicator** or **libappindicator** GI bindings for a better tray on many desktops. See `bin/check-deps.sh` and **[BUILD.md](BUILD.md)** for a full contributor-oriented list.
 
+### Developer tooling (optional)
+
+For contributors running JavaScript tooling (ESLint, Playwright E2E shell), install **Node.js 22 LTS** and use the repository `package.json` (tooling only; the app does not depend on npm at runtime).
+
 ### 2. From source (this repository)
 
 ```bash

@@ -23,6 +23,7 @@ Policy:
 
 ## Standard developer commands (use `make` first)
 
+- **Prereq (tooling only)**: Node.js **22 LTS** (matches `package.json#engines` and CI `setup-node`)
 - **Lint**: `make lint`
 - **Tests**: `make test`
 - **Race tests (Go only)**: `make test-race`
