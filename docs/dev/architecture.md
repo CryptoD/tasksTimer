@@ -120,6 +120,23 @@ Standalone prefs and [`config.js`](../../config.js) read/write **JSON**; extensi
 
 ---
 
+## Target frontend-style structure (if a web `src/` is introduced)
+
+This repository is **not** a React/Vite-style web frontend today, but some tooling checklists expect a feature-based `src/` layout. If we ever introduce a web-style `src/`, the target structure is:
+
+- `src/features/<feature>/` — vertical slices (UI + state + helpers)
+- `src/shared/` — shared UI primitives and utilities
+- `src/app/` — app wiring (routes, providers, composition)
+
+### Phase 1 migration (example)
+
+We migrated one small, self-contained vertical slice to prove the layout without breaking imports:
+
+- `src/features/quick-entry-fallback/quick_entry_fallback.js`
+- Kept a compatibility shim at `platform/standalone/quick_entry_fallback.js` so existing `imports.platform.standalone.quick_entry_fallback` imports remain valid.
+
+---
+
 ## Shared logic vs two surfaces
 
 - **Timer logic** (running timers, alarms, parsing, storage helpers) lives under **`taskTimer@CryptoD/`**—used by **both** GTK and Shell.
