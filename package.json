@@ -9,6 +9,7 @@
   "scripts": {
     "build": "node -e \"console.log('No web build in this repo (GJS desktop app); build is a noop.')\"",
     "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs"
   },
   "devDependencies": {
@@ -16,6 +17,7 @@
     "@playwright/test": "^1.58.2",
     "eslint": "^8.57.0",
     "msw": "^2.12.14",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "typescript": "^6.0.3"
   }
 }
