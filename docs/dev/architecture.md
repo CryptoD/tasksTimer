@@ -234,6 +234,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | React `useApi` hook / `fetchWithAuth` HTTP client extraction | **N/A** — no HTTP API client layer exists in this repo. |
 | Domain hooks (`useTasks`, `useProjects`, …) | **N/A** — no React app/hooks layer exists in this repo. |
 | Shrink `App.js` / extract `AppShell` | **N/A** — no React `App.js` exists in this repo; entry points are `main.js` (GTK) and `taskTimer@CryptoD/extension.js` (GNOME Shell). |
+| TypeScript conversion of `TaskForm` / `TaskList` / auth context | **N/A** — no React components/auth context exist; there are no `.jsx`/`.tsx` files in this repository. |
 | Duplicate `ci.yml` + `tests.yml` for Go | **N/A** — workflows above are authoritative. |
 | `golangci-lint` / `staticcheck` | **N/A** — no Go code. |
 | **OpenAPI** in `docs/` | **N/A** — no HTTP API to document. |
