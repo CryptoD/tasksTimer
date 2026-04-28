@@ -135,6 +135,13 @@ We migrated one small, self-contained vertical slice to prove the layout without
 - `src/features/quick-entry-fallback/quick_entry_fallback.js`
 - Kept a compatibility shim at `platform/standalone/quick_entry_fallback.js` so existing `imports.platform.standalone.quick_entry_fallback` imports remain valid.
 
+### Phase 2 (Kanban / calendar / reports)
+
+These features do **not exist** in this repository (there is no Kanban board, calendar, or reports UI). Accordingly:
+
+- There is no `components/` tree to police; feature UI lives under `platform/standalone/` (GTK) and `taskTimer@CryptoD/` (GNOME Shell extension).
+- If a future web UI adds Kanban/calendar/reports, they should live under `src/features/` and any `components/` directory (if introduced) should be reserved for **shared UI primitives only**.
+
 ---
 
 ## Shared logic vs two surfaces
