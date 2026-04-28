@@ -14,6 +14,27 @@ For code layout and what is **not** in this repo (Go `main.go`, `handlers_test.g
 
 Release automation (tags, changelog notes, pre-releases) is described in [CHANGELOG.md](../../CHANGELOG.md) and [.github/workflows/release.yml](../../.github/workflows/release.yml).
 
+## Release workflow artifacts (tag push)
+
+On a version tag push, **[.github/workflows/release.yml](../../.github/workflows/release.yml)** builds and publishes the following **GitHub Release** assets:
+
+- **AppImage (Linux “binary”)**: `packaging/appimage/dist/*.AppImage`
+- **Checksums**: `packaging/appimage/dist/SHA256SUMS` (generated from the produced AppImage)
+
+### Frontend `dist/` and Go binaries (checklist note)
+
+This repository currently has **no Go module** and **no frontend build output directory** (there is no `go build` binary and no `frontend/dist/`).
+
+If a future version of this repo adds a Go CLI and/or a built web frontend, the release workflow should additionally attach:
+
+- A **Linux binary** built by `go build`
+- Any frontend **`dist/`** bundle(s)
+- Corresponding **SHA256** sums for each artifact
+
+### SBOM
+
+SBOM generation and attaching it to releases is intentionally deferred to **task 65**; once implemented, link the SBOM file(s) from the Release assets section above.
+
 ## Docker (`Dockerfile.api`)
 
 The multi-stage **[Dockerfile.api](../../Dockerfile.api)** is **not** a REST API container. It provides:
