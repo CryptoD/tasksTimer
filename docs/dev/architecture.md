@@ -232,6 +232,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | `frontend/src/...`, React tests | **N/A** — no React app. |
 | `frontend/jest.config.cjs` / coverage gates | **N/A** — no Jest frontend. |
 | React `useApi` hook / `fetchWithAuth` HTTP client extraction | **N/A** — no HTTP API client layer exists in this repo. |
+| Domain hooks (`useTasks`, `useProjects`, …) | **N/A** — no React app/hooks layer exists in this repo. |
 | Duplicate `ci.yml` + `tests.yml` for Go | **N/A** — workflows above are authoritative. |
 | `golangci-lint` / `staticcheck` | **N/A** — no Go code. |
 | **OpenAPI** in `docs/` | **N/A** — no HTTP API to document. |
