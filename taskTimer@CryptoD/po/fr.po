@@ -550,6 +550,46 @@ msgstr "minutes"
 msgid "hours"
 msgstr "heures"
 
+#: ../../src/api/api_error_messages.js:23
+msgid "Can't reach the service. Check your connection and try again."
+msgstr "Impossible d'atteindre le service. Vérifiez votre connexion et réessayez."
+
+#: ../../src/api/api_error_messages.js:24
+msgid "Something went wrong. Try again."
+msgstr "Une erreur s'est produite. Réessayez."
+
+#: ../../src/api/api_error_messages.js:28
+msgid "Sign in again; your session is no longer valid."
+msgstr "Reconnectez-vous ; votre session n'est plus valide."
+
+#: ../../src/api/api_error_messages.js:29
+msgid "You don't have permission to do that."
+msgstr "Vous n'avez pas la permission d'effectuer cette action."
+
+#: ../../src/api/api_error_messages.js:30
+msgid "That item could not be found."
+msgstr "Cet élément est introuvable."
+
+#: ../../src/api/api_error_messages.js:31
+msgid "That action conflicts with existing data."
+msgstr "Cette action entre en conflit avec les données existantes."
+
+#: ../../src/api/api_error_messages.js:32
+msgid "Some inputs are invalid. Check the fields and try again."
+msgstr "Certaines données sont invalides. Vérifiez les champs et réessayez."
+
+#: ../../src/api/api_error_messages.js:33
+msgid "Too many requests. Wait a moment and try again."
+msgstr "Trop de requêtes. Patientez puis réessayez."
+
+#: ../../src/api/api_error_messages.js:34
+msgid "The service is temporarily unavailable. Try again later."
+msgstr "Le service est momentanément indisponible. Réessayez plus tard."
+
+#: ../../src/api/api_error_messages.js:35
+msgid "The request timed out. Try again later."
+msgstr "La requête a expiré. Réessayez plus tard."
+
 #~ msgid "Timer types"
 #~ msgstr "Types de minuterie"
 

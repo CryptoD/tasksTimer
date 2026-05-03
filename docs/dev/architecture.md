@@ -244,3 +244,5 @@ Automation templates sometimes mention patterns that **do not apply** here:
 ## Further reading (optional)
 
 Commands, dependencies, and release steps: **[BUILD.md](../../BUILD.md)**. Packaging and Docker: **[deployment.md](deployment.md)**. Long checklist mapping: **[checklist-mapping.md](checklist-mapping.md)**. AI/LLM path guardrails: **[llm-context.md](llm-context.md)**.
+
+Optional HTTP-ish contract notes live under **`docs/api/`** — for example **[`errors.md`](../api/errors.md)** (machine `error_code` + status → gettext; no raw server `details` in normal UI — see **[`src/api/api_error_messages.js`](../../src/api/api_error_messages.js)**).

@@ -524,3 +524,43 @@ msgstr ""
 #: timers.js:962
 msgid "Timer completed on time at"
 msgstr ""
+
+#: ../../src/api/api_error_messages.js:23
+msgid "Can't reach the service. Check your connection and try again."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:24
+msgid "Something went wrong. Try again."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:28
+msgid "Sign in again; your session is no longer valid."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:29
+msgid "You don't have permission to do that."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:30
+msgid "That item could not be found."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:31
+msgid "That action conflicts with existing data."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:32
+msgid "Some inputs are invalid. Check the fields and try again."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:33
+msgid "Too many requests. Wait a moment and try again."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:34
+msgid "The service is temporarily unavailable. Try again later."
+msgstr ""
+
+#: ../../src/api/api_error_messages.js:35
+msgid "The request timed out. Try again later."
+msgstr ""
