@@ -1,6 +1,9 @@
 /**
  * ESLint for GJS sources (SpiderMonkey + GObject introspection).
  * Complements `make lint` (gettext + shellcheck). CI: `npm run lint`.
+ *
+ * React / JSX overrides: any `eslint-disable` for hooks or jsx-a11y MUST cite a ticket
+ * (for example `#123` or `KT-9`) per project policy — do not mute rules without justification.
  */
 module.exports = {
     env: {
@@ -42,4 +45,37 @@ module.exports = {
             },
         ],
     },
+    overrides: [
+        {
+            files: ['**/*.{jsx,tsx}'],
+            env: {
+                browser: true,
+                es2021: true,
+            },
+            parser: '@typescript-eslint/parser',
+            parserOptions: {
+                ecmaVersion: 2022,
+                ecmaFeatures: { jsx: true },
+                sourceType: 'module',
+            },
+            plugins: ['react', 'react-hooks', 'jsx-a11y'],
+            extends: [
+                'eslint:recommended',
+                'plugin:react/recommended',
+                'plugin:react/jsx-runtime',
+                'plugin:jsx-a11y/recommended',
+            ],
+            settings: {
+                react: {
+                    version: 'detect',
+                },
+            },
+            rules: {
+                'react/prop-types': 'off',
+                'react-hooks/rules-of-hooks': 'error',
+                'react-hooks/exhaustive-deps': 'error',
+                'no-unused-vars': 'off',
+            },
+        },
+    ],
 };
