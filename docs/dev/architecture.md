@@ -246,3 +246,5 @@ Automation templates sometimes mention patterns that **do not apply** here:
 Commands, dependencies, and release steps: **[BUILD.md](../../BUILD.md)**. Packaging and Docker: **[deployment.md](deployment.md)**. Long checklist mapping: **[checklist-mapping.md](checklist-mapping.md)**. AI/LLM path guardrails: **[llm-context.md](llm-context.md)**.
 
 Optional HTTP-ish contract notes live under **`docs/api/`** — for example **[`errors.md`](../api/errors.md)** (machine `error_code` + status → gettext; no raw server `details` in normal UI — see **[`src/api/api_error_messages.js`](../../src/api/api_error_messages.js)**).
+
+Large list / paging expectations for timer UI surfaces (**Task 48**): **[large-lists-audit.md](large-lists-audit.md)** — copy-paste PR checklist + rationale (API paging N/A today; GTK/Shell widgets materialise local lists behind scroll/stack affordances).
