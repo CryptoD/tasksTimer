@@ -1,5 +1,9 @@
 # TaskTimer Extension Dependency Graph
 
+> **Note (Task 49):** This markdown file is the **canonical static** extension dependency map.
+> There is **no** shipped `DependencyGraph.js` or in-app “dependency graph” window; the full app
+> mental model (GTK standalone + shared core) lives in **`docs/dev/architecture.md`**.
+
 ## Overview
 
 This document maps all module dependencies and GNOME Shell-specific API usage in the taskTimer extension. This is critical for migration to future GNOME Shell versions (45+) where the extension system changed significantly.

@@ -238,6 +238,24 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | Duplicate `ci.yml` + `tests.yml` for Go | **N/A** — workflows above are authoritative. |
 | `golangci-lint` / `staticcheck` | **N/A** — no Go code. |
 | **OpenAPI** in `docs/` | **N/A** — no HTTP API to document. |
+| Interactive in-app **dependency graph** (`DependencyGraph.js`, graph menu) | **Not shipped** — there is **no** `DependencyGraph.js`, **no** GTK/Shell menu entry, and **no** README promise of an in-app graph. Maintainers use **static** docs below. |
+
+---
+
+## Dependency graph — product decision (**Task 49**)
+
+**Decision:** We do **not** ship an interactive, in-process module dependency viewer (no `DependencyGraph.js`, no Help/Developers graph window).
+
+**Minimal “view” (documentation only):**
+
+| Doc | What it covers |
+|-----|----------------|
+| [`doc/DEPENDENCY_GRAPH.md`](../../doc/DEPENDENCY_GRAPH.md) | GNOME Shell extension import / file dependency tree (migration notes) |
+| **[This file](architecture.md)** (diagrams above) | Actual runtime architecture (standalone vs extension, persistence) |
+
+**Verification:** Grep for dependency-graph menu strings and `DependencyGraph` yields **no UI entry points**; `main.js` application actions are timer/prefs/about only.
+
+If we ever add an in-app graph, it should replace or link from these docs and must not leave **dead** menu actions.
 
 ---
 
