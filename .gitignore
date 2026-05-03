@@ -1,5 +1,7 @@
 *~
 node_modules/
+# Webpack tooling-only bundle (see webpack.config.cjs / npm run build:bundle-budget)
+dist/webpack-budget/
 /test-results/
 /playwright-report/
 /blob-report/

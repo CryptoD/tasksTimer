@@ -2,7 +2,7 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race e2e build
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race e2e build bundle-budget
 
 all: pack
 
@@ -87,3 +87,6 @@ build:
 	else \
 		echo "build: no go.mod; skipping go build"; \
 	fi
+
+bundle-budget:
+	cd "$(ROOT)" && npm run build:bundle-budget

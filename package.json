@@ -8,14 +8,19 @@
   },
   "scripts": {
     "build": "node -e \"console.log('No web build in this repo (GJS desktop app); build is a noop.')\"",
+    "build:bundle-budget": "webpack --config webpack.config.cjs",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.3",
+    "@babel/preset-react": "^7.28.5",
     "@msw/playwright": "^0.6.6",
     "@playwright/test": "^1.58.2",
     "@typescript-eslint/parser": "^8.59.1",
+    "babel-loader": "^10.1.1",
     "eslint": "^8.57.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
@@ -23,6 +28,8 @@
     "msw": "^2.12.14",
     "playwright": "^1.58.2",
     "react": "^19.2.5",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "webpack": "^5.106.2",
+    "webpack-cli": "^7.0.2"
   }
 }

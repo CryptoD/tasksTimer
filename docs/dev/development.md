@@ -29,6 +29,31 @@ Policy:
 - **Race tests (Go only)**: `make test-race`
 - **Browser E2E shell**: `make e2e`
 - **Build (Go only)**: `make build`
+- **Webpack bundle budget (tooling)** — **`make bundle-budget`** (`npm run build:bundle-budget`): production bundle + performance budget enforced (see section below).
+
+## Webpack bundle budget
+
+The shipped taskTimer UX is **GJS/GTK**, not an in-browser SPA. This repo nevertheless keeps a **small webpack tooling build** (`webpack.config.cjs`, entry `tooling/webpack-budget-entry.jsx`) so we can enforce a **maximum initial / main chunk size** with `performance.hints: 'error'` (`npm run build:bundle-budget` / **`make bundle-budget`**).
+
+### Current numbers
+
+As of this writing:
+
+| Output | Typical size |
+|--------|----------------|
+| **`dist/webpack-budget/main.js`** | **≈ 2.4 KiB** uncompressed (~**2446 B**; webpack `--mode production`, tree‑shaken React subset) |
+
+**CI limit (both entrypoint and single asset):** **16 KiB** uncompressed each (`webpack.config.cjs`). The build **fails** if the emitted `main.js` or its entrypoint total exceeds **16 384 B**.
+
+Webpack reports sizes as **transfer-style uncompressed** totals for budget checks—not gzip BROTLI—but that matches webpack’s documented `performance` behavior.
+
+### How to relax the budget
+
+1. Bump **`BUDGET_MAX_ENTRYPOINT_BYTES`** / **`BUDGET_MAX_ASSET_BYTES`** in **`webpack.config.cjs`** together (usually set them equal unless you intentionally split assets/chunks later).
+2. Update the **Current numbers / CI limit** table in this doc if the negotiated limit changes.
+3. Prefer a short note and **ticket ID** (`#NNN`, `KT-…`) on the committing PR explaining why growth is warranted (heavy dependencies, deliberate split-bundle change, …).
+
+Lowering the budgets is acceptable if tooling output shrinks—as long as `npm ci` CI keeps passing.
 
 ## Go quality gates (only when `go.mod` exists)
 
