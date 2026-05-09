@@ -131,3 +131,15 @@ Some checklists require MSW + Jest unit tests ensuring an HTTP client (`useApi`)
   - refresh also `401` (or repeated `401`s) → **stop** and surface a user-facing auth error
 - Run those tests in CI and treat regressions as failures (the “infinite loop” case must be caught).
 
+### Task form tests (validation + API errors) — Task 53
+
+Some checklists require component tests for a web “TaskForm” (create/edit) that assert:
+
+- client-side validation errors render visibly
+- server/API failures render **mapped** user-visible messages (Task 45) instead of raw payload
+- tests are stable (no timer flakes)
+
+**Status in this repository:** **N/A today.** There is no React “TaskForm” component tree, no tasks/projects HTTP API, and no component test runner (Jest/RTL/Cypress component tests). The product UI is GTK (standalone) and GNOME Shell menus, backed by local settings/timers.
+
+**If a future API-backed form UI is added:** use `src/api/api_error_messages.js` (`formatApiErrorForUser`) for all toast/inline error rendering, and add deterministic unit/component tests that assert mapped gettext strings (and never `details`) are shown.
+
