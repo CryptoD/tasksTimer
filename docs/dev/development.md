@@ -163,3 +163,25 @@ Some checklists require a Kanban board with drag-and-drop (DnD) status updates w
 
 **If Kanban is introduced later:** ensure all optimistic updates have a failure strategy (rollback or mapped toast using Task 45’s `formatApiErrorForUser`), and add deterministic tests for the failure path.
 
+## Visual regression policy — Task 58
+
+**Decision:** **None** (no Percy, no Chromatic) for this repository today.
+
+Rationale:
+
+- The shipped UX is **GTK (standalone)** and **GNOME Shell** (extension), not a web UI rendered in a browser/Storybook.
+- Percy/Chromatic-style snapshot tooling is optimized for DOM/CSS component libraries; it would not reflect the real GTK/Shell surfaces without a separate screenshot harness and stable headless desktop environment.
+
+What we do instead:
+
+- **Manual screenshots** for docs live under `doc/screenshots/` (update only when a UI change is intentional and the screenshot would otherwise mislead users).
+- **Playwright browser shell** (`npm run test:e2e`) produces an HTML report in CI; it is uploaded as an artifact on failures. This is a **tooling harness**, not the GTK UI.
+
+When snapshots update (team policy):
+
+- **Do not** update screenshots in drive-by refactors. Update them in the same PR only when user-facing visuals changed intentionally.
+- If/when a real visual regression tool is introduced later, document:
+  - who can approve snapshot updates,
+  - how to review diffs,
+  - and when baseline updates are allowed (e.g. release branches only).
+
