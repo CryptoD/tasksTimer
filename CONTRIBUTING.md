@@ -57,6 +57,10 @@ make test
 
 (`npm run test:e2e` is optional locally; it runs Playwright + MSW — see `e2e/README.md`. It does not test the GTK application.)
 
+For the full **PR vs nightly** testing policy and additional commands, see:
+
+- **[`docs/dev/development.md`](docs/dev/development.md)** → “Frontend test pyramid (tooling-only browser shell)”
+
 CI uses `xvfb-run` and `dbus-run-session` for headless runs; locally, plain `make test` is usually enough. For a fuller local release-style pass, see `make test12` in [BUILD.md](BUILD.md).
 
 ## Pull requests

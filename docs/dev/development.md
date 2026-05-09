@@ -32,6 +32,46 @@ Policy:
 - **Build (Go only)**: `make build`
 - **Webpack bundle budget (tooling)** — **`make bundle-budget`** (`npm run build:bundle-budget`): production bundle + performance budget enforced (see section below).
 
+## Frontend test pyramid (tooling-only browser shell) — Task 59
+
+taskTimer is a **GJS/GTK** app, not a web frontend. The only “frontend-style” tests here are the **browser shell** under `e2e/` (Playwright + MSW) used as a checklist-ready harness.
+
+### What runs on PRs (required)
+
+These run on every PR via the canonical workflow (`.github/workflows/ci.yml`):
+
+- **ESLint**: `npm run lint`
+- **Webpack budget (tooling)**: `npm run build:bundle-budget`
+- **Playwright browser shell (mocked)**: `npm run test:e2e` (MSW on)
+- **GJS lint**: `make lint`
+- **GJS tests**: `make test`
+
+### What runs nightly/manual (optional)
+
+- **Playwright “real backend”**: `.github/workflows/e2e-real-backend.yml`
+  - Runs with `REACT_APP_USE_MOCKS=false`
+  - Optional input `base_url` passed as `E2E_BASE_URL`
+  - Not required on every PR (can be slow/flaky depending on external services)
+
+### Contributor commands
+
+From repo root:
+
+```bash
+npm ci
+npm run lint
+npm run build:bundle-budget
+npm run test:e2e
+make lint
+make test
+```
+
+To run the optional “real backend” smoke locally (only if you have a reachable service that exposes `/ping`):
+
+```bash
+REACT_APP_USE_MOCKS=false E2E_BASE_URL="https://example.com" npm run test:e2e
+```
+
 ## Webpack bundle budget
 
 The shipped taskTimer UX is **GJS/GTK**, not an in-browser SPA. This repo nevertheless keeps a **small webpack tooling build** (`webpack.config.cjs`, entry `tooling/webpack-budget-entry.jsx`) so we can enforce a **maximum initial / main chunk size** with `performance.hints: 'error'` (`npm run build:bundle-budget` / **`make bundle-budget`**).
