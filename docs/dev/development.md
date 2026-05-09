@@ -14,7 +14,7 @@ For repo structure and how to run lint/tests, see:
 Policy:
 
 - **`ci.yml`** is the **single primary** workflow for PR validation (lint + GJS tests; plus optional Go quality reporting when `go.mod` exists).
-- **`e2e.yml`** is **not** part of the primary PR gate; it is **path-filtered** to run only when `e2e/**` or Node tooling inputs change.
+- Playwright **browser shell** (`npm run test:e2e`) runs as part of **`ci.yml`** so it is a **required** PR check on `main`. (This is not the GTK UI; it’s a checklist-ready browser harness under `e2e/`.)
 - **`release.yml`** runs on **version tags only**.
 
 ### CI job order (fail fast)

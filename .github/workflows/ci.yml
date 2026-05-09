@@ -40,6 +40,24 @@ jobs:
       - name: Webpack bundle budget (tooling-only)
         run: npm run build:bundle-budget
 
+      - name: Install Playwright browsers (tooling-only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright browser shell (npm run test:e2e)
+        run: npm run test:e2e
+
+      # On failure: download the uploaded HTML report from the Actions run Summary → Artifacts.
+      - name: Upload Playwright report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
       # Fail fast on Go quality gates (only when this repo contains a Go module).
       - uses: actions/setup-go@v5
         if: hashFiles('go.mod') != ''
