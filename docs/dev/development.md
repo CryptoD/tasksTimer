@@ -7,6 +7,17 @@ For repo structure and how to run lint/tests, see:
 - [architecture.md](architecture.md)
 - [deployment.md](deployment.md)
 
+## Data access (no `db.go` here) — Task 60
+
+Some backend-oriented guides say “prefer db methods in `db.go` only” and route all reads/writes through a SQL repository layer.
+
+**In this repository:** there is **no** SQL database and **no** `db.go`. Persistence is:
+
+- **Standalone:** JSON under XDG (`~/.config/tasktimer/`, `~/.local/share/tasktimer/`) via shared storage/settings modules (see `taskTimer@CryptoD/storage.js`, `config.js`, and platform settings wrappers).
+- **Extension:** **GSettings** via the schema under `taskTimer@CryptoD/schemas/`.
+
+If you’re following a checklist that references `db.go` / repositories, treat it as **another repo** / **N/A** for taskTimer (see [architecture.md](architecture.md) and [llm-context.md](llm-context.md)).
+
 ## CI/CD: canonical workflow and policy
 
 **Canonical PR workflow:** `.github/workflows/ci.yml`
