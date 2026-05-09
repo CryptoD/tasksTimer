@@ -103,3 +103,17 @@ If Go code and coverage reporting are added later, document any exclusions exact
 - **Reason**: why excluding is correct (e.g. platform-specific code paths, hard-to-stimulate error branch, defensive crash guard)
 - **Owner / follow-up** (optional): when/what would allow removing the exclusion
 
+## Frontend testing (Jest coverage) — Task 51
+
+Some checklists require Jest coverage thresholds (lines/branches) in CI, failing on coverage drops.
+
+**Status in this repository:** **N/A today.** This repo is a **GJS/GTK desktop app** and does not contain a Jest-driven web frontend (`jest.config.*`, `__tests__/`, React app, etc.). `npm` tooling is used for **ESLint**, Playwright browser-shell E2E, and other contributor tooling—not for a shipped SPA test suite.
+
+**Current CI quality gates (what actually fails builds):**
+
+- `npm run lint` (ESLint for repo JS)
+- `make lint` (gettext + shellcheck)
+- `make test` (GJS tests under `tests/`)
+
+**Policy (if Jest is introduced later):** Add `jest.config.*` with `collectCoverage: true` under `CI=true` and set **low initial** `coverageThreshold` for `branches`/`lines`, then raise over time. Coverage drops must fail CI.
+
