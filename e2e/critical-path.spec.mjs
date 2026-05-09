@@ -2,6 +2,8 @@ import { http, HttpResponse } from 'msw';
 import { test, expect } from './playwright.setup.mjs';
 
 test('Critical path (browser shell): login + tasks CRUD + Kanban move (mocked)', async ({ page, network }) => {
+    test.skip(!network, 'Mocks disabled (REACT_APP_USE_MOCKS=false); this spec only validates MSW critical path.');
+
     // In-memory server state for the MSW handlers (lives in the test process).
     const state = {
         loginCalls: 0,

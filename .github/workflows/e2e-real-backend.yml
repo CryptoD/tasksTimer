@@ -1,0 +1,62 @@
+# Optional Playwright run against a real backend (nightly/manual).
+# Not required on every PR: may be slow/flaky depending on external services.
+name: E2E (real backend)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Base URL for real backend, e.g. https://api.example.com"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 3 * * *" # daily 03:00 UTC
+
+concurrency:
+  group: e2e-real-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write # upload-artifact
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright (real backend; mocks disabled)
+        env:
+          # Some checklists use this name; Playwright shell honors it.
+          REACT_APP_USE_MOCKS: "false"
+          # Passed to e2e/real-backend.spec.mjs; optional.
+          E2E_BASE_URL: ${{ inputs.base_url }}
+        run: npm run test:e2e
+
+      # Failure triage:
+      # - Check the Playwright HTML report artifact for screenshots/trace.
+      # - Verify the real backend base URL is reachable and returns /ping.
+      # - If failures are transient, rerun workflow_dispatch before filing issues.
+      - name: Upload Playwright report (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-real-backend
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+

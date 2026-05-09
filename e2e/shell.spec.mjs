@@ -2,6 +2,8 @@ import { http, HttpResponse } from 'msw';
 import { test, expect } from './playwright.setup.mjs';
 
 test('MSW intercepts fetch via @msw/playwright', async ({ page, network }) => {
+    test.skip(!network, 'Mocks disabled (REACT_APP_USE_MOCKS=false); this spec only validates MSW wiring.');
+
     network.use(
         http.get('http://localhost/mock/ping', () =>
             HttpResponse.json({ pong: 1 }),
