@@ -117,3 +117,17 @@ Some checklists require Jest coverage thresholds (lines/branches) in CI, failing
 
 **Policy (if Jest is introduced later):** Add `jest.config.*` with `collectCoverage: true` under `CI=true` and set **low initial** `coverageThreshold` for `branches`/`lines`, then raise over time. Coverage drops must fail CI.
 
+### Frontend testing (`useApi` refresh behavior) — Task 52
+
+Some checklists require MSW + Jest unit tests ensuring an HTTP client (`useApi`) performs **only one** token refresh on `401` and does **not** loop indefinitely on repeated `401`s (often with `localStorage` token mocks).
+
+**Status in this repository:** **N/A today.** There is **no** `useApi` hook, no shipped HTTP client, and no browser `localStorage` runtime in the GTK/Shell app. The only MSW usage here is the Playwright **browser shell** harness in `e2e/` (proves MSW intercepts `fetch()` in CI), not a React client test suite.
+
+**Policy (if an HTTP client is introduced later):**
+
+- Implement the mapping/behavior in a single client module (avoid retry loops).
+- Add **unit tests** that simulate:
+  - `401` → **one** refresh attempt → retry original request once
+  - refresh also `401` (or repeated `401`s) → **stop** and surface a user-facing auth error
+- Run those tests in CI and treat regressions as failures (the “infinite loop” case must be caught).
+
