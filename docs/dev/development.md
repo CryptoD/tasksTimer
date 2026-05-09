@@ -154,3 +154,11 @@ Some checklists require unit/component tests for a React app’s `AuthContext` a
 
 **What we test instead:** behavior is covered by **GJS tests** (`make test`) and manual UX scenarios (not React contexts). If a future web UI introduces contexts, add dedicated tests for auth state transitions and theme persistence and wire them into CI.
 
+### Kanban failure path test (DnD rollback / toast) — Task 55
+
+Some checklists require a Kanban board with drag-and-drop (DnD) status updates where API failures either roll UI state back or show a toast, with automated test coverage.
+
+**Status in this repository:** **N/A today.** There is **no Kanban board** UI and no task status API. The README does not promise Kanban features; the product surfaces are countdown timer lists (GTK + Shell).
+
+**If Kanban is introduced later:** ensure all optimistic updates have a failure strategy (rollback or mapped toast using Task 45’s `formatApiErrorForUser`), and add deterministic tests for the failure path.
+
