@@ -143,3 +143,14 @@ Some checklists require component tests for a web “TaskForm” (create/edit) t
 
 **If a future API-backed form UI is added:** use `src/api/api_error_messages.js` (`formatApiErrorForUser`) for all toast/inline error rendering, and add deterministic unit/component tests that assert mapped gettext strings (and never `details`) are shown.
 
+### Context tests (Auth + Theme) — Task 54
+
+Some checklists require unit/component tests for a React app’s `AuthContext` and `ThemeContext` (e.g. login/logout clears auth state; theme choice persists).
+
+**Status in this repository:** **N/A today.** There is no React context layer (`AuthContext`, `ThemeContext`, `DataManager` render-prop tests, etc.). The shipped UI is GTK/Shell, and settings persistence is implemented via:
+
+- Standalone: JSON config under `~/.config/tasktimer/` (theme + display prefs)
+- Extension: GSettings schema under `taskTimer@CryptoD/schemas/`
+
+**What we test instead:** behavior is covered by **GJS tests** (`make test`) and manual UX scenarios (not React contexts). If a future web UI introduces contexts, add dedicated tests for auth state transitions and theme persistence and wire them into CI.
+
