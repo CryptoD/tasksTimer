@@ -236,3 +236,41 @@ When snapshots update (team policy):
   - how to review diffs,
   - and when baseline updates are allowed (e.g. release branches only).
 
+## Security and supply chain
+
+### Dependency updates (Dependabot) — Task 61
+
+**Tool:** [Dependabot](https://docs.github.com/en/code-security/dependabot) (native GitHub; config in **`.github/dependabot.yml`**).
+
+**Enabled on:** default branch **`main`** (Dependabot reads the config from the default branch).
+
+**Ecosystems:**
+
+| Ecosystem | Directory | When it runs |
+|-----------|-----------|--------------|
+| **npm** | `/` (`package.json`, `package-lock.json`) | Always (dev tooling only; no npm runtime deps for the GTK app) |
+| **gomod** | `/` (`go.mod`) | Once a Go module is added at the repo root |
+
+**Grouping strategy (npm):** one PR per group when multiple packages in the group have updates in the same week:
+
+| Group | Packages (patterns) | Rationale |
+|-------|---------------------|-----------|
+| `playwright-msw` | `playwright`, `@playwright/*`, `msw`, `@msw/*` | Browser E2E shell + MSW move together |
+| `eslint-typescript` | `eslint*`, `@typescript-eslint/*`, `typescript` | Lint/typecheck toolchain |
+| `webpack-babel` | `webpack*`, `babel-loader`, `@babel/*` | Webpack budget tooling build |
+| `react-eslint-plugins` | `react`, `eslint-plugin-react*`, `eslint-plugin-jsx-a11y` | JSX lint fixture + React plugins |
+
+Ungrouped npm updates (if any) still get individual PRs.
+
+**Grouping strategy (Go):** when `go.mod` exists, **minor + patch** updates are grouped into `go-minor-patch`; **major** updates stay separate PRs for explicit review.
+
+**Contributor workflow:**
+
+1. Dependabot opens PRs against `main`.
+2. CI (`ci.yml`) must pass before merge.
+3. For grouped PRs, review the combined changelog; run locally: `npm ci`, `npm run lint`, `npm run test:e2e`, `make lint`, `make test` (and Go checks if applicable).
+
+**Schedule:** weekly (Mondays). Adjust in `.github/dependabot.yml` if noise is too high.
+
+**Renovate:** not used; Dependabot is sufficient for this GitHub-hosted repo. Switching tools would require a deliberate migration (config + disable Dependabot).
+

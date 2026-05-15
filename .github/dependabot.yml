@@ -1,0 +1,46 @@
+# Dependabot version updates (default branch: main).
+# Grouping policy: docs/dev/development.md → "Dependency updates (Dependabot)".
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      playwright-msw:
+        patterns:
+          - playwright
+          - '@playwright/*'
+          - msw
+          - '@msw/*'
+      eslint-typescript:
+        patterns:
+          - eslint*
+          - '@typescript-eslint/*'
+          - typescript
+      webpack-babel:
+        patterns:
+          - webpack*
+          - babel-loader
+          - '@babel/*'
+      react-eslint-plugins:
+        patterns:
+          - react
+          - eslint-plugin-react*
+          - eslint-plugin-jsx-a11y
+
+  # Active once go.mod exists at repo root.
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      go-minor-patch:
+        update-types:
+          - minor
+          - patch
