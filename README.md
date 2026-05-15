@@ -152,7 +152,7 @@ This repository does **not** implement an HTTP API. The canonical pagination con
 
 ## License
 
-See [LICENSE](LICENSE).
+This project is licensed under the **GNU General Public License v3.0 or later** ([`GPL-3.0-or-later`](LICENSE); full text in [LICENSE](LICENSE)).
 
 ## Contributing
 

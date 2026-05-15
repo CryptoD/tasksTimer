@@ -238,6 +238,12 @@ When snapshots update (team policy):
 
 ## Security and supply chain
 
+### Root `LICENSE` (SPDX) — Task 62
+
+- **File:** [`LICENSE`](../../LICENSE) at the repository root (full GPL-3.0 text).
+- **SPDX ID:** `GPL-3.0-or-later` (see the first line of `LICENSE` and [README.md](../../README.md)).
+- **Intent:** matches GNOME extension / AppStream metadata (`project_license` in `com.github.cryptod.tasktimer.appdata.xml`) and contributor terms in [CONTRIBUTING.md](../../CONTRIBUTING.md).
+
 ### Dependency updates (Dependabot) — Task 61
 
 **Tool:** [Dependabot](https://docs.github.com/en/code-security/dependabot) (native GitHub; config in **`.github/dependabot.yml`**).
