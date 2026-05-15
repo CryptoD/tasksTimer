@@ -1,7 +1,11 @@
 *~
 node_modules/
+.env
+.env.local
+.env.*.local
 # Webpack tooling-only bundle (see webpack.config.cjs / npm run build:bundle-budget)
 dist/webpack-budget/
+dist/sbom/
 /test-results/
 /playwright-report/
 /blob-report/

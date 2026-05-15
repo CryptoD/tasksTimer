@@ -11,12 +11,14 @@
     "build:bundle-budget": "webpack --config webpack.config.cjs",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:e2e": "playwright test --config=e2e/playwright.config.mjs"
+    "test:e2e": "playwright test --config=e2e/playwright.config.mjs",
+    "sbom": "bash bin/generate-sbom.sh"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.3",
     "@babel/preset-react": "^7.28.5",
+    "@cyclonedx/cyclonedx-npm": "^2.1.0",
     "@msw/playwright": "^0.6.6",
     "@playwright/test": "^1.58.2",
     "@typescript-eslint/parser": "^8.59.1",

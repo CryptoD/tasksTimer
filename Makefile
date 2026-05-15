@@ -2,7 +2,7 @@
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race e2e build bundle-budget
+.PHONY: all mo pack clean install uninstall appimage test lint sync-version sync-appdir check-deps check-deps-appimage test12 test-race e2e build bundle-budget sbom sbom
 
 all: pack
 
@@ -90,3 +90,6 @@ build:
 
 bundle-budget:
 	cd "$(ROOT)" && npm run build:bundle-budget
+
+sbom:
+	cd "$(ROOT)" && npm run sbom

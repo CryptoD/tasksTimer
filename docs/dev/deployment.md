@@ -19,7 +19,8 @@ Release automation (tags, changelog notes, pre-releases) is described in [CHANGE
 On a version tag push, **[.github/workflows/release.yml](../../.github/workflows/release.yml)** builds and publishes the following **GitHub Release** assets:
 
 - **AppImage (Linux “binary”)**: `packaging/appimage/dist/*.AppImage`
-- **Checksums**: `packaging/appimage/dist/SHA256SUMS` (generated from the produced AppImage)
+- **Checksums**: `packaging/appimage/dist/SHA256SUMS` (SHA-256 of the AppImage and SBOM JSON files)
+- **SBOM (npm dev tooling)**: `dist/sbom/tasktimer-cyclonedx.json` (CycloneDX), `dist/sbom/tasktimer-spdx.json` (SPDX)
 
 ### Frontend `dist/` and Go binaries (checklist note)
 
@@ -31,9 +32,25 @@ If a future version of this repo adds a Go CLI and/or a built web frontend, the 
 - Any frontend **`dist/`** bundle(s)
 - Corresponding **SHA256** sums for each artifact
 
-### SBOM
+### SBOM (Task 65)
 
-SBOM generation and attaching it to releases is intentionally deferred to **task 65**; once implemented, link the SBOM file(s) from the Release assets section above.
+SBOMs describe **npm dev tooling** only (`package-lock.json` — ESLint, Playwright, webpack budget, etc.). The shipped **GJS/GTK app** has no npm runtime dependencies. If a **`go.mod`** is added later, extend [`bin/generate-sbom.sh`](../../bin/generate-sbom.sh) (e.g. `go version -m` or Syft) and attach additional SBOM assets on release.
+
+**Generate locally (same as release workflow):**
+
+```bash
+npm ci
+npm run sbom
+```
+
+**Outputs:**
+
+| File | Format |
+|------|--------|
+| `dist/sbom/tasktimer-cyclonedx.json` | CycloneDX (JSON) via `@cyclonedx/cyclonedx-npm` |
+| `dist/sbom/tasktimer-spdx.json` | SPDX via `npx npm@10.9.2 sbom` (npm 10 `sbom` subcommand) |
+
+**Release:** [`.github/workflows/release.yml`](../../.github/workflows/release.yml) runs `npm run sbom` before uploading GitHub Release assets (see **Release workflow artifacts** above).
 
 ## Docker (`Dockerfile.api`)
 

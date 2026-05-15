@@ -68,10 +68,15 @@ jobs:
       - name: List AppImage artifacts
         run: ls -la packaging/appimage/dist/
 
+      - name: Generate SBOMs (CycloneDX + SPDX)
+        run: npm run sbom
+
       - name: Generate checksums
         run: |
           cd packaging/appimage/dist
           sha256sum *.AppImage | tee SHA256SUMS
+          cd "$GITHUB_WORKSPACE/dist/sbom"
+          sha256sum *.json >> "$GITHUB_WORKSPACE/packaging/appimage/dist/SHA256SUMS"
 
       - name: Prepare release notes from CHANGELOG.md
         run: |
@@ -108,6 +113,8 @@ jobs:
           files: |
             packaging/appimage/dist/*.AppImage
             packaging/appimage/dist/SHA256SUMS
+            dist/sbom/tasktimer-cyclonedx.json
+            dist/sbom/tasktimer-spdx.json
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

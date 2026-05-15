@@ -238,6 +238,66 @@ When snapshots update (team policy):
 
 ## Security and supply chain
 
+### Secret scanning hygiene — Task 63
+
+**Audit (tracked files):** no live API keys, private keys (`BEGIN … PRIVATE KEY`), or `sk-…` OpenAI-style tokens were found. E2E/tests use **obvious mock** values (`access-ok`, `internal secret` in dev-mode tests only).
+
+**`.env.example`:** [`.env.example`](../../.env.example) lists every **optional** env var used for tooling or debugging, with **dummy** values. Copy to `.env` locally if helpful; **`.env` is gitignored**.
+
+| Variable | Purpose |
+|----------|---------|
+| `REACT_APP_USE_MOCKS` | Playwright shell: MSW on (`true`, default) vs real HTTP (`false`) |
+| `E2E_BASE_URL` | Optional real-backend Playwright smoke base URL |
+| `TASKTIMER_API_DEV_ERRORS` | GJS: show raw API `details` in user-facing errors (dev only) |
+| `TASKTIMER_DEBUG_GTK_PACK` | GJS: log GTK pack warnings |
+| `TASKTIMER_FORCE_INAPP_NOTIFICATIONS` | GJS: force in-app notification banner |
+| `TASKTIMER_TEST_FAIL_JSON_SAVE` | Test hook only (`tests/test15_*`) |
+
+Standard session vars (`LANGUAGE`, `APPDIR`, `XDG_CONFIG_HOME`, `DESKTOP_STARTUP_ID`) are documented in `.env.example` as comments only.
+
+**Optional local scan:**
+
+```bash
+chmod +x bin/check-secrets.sh   # once
+bin/check-secrets.sh
+```
+
+**Optional CI:** `ci.yml` runs `bin/check-secrets.sh` after ESLint (pattern grep on tracked files; not a substitute for GitHub **secret scanning** on the host).
+
+**Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
+
+### SBOM on release — Task 65
+
+Ties to **[deployment.md](deployment.md)** (release assets / Task 36 checklist: AppImage + checksums + SBOM).
+
+**Command (local or CI):**
+
+```bash
+npm ci
+npm run sbom
+```
+
+Writes **`dist/sbom/tasktimer-cyclonedx.json`** (CycloneDX) and **`dist/sbom/tasktimer-spdx.json`** (SPDX). Implementation: [`bin/generate-sbom.sh`](../../bin/generate-sbom.sh); devDependency **`@cyclonedx/cyclonedx-npm`**; SPDX via pinned **`npx npm@10.9.2 sbom`**.
+
+**Scope:** npm **dev** dependencies only (no npm runtime for the GTK app). Regenerate after `package-lock.json` changes and before tagging a release.
+
+**GitHub Release:** `release.yml` attaches both JSON files and includes their SHA-256 sums in `packaging/appimage/dist/SHA256SUMS`.
+
+### Production config validation — Task 64
+
+When **`TASKTIMER_ENV=production`** or **`TASKMASTER_ENV=production`**, `main.js` calls [`src/config/production_config.js`](../../src/config/production_config.js) **before** `Gtk.Application.run()` and **exits 1** if any required secret is missing or looks like a placeholder (minimum **16** characters).
+
+| Variable | Required in production |
+|----------|------------------------|
+| `TASKTIMER_SESSION_SECRET` | Yes |
+| `TASKTIMER_JWT_SECRET` | Yes |
+| `TASKTIMER_CSRF_SECRET` | Yes |
+| `TASKTIMER_INTEGRATION_SECRET` | Yes |
+
+`--help` / `--version` are exempt (early CLI exit). Default dev runs omit `TASKTIMER_ENV` and skip validation.
+
+**Test:** `gjs tests/test17_production_config.js` (unit checks + subprocess `missing_secret` → exit **1**).
+
 ### Root `LICENSE` (SPDX) — Task 62
 
 - **File:** [`LICENSE`](../../LICENSE) at the repository root (full GPL-3.0 text).

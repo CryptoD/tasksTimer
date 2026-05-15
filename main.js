@@ -112,6 +112,7 @@ const TimerServicesModule = imports['taskTimer@CryptoD'].timer_services;
 const StorageModule = imports['taskTimer@CryptoD'].storage;
 const Logger = imports['taskTimer@CryptoD'].logger.Logger;
 const AudioManagerModule = imports['taskTimer@CryptoD'].audio_manager;
+const ProductionConfig = imports.src.config.production_config;
 
 /** @see platform/standalone/branding.js */
 const APP_ID = Branding.APP_ID;
@@ -896,6 +897,8 @@ function main(argv) {
         _printCliHelp(programName);
         return 0;
     }
+
+    ProductionConfig.assertProductionConfigOrExit(GLib.getenv);
 
     const app = new TaskTimerApplication();
     return app.run(argv);
