@@ -276,11 +276,18 @@ Canonical file in the repository: **[`.well-known/security.txt`](../../.well-kno
 ### Verify locally
 
 ```bash
-# After building the reference Caddy image (copies .well-known into the static root):
 docker build -f Dockerfile.caddy -t tasktimer:caddy .
-docker run --rm -p 8080:8080 tasktimer:caddy
-curl -fsS http://127.0.0.1:8080/.well-known/security.txt
+
+# File present in image (no port mapping required):
+docker run --rm tasktimer:caddy cat /srv/www/.well-known/security.txt
+
+# HTTP via Caddy inside the container:
+docker run --rm -d -p 8080:8080 --name tasktimer-caddy tasktimer:caddy
+docker exec tasktimer-caddy wget -qO- http://localhost:8080/.well-known/security.txt
+docker stop tasktimer-caddy
 ```
+
+Host `curl http://127.0.0.1:8080/...` depends on Docker publishing ports correctly on your machine; if it hangs or resets, use the `docker exec` check above.
 
 Renew **`Expires`** at least annually (edit `.well-known/security.txt` and redeploy).
 

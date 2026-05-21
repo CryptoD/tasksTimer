@@ -11,15 +11,6 @@
 
 :8080 {
 	root * /srv/www
-	encode gzip zstd
-
-	# security.txt (Task 70) — must not fall through to SPA index.html
-	handle /.well-known/security.txt {
-		file_server
-	}
-
-	file_server
-	try_files {path} /index.html
 
 	# Security headers (Task 66) — same-origin API: connect-src 'self' only.
 	header {
@@ -33,11 +24,23 @@
 	}
 
 	# API on same host — browser uses relative /api/* ; no CORS preflight for simple same-origin calls.
-	# Upstream should emit Set-Cookie with: HttpOnly; Secure; SameSite=Lax; Path=/
 	handle /api/* {
 		reverse_proxy {$API_UPSTREAM:127.0.0.1:3000} {
 			header_up X-Forwarded-Proto {scheme}
 			header_up X-Forwarded-Host {host}
 		}
+	}
+
+	# security.txt (Task 70) — must not fall through to SPA index.html
+	handle /.well-known/security.txt {
+		encode gzip zstd
+		file_server
+	}
+
+	# SPA static assets + fallback
+	handle {
+		encode gzip zstd
+		try_files {path} /index.html
+		file_server
 	}
 }
