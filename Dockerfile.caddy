@@ -1,0 +1,14 @@
+# Reference reverse proxy for a future taskTimer web UI (SPA + /api).
+# Documents CORS/cookie hosting model (Task 67); not used by the GTK desktop app.
+#
+#   docker build -f Dockerfile.caddy -t tasktimer:caddy .
+#   docker run --rm -p 8080:8080 -e API_UPSTREAM=host.docker.internal:3000 tasktimer:caddy
+#
+# Config: packaging/caddy/Caddyfile (must stay in sync with docs/dev/deployment.md).
+
+FROM caddy:2.8.4-alpine
+
+COPY packaging/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY packaging/caddy/www /srv/www
+
+EXPOSE 8080

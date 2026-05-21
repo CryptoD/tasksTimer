@@ -221,6 +221,9 @@ Automation templates sometimes mention patterns that **do not apply** here:
 |----------------|------------------|
 | Handlers in `main.go`, DB in `db.go` | **N/A** — no Go backend. |
 | `rateLimitMiddleware` on `POST /login` | **N/A** — no HTTP login API. |
+| `securityHeadersMiddleware` / CSP | **N/A** on desktop runtime; reference [`tooling/security_headers_middleware.mjs`](../../tooling/security_headers_middleware.mjs) + nginx snippet in [deployment.md](deployment.md) (Task 66). |
+| CORS / `Set-Cookie` (SameSite, Secure, credentials) | **N/A** on desktop; reference [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs), [`Dockerfile.caddy`](../../Dockerfile.caddy) (Task 67). |
+| File upload / virus scanning | **N/A** today; threat model [`docs/dev/file-upload-threat-model.md`](file-upload-threat-model.md) (Task 68). |
 | `handlers_test.go` (password reset, …) | **N/A** — no Go HTTP handlers. |
 | **Explicit server / router constructor** (e.g. `NewServer`, `NewRouter`, `http.Server` wiring) | **N/A** — no HTTP listener or route table; process entry is **`gjs main.js`** (`Gtk.Application`) and **`taskTimer@CryptoD/extension.js`** (Shell extension). |
 | **HTTP stack dependencies in one composition root** (e.g. `NewServer`, `NewHTTPServer` wiring DB + router + middleware) | **N/A** — there is **no** HTTP stack; nothing to construct or inject for a listener. Desktop deps are **system packages** (GTK, GJS, GStreamer—see [BUILD.md](../../BUILD.md)), not app-composed HTTP layers. |

@@ -1,0 +1,37 @@
+# Reference Caddy v2 config — SPA + same-origin /api proxy (Task 67).
+# Matches tooling/cors_cookie_policy.mjs (same-origin cookie model) and
+# tooling/security_headers_middleware.mjs (CSP; api via connect-src 'self').
+#
+# Build/run: docker build -f Dockerfile.caddy -t tasktimer:caddy . && docker run --rm -p 8080:8080 tasktimer:caddy
+
+{
+	# Local/demo; use automatic HTTPS in production with real hostnames.
+	auto_https off
+}
+
+:8080 {
+	root * /srv/www
+	encode gzip zstd
+	file_server
+	try_files {path} /index.html
+
+	# Security headers (Task 66) — same-origin API: connect-src 'self' only.
+	header {
+		Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+	}
+
+	# API on same host — browser uses relative /api/* ; no CORS preflight for simple same-origin calls.
+	# Upstream should emit Set-Cookie with: HttpOnly; Secure; SameSite=Lax; Path=/
+	handle /api/* {
+		reverse_proxy {$API_UPSTREAM:127.0.0.1:3000} {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+		}
+	}
+}

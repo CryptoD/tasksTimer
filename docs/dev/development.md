@@ -266,6 +266,18 @@ bin/check-secrets.sh
 
 **Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
 
+### File upload threat model — Task 68
+
+**N/A today** (no upload API). Operator stance for virus scan vs trusted users: [`docs/dev/file-upload-threat-model.md`](file-upload-threat-model.md); linked from [deployment.md](deployment.md).
+
+### CORS + cookie flags — Task 67
+
+**N/A for GTK.** Same-origin SPA + `/api` proxy: [`Dockerfile.caddy`](../../Dockerfile.caddy), [`packaging/caddy/Caddyfile`](../../packaging/caddy/Caddyfile), policy [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs). nginx/Caddy examples: [deployment.md](deployment.md) (must match Caddyfile).
+
+### CSP + security headers — Task 66
+
+**N/A for the shipped GTK app** (no HTTP listener). Reference policy: [`tooling/security_headers_middleware.mjs`](../../tooling/security_headers_middleware.mjs). **nginx snippet** that mirrors default headers: [deployment.md](deployment.md) → “CSP + security headers (Task 66)”.
+
 ### SBOM on release — Task 65
 
 Ties to **[deployment.md](deployment.md)** (release assets / Task 36 checklist: AppImage + checksums + SBOM).
