@@ -269,6 +269,70 @@ api.example.com {
 
 Keep **`packaging/caddy/Caddyfile`** (same-origin reference) and this cross-origin block aligned with [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs) when you change origins or cookie `SameSite` mode.
 
+## `security.txt` (Task 70)
+
+Canonical file in the repository: **[`.well-known/security.txt`](../../.well-known/security.txt)** (RFC 9116). The shipped **GTK app does not serve HTTP**; operators expose this path on a **project website** or API gateway when one exists.
+
+### Verify locally
+
+```bash
+# After building the reference Caddy image (copies .well-known into the static root):
+docker build -f Dockerfile.caddy -t tasktimer:caddy .
+docker run --rm -p 8080:8080 tasktimer:caddy
+curl -fsS http://127.0.0.1:8080/.well-known/security.txt
+```
+
+Renew **`Expires`** at least annually (edit `.well-known/security.txt` and redeploy).
+
+### nginx
+
+```nginx
+location = /.well-known/security.txt {
+    alias /var/www/tasktimer/.well-known/security.txt;
+    default_type text/plain;
+    add_header Cache-Control "public, max-age=3600";
+}
+```
+
+Deploy the repo file to `/var/www/tasktimer/.well-known/security.txt` (or symlink from your checkout). For HTTPS sites, also set:
+
+`Canonical: https://app.example.com/.well-known/security.txt`
+
+as an additional line in the served file (keep the repo copy in sync).
+
+### Caddy
+
+[`Dockerfile.caddy`](../../Dockerfile.caddy) copies `.well-known/` to `/srv/www/.well-known/`. [`packaging/caddy/Caddyfile`](../../packaging/caddy/Caddyfile) serves `/.well-known/security.txt` before the SPA `try_files` fallback.
+
+Production vhost example:
+
+```caddyfile
+app.example.com {
+    root * /var/www/tasktimer
+    handle /.well-known/security.txt {
+        file_server
+    }
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+}
+```
+
+### GitHub-only hosting (no server)
+
+Publish via **GitHub Pages** (branch `main`, folder `/` or `docs/`) so the file is available at  
+`https://cryptod.github.io/tasksTimer/.well-known/security.txt`  
+—or rely on **private vulnerability reporting** via GitHub Security Advisories (listed as `Contact` in the file).
+
+## Account lockout (Task 69)
+
+**No HTTP login** exists in the shipped desktop app. This project **does not** implement per-account lockout after failed logins.
+
+**Policy:** **rate limit only** on future auth endpoints (no lockout flag on users). Rationale, abuse model, and operator **accepted risk**: **[ADR 0002](adr/0002-account-lockout-rate-limit-only.md)**. Reference limits: [`tooling/auth_abuse_policy.mjs`](../../tooling/auth_abuse_policy.mjs). API clients should handle **429** / `RATE_LIMITED` per [`docs/api/errors.md`](../api/errors.md).
+
+When login is implemented, add **rate-limit tests**; lockout tests are **not** required unless ADR 0002 is superseded.
+
 ## File upload threat model (Task 68)
 
 **Today:** the shipped product has **no end-user file upload API**. Local timer/settings data is **user-owned JSON on disk** (trusted workstation model).

@@ -4,3 +4,4 @@ Short, **dated** notes for decisions that affect how we maintain this repo—esp
 
 - **Numbered files** — `0001-*.md`, `0002-*.md`, …
 - **When to add one** — you need a durable record that an **exception** to a “done when” rule is intentional (see [js-complexity-baseline.md](../js-complexity-baseline.md)).
+- **Index:** [0001](0001-wave1-cyclomatic-hotspots.md) (complexity wave 1), [0002](0002-account-lockout-rate-limit-only.md) (no login lockout; rate limit only).

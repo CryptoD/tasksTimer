@@ -1,0 +1,6 @@
+Contact: https://github.com/CryptoD/tasksTimer/security/advisories/new
+Contact: https://github.com/CryptoD/tasksTimer/issues
+Expires: 2027-05-21T23:59:59.000Z
+Preferred-Languages: en
+Policy: https://github.com/CryptoD/tasksTimer/blob/main/CONTRIBUTING.md
+Acknowledgments: https://github.com/CryptoD/tasksTimer/security/advisories

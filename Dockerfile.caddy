@@ -10,5 +10,6 @@ FROM caddy:2.8.4-alpine
 
 COPY packaging/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY packaging/caddy/www /srv/www
+COPY .well-known /srv/www/.well-known
 
 EXPOSE 8080

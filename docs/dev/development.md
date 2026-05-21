@@ -266,6 +266,14 @@ bin/check-secrets.sh
 
 **Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
 
+### `security.txt` — Task 70
+
+File: [`.well-known/security.txt`](../../.well-known/security.txt). Serve at `/.well-known/security.txt` per [deployment.md](deployment.md) (nginx/Caddy/`Dockerfile.caddy`). Renew `Expires` yearly.
+
+### Account lockout policy — Task 69
+
+**Not implemented** (no login API). Deliberate stance: **rate limit only**, no per-account lockout — **[ADR 0002](adr/0002-account-lockout-rate-limit-only.md)** (abuse model + accepted risk). Constants: [`tooling/auth_abuse_policy.mjs`](../../tooling/auth_abuse_policy.mjs). Tests for lockout are **not** required until policy changes.
+
 ### File upload threat model — Task 68
 
 **N/A today** (no upload API). Operator stance for virus scan vs trusted users: [`docs/dev/file-upload-threat-model.md`](file-upload-threat-model.md); linked from [deployment.md](deployment.md).
