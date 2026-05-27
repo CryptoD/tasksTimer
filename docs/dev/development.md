@@ -266,6 +266,10 @@ bin/check-secrets.sh
 
 **Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
 
+### Audit log review — Task 71
+
+**N/A today** (no HTTP admin API or audit store). Spot-check: admin password, user delete, and integration changes are **not** audited in the GTK app. Reference contract: [`docs/dev/audit-log-review.md`](audit-log-review.md), [`src/api/audit_log_policy.js`](../../src/api/audit_log_policy.js). **Test:** `gjs tests/test18_audit_log_policy.js` (integration changes must include `correlation_id`).
+
 ### `security.txt` — Task 70
 
 File: [`.well-known/security.txt`](../../.well-known/security.txt). Serve at `/.well-known/security.txt` per [deployment.md](deployment.md) (nginx/Caddy/`Dockerfile.caddy`). Renew `Expires` yearly.

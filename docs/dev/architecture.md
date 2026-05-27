@@ -225,6 +225,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | CORS / `Set-Cookie` (SameSite, Secure, credentials) | **N/A** on desktop; reference [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs), [`Dockerfile.caddy`](../../Dockerfile.caddy) (Task 67). |
 | File upload / virus scanning | **N/A** today; threat model [`docs/dev/file-upload-threat-model.md`](file-upload-threat-model.md) (Task 68). |
 | `/.well-known/security.txt` | File in repo [`.well-known/security.txt`](../../.well-known/security.txt); serve via proxy — [deployment.md](deployment.md) (Task 70). |
+| Audit log (admin password, user delete, integrations + `correlation_id`) | **N/A** today; spot-check + contract [`audit-log-review.md`](audit-log-review.md) (Task 71); policy [`src/api/audit_log_policy.js`](../../src/api/audit_log_policy.js). |
 | `handlers_test.go` (password reset, …) | **N/A** — no Go HTTP handlers. |
 | **Explicit server / router constructor** (e.g. `NewServer`, `NewRouter`, `http.Server` wiring) | **N/A** — no HTTP listener or route table; process entry is **`gjs main.js`** (`Gtk.Application`) and **`taskTimer@CryptoD/extension.js`** (Shell extension). |
 | **HTTP stack dependencies in one composition root** (e.g. `NewServer`, `NewHTTPServer` wiring DB + router + middleware) | **N/A** — there is **no** HTTP stack; nothing to construct or inject for a listener. Desktop deps are **system packages** (GTK, GJS, GStreamer—see [BUILD.md](../../BUILD.md)), not app-composed HTTP layers. |

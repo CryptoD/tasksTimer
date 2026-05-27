@@ -332,6 +332,28 @@ Publish via **GitHub Pages** (branch `main`, folder `/` or `docs/`) so the file 
 `https://cryptod.github.io/tasksTimer/.well-known/security.txt`  
 —or rely on **private vulnerability reporting** via GitHub Security Advisories (listed as `Contact` in the file).
 
+## Audit log (Task 71)
+
+**No HTTP admin API** in the shipped desktop app — there is **no** audit trail table or middleware.
+
+**Spot-check (this repo):** admin password actions, user delete, and integration CRUD are **not**
+implemented and therefore **not** logged. Correlation IDs were absent before the Task 71 reference
+policy.
+
+**When a backend is added:** every sensitive handler must persist an append-only row with
+`correlation_id` (from **`X-Correlation-ID`**) for:
+
+| Category | Actions |
+|----------|---------|
+| Admin password | `admin.password.set`, `admin.password.reset` |
+| User delete | `user.delete` |
+| Integrations | `integration.create`, `integration.update`, `integration.delete` |
+
+Full review + example row: **[`docs/dev/audit-log-review.md`](audit-log-review.md)**. Policy:
+[`src/api/audit_log_policy.js`](../../src/api/audit_log_policy.js),
+[`tooling/audit_log_policy.mjs`](../../tooling/audit_log_policy.mjs). **Test:**
+`gjs tests/test18_audit_log_policy.js`.
+
 ## Account lockout (Task 69)
 
 **No HTTP login** exists in the shipped desktop app. This project **does not** implement per-account lockout after failed logins.
