@@ -1,0 +1,20 @@
+# OpenAPI drift manifest (Task 74)
+#
+# If a pull request or push changes any file matching a HANDLER pattern,
+# it must also change at least one SPEC file (or CI fails).
+#
+# Used by: bin/check-openapi-drift.sh
+# Policy:  CONTRIBUTING.md → Task 96
+
+--- HANDLER ---
+
+internal/
+e2e/handlers.mjs
+
+--- SPEC ---
+
+docs/api/openapi.yaml
+docs/api/errors.md
+docs/api/pagination-contract.md
+docs/api/collection-get-endpoints.md
+src/api/api_error_messages.js

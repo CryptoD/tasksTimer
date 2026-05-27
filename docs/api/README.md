@@ -27,3 +27,5 @@ docker run --rm -p 8080:8080 \
 User-facing error strings: [`src/api/api_error_messages.js`](../../src/api/api_error_messages.js) (must stay in sync with `ErrorCode` in `openapi.yaml` and `errors.md`).
 
 **Verify:** `gjs tests/test20_openapi_spec.js`
+
+**Drift check (Task 74):** `bin/check-openapi-drift.sh` — see [CONTRIBUTING.md](../../CONTRIBUTING.md) Task 96.

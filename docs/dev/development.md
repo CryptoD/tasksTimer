@@ -266,6 +266,12 @@ bin/check-secrets.sh
 
 **Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
 
+Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/openapi.yaml`](../api/openapi.yaml). Index: [`docs/api/README.md`](../api/README.md). **Not implemented** in the GTK app; keep in sync with [`errors.md`](../api/errors.md) and [`pagination-contract.md`](../api/pagination-contract.md). **Test:** `gjs tests/test20_openapi_spec.js`.
+
+### OpenAPI CI drift check — Task 74
+
+CI runs **`bin/check-openapi-drift.sh`** when handler paths change without a spec update. Policy and reviewer checklist: **[CONTRIBUTING.md](../../CONTRIBUTING.md)** → **Task 96**. Manifest: [`tooling/openapi_drift_manifest.txt`](../../tooling/openapi_drift_manifest.txt). **Test:** `gjs tests/test21_openapi_drift_check.js`.
+
 ### OpenAPI 3 — initial spec — Task 73
 
 Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/openapi.yaml`](../api/openapi.yaml). Index: [`docs/api/README.md`](../api/README.md). **Not implemented** in the GTK app; keep in sync with [`errors.md`](../api/errors.md) and [`pagination-contract.md`](../api/pagination-contract.md). **Test:** `gjs tests/test20_openapi_spec.js`.

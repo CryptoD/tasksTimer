@@ -51,6 +51,7 @@ Before opening a PR, run the same checks as CI:
 npm ci
 npm run lint
 npm run test:e2e
+bin/check-openapi-drift.sh origin/main   # when your branch touches API handlers
 make lint
 make test
 ```
@@ -71,6 +72,55 @@ CI uses `xvfb-run` and `dbus-run-session` for headless runs; locally, plain `mak
 - **Translations:** if you change user-visible strings, update or add entries in `taskTimer@CryptoD/po/` as appropriate and run `make mo` / follow [BUILD.md](BUILD.md) for gettext workflow.
 
 Maintainers may ask for small follow-ups or tests; collaborative iteration is normal.
+
+## Task 96 — OpenAPI drift policy (Task 74)
+
+When this repository (or a backend module added here) exposes **HTTP route handlers**, the
+**OpenAPI contract must stay in sync**. CI runs **`bin/check-openapi-drift.sh`** on every push
+and pull request.
+
+### What CI checks
+
+1. Git diff vs the PR base branch (or `HEAD~1` on direct pushes).
+2. If any **handler path** changed, at least one **spec file** must change in the same diff.
+
+Handler and spec paths are listed in [`tooling/openapi_drift_manifest.txt`](tooling/openapi_drift_manifest.txt).
+
+| Kind | Examples |
+|------|----------|
+| **Handlers** | `internal/…` (Go API), `e2e/handlers.mjs` (MSW), `*router*.go`, `*handlers*.go` |
+| **Spec / contract** | `docs/api/openapi.yaml`, `docs/api/errors.md`, `src/api/api_error_messages.js`, pagination docs |
+
+### If your PR changes handlers
+
+Update **`docs/api/openapi.yaml`** (preferred) and, when error codes or pagination change,
+the matching files in [`docs/api/`](docs/api/) and [`src/api/api_error_messages.js`](src/api/api_error_messages.js).
+
+Run locally before pushing:
+
+```bash
+git fetch origin main
+bin/check-openapi-drift.sh origin/main
+gjs tests/test20_openapi_spec.js
+gjs tests/test21_openapi_drift_check.js
+```
+
+### Manual review (when codegen is not wired)
+
+This repo does **not** auto-generate OpenAPI from Go handlers yet. Reviewers should confirm:
+
+- New/changed routes appear under the correct `paths` in `openapi.yaml`.
+- Request/response schemas match handler validation.
+- New `error_code` values are added to `errors.md`, `openapi.yaml`, and `api_error_messages.js`.
+
+When a Go backend lands, prefer **codegen or oapi-codegen** in a follow-up so the drift check
+can compare generated stubs against `openapi.yaml` instead of relying on path heuristics alone.
+
+### Bypass
+
+There is **no** silent bypass in CI. If a change is docs-only inside `internal/` (e.g. comments),
+split it from handler logic changes or include a no-op spec touch **only** when the public API
+contract truly did not change — prefer a short note in the PR instead of empty spec edits.
 
 ## Documentation
 
