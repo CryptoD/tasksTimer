@@ -4,6 +4,8 @@
 
 This repository also contains a **GNOME Shell extension** (`taskTimer@CryptoD`) for users who prefer a panel indicator; it shares the same timer logic but targets the Shell UI and GSettings.
 
+**Release notes:** see **[CHANGELOG.md](CHANGELOG.md)** ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format; current release **1.1**).
+
 ---
 
 ## Screenshots

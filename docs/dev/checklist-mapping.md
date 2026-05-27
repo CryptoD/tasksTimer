@@ -15,7 +15,7 @@ Until work is done and maintained in **this** tree, the *spirit* of a high bar s
 | Area | Where it lives |
 |------|----------------|
 | Automated checks | `make lint`, `make test`, `npm run lint`, GitHub Actions (`.github/workflows/`) |
-| Releases & notes | `version.json`, `CHANGELOG.md`, release workflow |
+| Releases & notes | `version.json`, [**`CHANGELOG.md`**](../../CHANGELOG.md) (Keep a Changelog; Task 76), release workflow |
 | Contributor flow | `CONTRIBUTING.md`, issue/PR templates |
 | Desktop UX / a11y | `tests/TEST14-*.md`, manual scenarios under `tests/*.md` |
 | Optional browser shell | `e2e/` (Playwright + MSW — not the GTK app) |

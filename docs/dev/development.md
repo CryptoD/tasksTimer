@@ -268,6 +268,10 @@ bin/check-secrets.sh
 
 Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/openapi.yaml`](../api/openapi.yaml). Index: [`docs/api/README.md`](../api/README.md). **Not implemented** in the GTK app; keep in sync with [`errors.md`](../api/errors.md) and [`pagination-contract.md`](../api/pagination-contract.md). **Test:** `gjs tests/test20_openapi_spec.js`.
 
+### CHANGELOG — Task 76
+
+[`CHANGELOG.md`](../../CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). **`[1.1]`** is the first structured release entry (current shipped desktop product). Linked from [README.md](../../README.md). Release notes: `bin/extract_changelog_section.py`. **Test:** `gjs tests/test23_changelog.js`.
+
 ### API versioning policy — Task 75
 
 Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). OpenAPI `servers` and [`frontend/config.js`](../../frontend/config.js) must stay aligned. **Test:** `gjs tests/test22_api_versioning_policy.js`.
