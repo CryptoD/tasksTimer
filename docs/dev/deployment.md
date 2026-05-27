@@ -332,6 +332,20 @@ Publish via **GitHub Pages** (branch `main`, folder `/` or `docs/`) so the file 
 `https://cryptod.github.io/tasksTimer/.well-known/security.txt`  
 —or rely on **private vulnerability reporting** via GitHub Security Advisories (listed as `Contact` in the file).
 
+## OpenAPI (Task 73)
+
+Initial OpenAPI 3 slice for a future backend:
+
+| Resource | Paths |
+|----------|-------|
+| Auth | `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` |
+| Tasks | `GET/POST /tasks`, `GET/PATCH/DELETE /tasks/{taskId}` |
+| Projects | `GET/POST /projects`, `GET/PATCH/DELETE /projects/{projectId}` |
+| Users (admin) | `GET/POST /users`, `GET/PATCH/DELETE /users/{userId}`, `PUT /users/{userId}/password` |
+| Errors | `ErrorResponse` + `ErrorCode` components |
+
+File: [`docs/api/openapi.yaml`](../api/openapi.yaml). **Verify:** `gjs tests/test20_openapi_spec.js`.
+
 ## External security review (Task 72)
 
 **Review type:** structured maintainer self-assessment (external penetration test **deferred** until a public HTTP API ships).

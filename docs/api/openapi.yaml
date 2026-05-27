@@ -1,0 +1,1036 @@
+openapi: 3.0.3
+info:
+  title: taskTimer HTTP API
+  version: 0.1.0
+  description: |
+    Reference OpenAPI 3 specification for a future taskTimer backend service.
+
+    **Status:** Not implemented in the shipped GJS/GTK desktop app. This document is the
+    first complete slice (Task 73): auth, tasks, projects, admin users, and shared errors.
+
+    Related contracts:
+    - Error envelope — `docs/api/errors.md`, `src/api/api_error_messages.js`
+    - Pagination — `docs/api/pagination-contract.md`
+    - Audit log (admin actions) — `docs/dev/audit-log-review.md`
+    - Login rate limits — `docs/dev/adr/0002-account-lockout-rate-limit-only.md`
+
+  contact:
+    name: taskTimer security
+    url: https://github.com/CryptoD/tasksTimer/security/advisories/new
+  license:
+    name: GPL-3.0-or-later
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production (placeholder)
+  - url: http://localhost:3000/v1
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Session authentication (rate-limited login; no account lockout per ADR 0002)
+  - name: Tasks
+    description: Task items belonging to projects
+  - name: Projects
+    description: Project containers for tasks
+  - name: Users
+    description: Admin user management
+  - name: Errors
+    description: Shared error response shapes (see `docs/api/errors.md`)
+
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with email and password
+      description: |
+        Returns a session token (Bearer) and/or sets an HttpOnly session cookie.
+        Failed attempts are rate-limited per IP and username; accounts are **not** locked
+        (see ADR 0002). Uniform error body for unknown user vs bad password.
+      operationId: login
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@example.com
+              password: secret
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+            Set-Cookie:
+              description: Optional HttpOnly session cookie (see CORS/cookie policy)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: End the current session
+      operationId: logout
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '204':
+          description: Session cleared
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current authenticated user
+      operationId: getCurrentUser
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Session user profile
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tasks:
+    get:
+      tags: [Tasks]
+      summary: List tasks
+      operationId: listTasks
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by project
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+      responses:
+        '200':
+          description: Paginated task list
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedList'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Tasks]
+      summary: Create a task
+      operationId: createTask
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+      - $ref: '#/components/parameters/CorrelationId'
+    get:
+      tags: [Tasks]
+      summary: Get a task by id
+      operationId: getTask
+      responses:
+        '200':
+          description: Task
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Tasks]
+      summary: Update a task
+      operationId: updateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Updated task
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Tasks]
+      summary: Delete a task
+      operationId: deleteTask
+      responses:
+        '204':
+          description: Deleted
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+      operationId: listProjects
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Paginated project list
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedList'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Projects]
+      summary: Create a project
+      operationId: createProject
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/CorrelationId'
+    get:
+      tags: [Projects]
+      summary: Get a project by id
+      operationId: getProject
+      responses:
+        '200':
+          description: Project
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Projects]
+      summary: Update a project
+      operationId: updateProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Updated project
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Projects]
+      summary: Delete a project
+      operationId: deleteProject
+      responses:
+        '204':
+          description: Deleted
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users (admin)
+      description: Requires admin role. Paginated per `docs/api/pagination-contract.md`.
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Paginated user list
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedList'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Users]
+      summary: Create a user (admin)
+      operationId: createUser
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/CorrelationId'
+    get:
+      tags: [Users]
+      summary: Get a user by id (admin)
+      operationId: getUser
+      responses:
+        '200':
+          description: User
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Users]
+      summary: Update a user (admin)
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Updated user
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Users]
+      summary: Delete a user (admin)
+      description: |
+        Emits audit action `user.delete` with request correlation id
+        (see `docs/dev/audit-log-review.md`).
+      operationId: deleteUser
+      responses:
+        '204':
+          description: Deleted
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /users/{userId}/password:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/CorrelationId'
+    put:
+      tags: [Users]
+      summary: Set or reset a user password (admin)
+      description: |
+        Emits audit action `admin.password.set` or `admin.password.reset`.
+        Does not return the password hash.
+      operationId: setUserPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPasswordSet'
+      responses:
+        '204':
+          description: Password updated
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/CorrelationId'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Short-lived access token from `POST /auth/login`
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: tasktimer_session
+      description: HttpOnly session cookie (SameSite policy per Task 67)
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      description: Request correlation id echoed on responses and audit rows
+      schema:
+        type: string
+        maxLength: 128
+        example: req-550e8400-e29b-41d4-a716-446655440000
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+      description: Endpoint-specific allowlisted field name
+    Order:
+      name: order
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  headers:
+    CorrelationId:
+      description: Echo of request correlation id (generated if absent)
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid session
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: UNAUTHORIZED
+            message: Session expired
+    Forbidden:
+      description: Authenticated but not permitted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: FORBIDDEN
+            message: Admin role required
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: NOT_FOUND
+            message: Resource not found
+    Conflict:
+      description: State conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: CONFLICT
+            message: Slug already in use
+    ValidationError:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: VALIDATION_ERROR
+            message: Validation failed
+            details:
+              fields:
+                email: must be a valid email address
+    RateLimited:
+      description: Rate limit exceeded (login or global)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: RATE_LIMITED
+            message: Too many login attempts
+    ServiceUnavailable:
+      description: Dependency unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: SERVICE_UNAVAILABLE
+            message: Database unreachable
+
+  schemas:
+    ErrorResponse:
+      type: object
+      description: |
+        Canonical API error envelope. Clients map `error_code` to gettext strings via
+        `formatApiErrorForUser` — do not show `details` to end users unless dev mode is on.
+      required:
+        - error_code
+      properties:
+        error_code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+          description: Operator/log diagnostic; not primary user-facing text
+        details:
+          description: Structured debug detail (field errors, etc.)
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: array
+              items: {}
+            - type: string
+
+    ErrorCode:
+      type: string
+      description: Stable machine-readable code (UPPER_SNAKE_CASE)
+      enum:
+        - UNAUTHORIZED
+        - FORBIDDEN
+        - NOT_FOUND
+        - CONFLICT
+        - VALIDATION_ERROR
+        - RATE_LIMITED
+        - SERVICE_UNAVAILABLE
+        - REQUEST_TIMEOUT
+
+    PaginatedList:
+      type: object
+      required:
+        - items
+        - total_count
+        - limit
+        - offset
+      properties:
+        items:
+          type: array
+          items: {}
+        total_count:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+        sort:
+          type: string
+        order:
+          type: string
+          enum: [asc, desc]
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    LoginResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+        - user
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Seconds until access token expiry
+        user:
+          $ref: '#/components/schemas/SessionUser'
+
+    SessionUser:
+      type: object
+      required:
+        - id
+        - email
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    UserRole:
+      type: string
+      enum: [member, admin]
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        display_name:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    UserUpdate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    AdminPasswordSet:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+          format: password
+          minLength: 8
+        force_reset:
+          type: boolean
+          default: false
+          description: When true, audit as admin.password.reset
+
+    TaskStatus:
+      type: string
+      enum: [todo, in_progress, done, cancelled]
+
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - project_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        project_id:
+          type: string
+          format: uuid
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TaskCreate:
+      type: object
+      required:
+        - title
+        - project_id
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        project_id:
+          type: string
+          format: uuid
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        project_id:
+          type: string
+          format: uuid
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        description:
+          type: string
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        description:
+          type: string

@@ -78,4 +78,5 @@ When the API adds new `error_code` values, update in lockstep:
 
 1. This document (table).
 2. `src/api/api_error_messages.js`.
-3. `taskTimer@CryptoD/po/tasktimer.pot` (+ `fr.po` or translators follow).
+3. `docs/api/openapi.yaml` (`components/schemas/ErrorCode`).
+4. `taskTimer@CryptoD/po/tasktimer.pot` (+ `fr.po` or translators follow).

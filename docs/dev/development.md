@@ -266,6 +266,10 @@ bin/check-secrets.sh
 
 **Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
 
+### OpenAPI 3 — initial spec — Task 73
+
+Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/openapi.yaml`](../api/openapi.yaml). Index: [`docs/api/README.md`](../api/README.md). **Not implemented** in the GTK app; keep in sync with [`errors.md`](../api/errors.md) and [`pagination-contract.md`](../api/pagination-contract.md). **Test:** `gjs tests/test20_openapi_spec.js`.
+
 ### External security review — Task 72
 
 Structured **self-assessment** (no external pen test for desktop-only scope). **Public summary:** [`docs/plan/security-review-summary.md`](../plan/security-review-summary.md) (linked from [`docs/plan/README.md`](../plan/README.md)). Worksheet + remediation IDs: [`docs/dev/security-self-assessment.md`](security-self-assessment.md). **Test:** `gjs tests/test19_security_plan_links.js`.
