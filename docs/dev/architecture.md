@@ -243,7 +243,7 @@ Automation templates sometimes mention patterns that **do not apply** here:
 | TypeScript conversion of `TaskForm` / `TaskList` / auth context | **N/A** — no React components/auth context exist; there are no `.jsx`/`.tsx` files in this repository. |
 | Duplicate `ci.yml` + `tests.yml` for Go | **N/A** — workflows above are authoritative. |
 | `golangci-lint` / `staticcheck` | **N/A** — no Go code. |
-| **OpenAPI** in `docs/` | Reference spec [`docs/api/openapi.yaml`](../api/openapi.yaml) (Task 73); not implemented server-side. |
+| **OpenAPI** in `docs/` | Reference spec [`docs/api/openapi.yaml`](../api/openapi.yaml) (Task 73); versioning [`versioning-policy.md`](../api/versioning-policy.md) + [`frontend/config.js`](../../frontend/config.js) (Task 75). |
 | Interactive in-app **dependency graph** (`DependencyGraph.js`, graph menu) | **Not shipped** — there is **no** `DependencyGraph.js`, **no** GTK/Shell menu entry, and **no** README promise of an in-app graph. Maintainers use **static** docs below. |
 
 ---

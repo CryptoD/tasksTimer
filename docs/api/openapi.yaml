@@ -9,6 +9,7 @@ info:
     first complete slice (Task 73): auth, tasks, projects, admin users, and shared errors.
 
     Related contracts:
+    - API versioning — `docs/api/versioning-policy.md` (path prefix `/api/v1`)
     - Error envelope — `docs/api/errors.md`, `src/api/api_error_messages.js`
     - Pagination — `docs/api/pagination-contract.md`
     - Audit log (admin actions) — `docs/dev/audit-log-review.md`
@@ -22,10 +23,12 @@ info:
     url: https://www.gnu.org/licenses/gpl-3.0.html
 
 servers:
-  - url: https://api.example.com/v1
-    description: Production (placeholder)
-  - url: http://localhost:3000/v1
-    description: Local development
+  - url: https://app.example.com/api/v1
+    description: Production — SPA + API same origin (see docs/api/versioning-policy.md)
+  - url: http://localhost:8080/api/v1
+    description: Local Caddy proxy (Dockerfile.caddy)
+  - url: http://localhost:3000/api/v1
+    description: Backend direct (development)
 
 tags:
   - name: Auth

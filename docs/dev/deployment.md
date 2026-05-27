@@ -346,6 +346,10 @@ Initial OpenAPI 3 slice for a future backend:
 
 File: [`docs/api/openapi.yaml`](../api/openapi.yaml). **Verify:** `gjs tests/test20_openapi_spec.js`.
 
+## API versioning (Task 75)
+
+Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). SPA default: [`frontend/config.js`](../../frontend/config.js). **Verify:** `gjs tests/test22_api_versioning_policy.js`.
+
 ## External security review (Task 72)
 
 **Review type:** structured maintainer self-assessment (external penetration test **deferred** until a public HTTP API ships).

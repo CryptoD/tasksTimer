@@ -268,6 +268,10 @@ bin/check-secrets.sh
 
 Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/openapi.yaml`](../api/openapi.yaml). Index: [`docs/api/README.md`](../api/README.md). **Not implemented** in the GTK app; keep in sync with [`errors.md`](../api/errors.md) and [`pagination-contract.md`](../api/pagination-contract.md). **Test:** `gjs tests/test20_openapi_spec.js`.
 
+### API versioning policy — Task 75
+
+Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). OpenAPI `servers` and [`frontend/config.js`](../../frontend/config.js) must stay aligned. **Test:** `gjs tests/test22_api_versioning_policy.js`.
+
 ### OpenAPI CI drift check — Task 74
 
 CI runs **`bin/check-openapi-drift.sh`** when handler paths change without a spec update. Policy and reviewer checklist: **[CONTRIBUTING.md](../../CONTRIBUTING.md)** → **Task 96**. Manifest: [`tooling/openapi_drift_manifest.txt`](../../tooling/openapi_drift_manifest.txt). **Test:** `gjs tests/test21_openapi_drift_check.js`.

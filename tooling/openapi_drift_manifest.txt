@@ -14,7 +14,9 @@ e2e/handlers.mjs
 --- SPEC ---
 
 docs/api/openapi.yaml
+docs/api/versioning-policy.md
 docs/api/errors.md
+frontend/config.js
 docs/api/pagination-contract.md
 docs/api/collection-get-endpoints.md
 src/api/api_error_messages.js

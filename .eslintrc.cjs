@@ -47,6 +47,17 @@ module.exports = {
     },
     overrides: [
         {
+            files: ['frontend/**/*.js'],
+            env: {
+                node: true,
+                es2021: true,
+            },
+            parserOptions: {
+                ecmaVersion: 2022,
+                sourceType: 'module',
+            },
+        },
+        {
             files: ['**/*.{jsx,tsx}'],
             env: {
                 browser: true,

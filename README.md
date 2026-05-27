@@ -141,6 +141,20 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 
 ---
 
+## API versioning
+
+Public HTTP routes use a **path prefix** (not an unversioned stable API):
+
+```text
+/api/v1/{resource}
+```
+
+Policy: **[`docs/api/versioning-policy.md`](docs/api/versioning-policy.md)** · OpenAPI servers:
+[`docs/api/openapi.yaml`](docs/api/openapi.yaml) · SPA reference config:
+[`frontend/config.js`](frontend/config.js) (`REACT_APP_API_BASE_URL`, default `/api/v1`).
+
+The shipped **GTK app does not call this API** today; the contract is for a future backend + optional web UI.
+
 ## API (pagination contract)
 
 This repository does **not** implement an HTTP API. The canonical pagination contract for list endpoints

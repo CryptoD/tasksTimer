@@ -5,6 +5,8 @@ This folder holds **reference contracts** for a future taskTimer HTTP backend. T
 | Document | Purpose |
 |----------|---------|
 | **[`openapi.yaml`](openapi.yaml)** | OpenAPI 3.0 initial slice (Task 73): auth, tasks, projects, admin users, errors |
+| [`versioning-policy.md`](versioning-policy.md) | Path prefix **`/api/v1`** (Task 75); not unversioned |
+| [`frontend/config.js`](../../frontend/config.js) | SPA API base URL default (`REACT_APP_API_BASE_URL`) |
 | [`errors.md`](errors.md) | JSON error envelope + stable `error_code` values |
 | [`pagination-contract.md`](pagination-contract.md) | List endpoint pagination request/response shape |
 | [`collection-get-endpoints.md`](collection-get-endpoints.md) | Endpoint inventory (N/A until backend exists) |

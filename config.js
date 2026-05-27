@@ -1,6 +1,9 @@
 /*
  * JSONSettingsProvider / Config
  *
+ * Desktop-only settings (GTK standalone). For HTTP API base URL / versioning, see
+ * frontend/config.js and docs/api/versioning-policy.md — this module is NOT the API client config.
+ *
  * This module implements a JSON-backed configuration provider that mimics
  * the subset of the Gio.Settings API used by taskTimer. It stores data in
  * XDG_CONFIG_HOME/tasktimer/config.json and exposes:
