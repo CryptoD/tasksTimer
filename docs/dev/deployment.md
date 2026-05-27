@@ -332,6 +332,20 @@ Publish via **GitHub Pages** (branch `main`, folder `/` or `docs/`) so the file 
 `https://cryptod.github.io/tasksTimer/.well-known/security.txt`  
 —or rely on **private vulnerability reporting** via GitHub Security Advisories (listed as `Contact` in the file).
 
+## External security review (Task 72)
+
+**Review type:** structured maintainer self-assessment (external penetration test **deferred** until a public HTTP API ships).
+
+| Artifact | Location |
+|----------|----------|
+| **Public summary** | [`docs/plan/security-review-summary.md`](../plan/security-review-summary.md) |
+| Plan index | [`docs/plan/README.md`](../plan/README.md) |
+| Checklist + remediation log | [`docs/dev/security-self-assessment.md`](security-self-assessment.md) |
+
+Re-run annually or before major surface changes; update finding counts in the public summary.
+
+**Verify:** `gjs tests/test19_security_plan_links.js`
+
 ## Audit log (Task 71)
 
 **No HTTP admin API** in the shipped desktop app — there is **no** audit trail table or middleware.

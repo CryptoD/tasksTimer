@@ -22,6 +22,8 @@ Until work is done and maintained in **this** tree, the *spirit* of a high bar s
 
 Track concrete gaps with **GitHub Issues** and **PRs** using **taskTimer-specific** wording, not foreign checklist IDs alone.
 
+Published review summaries live under **[`docs/plan/`](../plan/README.md)** (e.g. Task 72 security self-assessment).
+
 ## License at repository root
 
 [**`LICENSE`**](../../LICENSE) (GNU **GPLv3** full text) **is** present at the repository root. [README.md](../../README.md) points to it under **License**. Any checklist or audit that claims **no** `LICENSE` at root is **stale** or referred to another fork or revision.

@@ -266,6 +266,10 @@ bin/check-secrets.sh
 
 **Pre-commit:** not required. To run locally before commit, add to your own hook, e.g. `bin/check-secrets.sh` in `.git/hooks/pre-commit`.
 
+### External security review — Task 72
+
+Structured **self-assessment** (no external pen test for desktop-only scope). **Public summary:** [`docs/plan/security-review-summary.md`](../plan/security-review-summary.md) (linked from [`docs/plan/README.md`](../plan/README.md)). Worksheet + remediation IDs: [`docs/dev/security-self-assessment.md`](security-self-assessment.md). **Test:** `gjs tests/test19_security_plan_links.js`.
+
 ### Audit log review — Task 71
 
 **N/A today** (no HTTP admin API or audit store). Spot-check: admin password, user delete, and integration changes are **not** audited in the GTK app. Reference contract: [`docs/dev/audit-log-review.md`](audit-log-review.md), [`src/api/audit_log_policy.js`](../../src/api/audit_log_policy.js). **Test:** `gjs tests/test18_audit_log_policy.js` (integration changes must include `correlation_id`).
