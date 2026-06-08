@@ -69,6 +69,7 @@ CI uses `xvfb-run` and `dbus-run-session` for headless runs; locally, plain `mak
 - **Keep changes focused** on one concern when possible (easier review and safer merges).
 - **Describe the behavior** you changed or added; link related issues with `Fixes #123` or `Refs #123` when applicable.
 - **Match existing style** in the files you touch (naming, imports, formatting).
+- **User docs parity (Task 77):** if the PR changes **user-visible behavior** (UI, defaults, install paths, notifications, tray, etc.), update **[`docs/user/features.md`](docs/user/features.md)** and/or **[README.md](README.md)**. The PR template includes a checklist item; mark **N/A** when the change is internal-only.
 - **Translations:** if you change user-visible strings, update or add entries in `taskTimer@CryptoD/po/` as appropriate and run `make mo` / follow [BUILD.md](BUILD.md) for gettext workflow.
 
 Maintainers may ask for small follow-ups or tests; collaborative iteration is normal.

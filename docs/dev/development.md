@@ -272,6 +272,10 @@ Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/open
 
 [`CHANGELOG.md`](../../CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). **`[1.1]`** is the first structured release entry (current shipped desktop product). Linked from [README.md](../../README.md). Release notes: `bin/extract_changelog_section.py`. **Test:** `gjs tests/test23_changelog.js`.
 
+### User docs parity — Task 77
+
+PR template checkbox: **“User docs updated if behavior changed.”** Canonical user-facing list: [`docs/user/features.md`](../user/features.md); overview also in [README.md](../../README.md). Template: [`.github/pull_request_template.md`](../../.github/pull_request_template.md). **Test:** `gjs tests/test24_pr_template_user_docs.js`.
+
 ### API versioning policy — Task 75
 
 Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). OpenAPI `servers` and [`frontend/config.js`](../../frontend/config.js) must stay aligned. **Test:** `gjs tests/test22_api_versioning_policy.js`.
