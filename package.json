@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs",
+    "verify:api-examples": "bash bin/verify-api-examples.sh",
     "sbom": "bash bin/generate-sbom.sh"
   },
   "devDependencies": {
