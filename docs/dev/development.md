@@ -276,6 +276,10 @@ Reference HTTP API (auth, tasks, projects, admin users, errors): [`docs/api/open
 
 PR template checkbox: **“User docs updated if behavior changed.”** Canonical user-facing list: [`docs/user/features.md`](../user/features.md); overview also in [README.md](../../README.md). Template: [`.github/pull_request_template.md`](../../.github/pull_request_template.md). **Test:** `gjs tests/test24_pr_template_user_docs.js`.
 
+### ADR directory — five decisions — Task 78
+
+Backend reference ADRs: [`docs/adr/README.md`](../adr/README.md) — SQLite, JWT+refresh, SPA hosting, job runner, pagination defaults. GJS maintainer ADRs: [`docs/dev/adr/`](../dev/adr/README.md). **Test:** `gjs tests/test25_adr_index.js`.
+
 ### API versioning policy — Task 75
 
 Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). OpenAPI `servers` and [`frontend/config.js`](../../frontend/config.js) must stay aligned. **Test:** `gjs tests/test22_api_versioning_policy.js`.
