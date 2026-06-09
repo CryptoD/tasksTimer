@@ -132,6 +132,7 @@ Details and packaging: **[BUILD.md](BUILD.md)**.
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to report issues, run tests/lint, and submit pull requests |
 | **[tests/TEST14-beta-coordination.md](tests/TEST14-beta-coordination.md)** | Beta AppImages, TEST 14 accessibility testing, feedback before stable releases |
 | **[docs/user/features.md](docs/user/features.md)** | **User-facing feature list** — what exists in the UI (incl. Task 50: no `REACT_APP_*` time-tracking mode) |
+| **[docs/adr/README.md](docs/adr/README.md)** | **Architecture decisions** for a future backend (SQLite, JWT, SPA, jobs, pagination — Task 78) |
 | **[docs/dev/architecture.md](docs/dev/architecture.md)** | Entry points, modules, data; clarifies non-Go / non-web checklist items |
 | **[doc/DEPENDENCY_GRAPH.md](doc/DEPENDENCY_GRAPH.md)** | Static text: GNOME Shell extension import/deps map (**no** in-app dependency graph) |
 | **[docs/dev/checklist-mapping.md](docs/dev/checklist-mapping.md)** | Former long checklist IDs vs taskTimer (N/A vs quality bar here) |
