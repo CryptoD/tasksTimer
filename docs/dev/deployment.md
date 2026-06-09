@@ -508,6 +508,10 @@ readinessProbe:
 
 Do **not** use `/health` for readiness — a live process with a down database must stop receiving traffic (**503** on `/readyz`).
 
+### Metrics scrape (Task 81)
+
+Scrape **`GET /metrics`** from Prometheus on the **API upstream** (same host/port as probes). Do not route `/metrics` through the static SPA. See **[`docs/dev/observability.md`](observability.md)** (RED metrics + sample Grafana JSON).
+
 ## Server / Kubernetes (summary)
 
 There is **nothing to deploy** as a scalable HTTP API today. When a web UI is added, terminate TLS at nginx or Caddy and apply the Task 66/67 snippets so proxy behavior **matches** [`tooling/security_headers_middleware.mjs`](../../tooling/security_headers_middleware.mjs), [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs), and [`Dockerfile.caddy`](../../Dockerfile.caddy). Use **Task 80** probe paths above for load balancers and orchestrators.

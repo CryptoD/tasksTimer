@@ -12,6 +12,7 @@ This folder holds **reference contracts** for a future taskTimer HTTP backend. T
 | [`collection-get-endpoints.md`](collection-get-endpoints.md) | Endpoint inventory (N/A until backend exists) |
 | [`examples.md`](examples.md) | **curl + Node** login → list tasks (Task 79); `bin/verify-api-examples.sh` |
 | [`health-probes.md`](health-probes.md) | **`GET /health`** liveness, **`GET /readyz`** readiness + DB (Task 80) |
+| [`../dev/observability.md`](../dev/observability.md) | **`GET /metrics`**, RED metrics, Grafana sample (Task 81) |
 
 ## Viewing the spec
 

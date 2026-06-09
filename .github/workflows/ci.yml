@@ -53,6 +53,9 @@ jobs:
       - name: Verify health probes (reference server)
         run: bash bin/verify-health-probes.sh
 
+      - name: Verify Prometheus metrics (reference server)
+        run: bash bin/verify-metrics.sh
+
       - name: Webpack bundle budget (tooling-only)
         run: npm run build:bundle-budget
 

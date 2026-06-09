@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Minimal reference HTTP API for verifying docs (Tasks 79–80).
- * NOT production — login, tasks, liveness, and readiness probes.
- *
- * Usage: node tooling/reference_api_server.mjs
- * Env:
- *   REFERENCE_API_PORT (default 3000), REFERENCE_API_HOST (default 127.0.0.1)
- *   REFERENCE_API_DB_OK (default 1) — set 0 to simulate DB unreachable on /readyz
+ * Minimal reference HTTP API for verifying docs (Tasks 79–81).
+ * NOT production — login, tasks, probes, Prometheus /metrics.
  */
 import http from 'node:http';
+import {
+    normalizeRoute,
+    recordHttpRequest,
+    renderPrometheusText,
+} from './prometheus_metrics.mjs';
 
 const HOST = process.env.REFERENCE_API_HOST || '127.0.0.1';
 const PORT = Number(process.env.REFERENCE_API_PORT || 3000);
@@ -49,7 +49,6 @@ function dbConfiguredOk() {
     return v !== '0' && v !== 'false' && v !== 'no';
 }
 
-/** Simulates SELECT 1 against SQLite (ADR 0001). */
 async function pingDatabase() {
     if (!dbConfiguredOk()) {
         throw new Error('database unreachable');
@@ -57,16 +56,20 @@ async function pingDatabase() {
     return true;
 }
 
-function sendJson(res, status, body, extraHeaders = {}) {
-    const payload = JSON.stringify(body);
+function sendRaw(res, status, contentType, body, extraHeaders = {}) {
+    const payload = typeof body === 'string' ? body : String(body);
     res.writeHead(status, {
-        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Type': contentType,
         'Content-Length': Buffer.byteLength(payload),
         'Cache-Control': 'no-store',
         'X-Correlation-ID': extraHeaders['X-Correlation-ID'] || 'ref-server',
         ...extraHeaders,
     });
     res.end(payload);
+}
+
+function sendJson(res, status, body, extraHeaders = {}) {
+    sendRaw(res, status, 'application/json; charset=utf-8', JSON.stringify(body), extraHeaders);
 }
 
 function readBody(req) {
@@ -130,30 +133,52 @@ async function handleOps(req, res, path) {
         return true;
     }
 
+    if (req.method === 'GET' && path === '/metrics') {
+        sendRaw(res, 200, 'text/plain; version=0.0.4; charset=utf-8', renderPrometheusText());
+        return true;
+    }
+
     return false;
 }
 
 const server = http.createServer(async (req, res) => {
+    const started = process.hrtime.bigint();
     const path = pathname(req.url);
+    const route = normalizeRoute(path);
+    let status = 500;
+
+    const finish = () => {
+        const elapsedNs = process.hrtime.bigint() - started;
+        const durationSec = Number(elapsedNs) / 1e9;
+        if (route !== '/metrics') {
+            recordHttpRequest(req.method || 'GET', route, status, durationSec);
+        }
+    };
+
+    res.on('finish', finish);
 
     try {
         if (await handleOps(req, res, path)) {
+            status = res.statusCode || 200;
             return;
         }
 
         const sub = apiSubPath(req.url);
         if (sub === null) {
-            sendJson(res, 404, { error_code: 'NOT_FOUND', message: 'Not found' });
+            status = 404;
+            sendJson(res, status, { error_code: 'NOT_FOUND', message: 'Not found' });
             return;
         }
 
         if (req.method === 'POST' && sub === '/auth/login') {
             const body = await readBody(req);
             if (!body || body.email !== DEMO_EMAIL || body.password !== DEMO_PASSWORD) {
-                sendJson(res, 401, { error_code: 'UNAUTHORIZED', message: 'Invalid credentials' });
+                status = 401;
+                sendJson(res, status, { error_code: 'UNAUTHORIZED', message: 'Invalid credentials' });
                 return;
             }
-            sendJson(res, 200, {
+            status = 200;
+            sendJson(res, status, {
                 access_token: DEMO_TOKEN,
                 token_type: 'Bearer',
                 expires_in: 900,
@@ -165,19 +190,25 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'GET' && sub === '/tasks') {
             const token = bearerToken(req);
             if (token !== DEMO_TOKEN) {
-                sendJson(res, 401, { error_code: 'UNAUTHORIZED', message: 'Missing or invalid token' });
+                status = 401;
+                sendJson(res, status, { error_code: 'UNAUTHORIZED', message: 'Missing or invalid token' });
                 return;
             }
-            sendJson(res, 200, DEMO_TASKS);
+            status = 200;
+            sendJson(res, status, DEMO_TASKS);
             return;
         }
 
-        sendJson(res, 404, { error_code: 'NOT_FOUND', message: 'Not found' });
+        status = 404;
+        sendJson(res, status, { error_code: 'NOT_FOUND', message: 'Not found' });
     } catch (e) {
-        sendJson(res, 422, { error_code: 'VALIDATION_ERROR', message: String(e.message || e) });
+        status = 422;
+        sendJson(res, status, { error_code: 'VALIDATION_ERROR', message: String(e.message || e) });
     }
 });
 
 server.listen(PORT, HOST, () => {
-    process.stdout.write(`reference_api_server listening on http://${HOST}:${PORT} (/health, /readyz, ${PREFIX})\n`);
+    process.stdout.write(
+        `reference_api_server listening on http://${HOST}:${PORT} (/health, /readyz, /metrics, ${PREFIX})\n`,
+    );
 });

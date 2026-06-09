@@ -6,6 +6,7 @@ Ops-only endpoints on the **API process root** (not under `/api/v1`). See [versi
 |------|---------|----------|---------|---------|
 | **`GET /health`** | **Liveness** — process accepting HTTP | No | **200** `{ "status": "ok" }` | *(process down → TCP failure)* |
 | **`GET /readyz`** | **Readiness** — can serve traffic | Yes (`SELECT 1` / ping) | **200** `{ "status": "ready", "checks": { "database": "ok" } }` | **503** `{ "status": "not_ready", "checks": { "database": "unreachable" }, "error_code": "SERVICE_UNAVAILABLE" }` |
+| **`GET /metrics`** | **Prometheus scrape** (Task 81) | No | **200** `text/plain` exposition | — |
 
 **Load balancer / orchestrator rules:**
 
@@ -14,4 +15,4 @@ Ops-only endpoints on the **API process root** (not under `/api/v1`). See [versi
 
 Reference implementation: [`tooling/reference_api_server.mjs`](../../tooling/reference_api_server.mjs). Verify: `bin/verify-health-probes.sh`.
 
-Full proxy and Kubernetes examples: [deployment.md](../dev/deployment.md) → **Load balancer and probes (Task 80)**.
+Metrics and RED dashboards: [`docs/dev/observability.md`](../dev/observability.md) (Task 81).

@@ -288,6 +288,10 @@ Backend reference ADRs: [`docs/adr/README.md`](../adr/README.md) — SQLite, JWT
 
 **`GET /health`** (liveness) and **`GET /readyz`** (DB ping → **503** if unreachable). [`docs/api/health-probes.md`](../api/health-probes.md); load balancer doc: [deployment.md](deployment.md). **Verify:** `bin/verify-health-probes.sh`. **Test:** `gjs tests/test27_health_probes.js`.
 
+### Metrics — Task 81
+
+**`GET /metrics`** Prometheus text; RED in [`docs/dev/observability.md`](observability.md). Grafana sample: [`docs/dev/grafana/api-red-overview.json`](grafana/api-red-overview.json). **Verify:** `bin/verify-metrics.sh`. **Test:** `gjs tests/test28_metrics.js`.
+
 ### API versioning policy — Task 75
 
 Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). OpenAPI `servers` and [`frontend/config.js`](../../frontend/config.js) must stay aligned. **Test:** `gjs tests/test22_api_versioning_policy.js`.
