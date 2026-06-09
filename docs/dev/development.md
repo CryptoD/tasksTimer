@@ -284,6 +284,10 @@ Backend reference ADRs: [`docs/adr/README.md`](../adr/README.md) — SQLite, JWT
 
 [`docs/api/examples.md`](../api/examples.md) — curl + [`docs/api/examples/login_list_tasks.mjs`](../api/examples/login_list_tasks.mjs). Reference server: `tooling/reference_api_server.mjs`. **Verify:** `bin/verify-api-examples.sh` or `npm run verify:api-examples`. **Test:** `gjs tests/test26_api_examples.js`.
 
+### Readiness endpoint — Task 80
+
+**`GET /health`** (liveness) and **`GET /readyz`** (DB ping → **503** if unreachable). [`docs/api/health-probes.md`](../api/health-probes.md); load balancer doc: [deployment.md](deployment.md). **Verify:** `bin/verify-health-probes.sh`. **Test:** `gjs tests/test27_health_probes.js`.
+
 ### API versioning policy — Task 75
 
 Path prefix **`/api/v1`** (not unversioned). Policy: [`docs/api/versioning-policy.md`](../api/versioning-policy.md). OpenAPI `servers` and [`frontend/config.js`](../../frontend/config.js) must stay aligned. **Test:** `gjs tests/test22_api_versioning_policy.js`.

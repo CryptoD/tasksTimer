@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
- * Minimal reference HTTP API for verifying docs/api/examples.md (Task 79).
- * NOT production — implements POST /api/v1/auth/login and GET /api/v1/tasks only.
+ * Minimal reference HTTP API for verifying docs (Tasks 79–80).
+ * NOT production — login, tasks, liveness, and readiness probes.
  *
  * Usage: node tooling/reference_api_server.mjs
- * Env:   REFERENCE_API_PORT (default 3000), REFERENCE_API_HOST (default 127.0.0.1)
+ * Env:
+ *   REFERENCE_API_PORT (default 3000), REFERENCE_API_HOST (default 127.0.0.1)
+ *   REFERENCE_API_DB_OK (default 1) — set 0 to simulate DB unreachable on /readyz
  */
 import http from 'node:http';
 
@@ -42,11 +44,25 @@ const DEMO_TASKS = {
     order: 'desc',
 };
 
+function dbConfiguredOk() {
+    const v = String(process.env.REFERENCE_API_DB_OK ?? '1').trim().toLowerCase();
+    return v !== '0' && v !== 'false' && v !== 'no';
+}
+
+/** Simulates SELECT 1 against SQLite (ADR 0001). */
+async function pingDatabase() {
+    if (!dbConfiguredOk()) {
+        throw new Error('database unreachable');
+    }
+    return true;
+}
+
 function sendJson(res, status, body, extraHeaders = {}) {
     const payload = JSON.stringify(body);
     res.writeHead(status, {
         'Content-Type': 'application/json; charset=utf-8',
         'Content-Length': Buffer.byteLength(payload),
+        'Cache-Control': 'no-store',
         'X-Correlation-ID': extraHeaders['X-Correlation-ID'] || 'ref-server',
         ...extraHeaders,
     });
@@ -73,8 +89,12 @@ function readBody(req) {
     });
 }
 
-function routePath(url) {
-    const path = new URL(url, 'http://localhost').pathname;
+function pathname(url) {
+    return new URL(url || '/', 'http://localhost').pathname;
+}
+
+function apiSubPath(url) {
+    const path = pathname(url);
     if (!path.startsWith(PREFIX)) {
         return null;
     }
@@ -87,14 +107,46 @@ function bearerToken(req) {
     return m ? m[1].trim() : null;
 }
 
-const server = http.createServer(async (req, res) => {
-    const sub = routePath(req.url || '/');
-    if (sub === null) {
-        sendJson(res, 404, { error_code: 'NOT_FOUND', message: 'Not found' });
-        return;
+async function handleOps(req, res, path) {
+    if (req.method === 'GET' && path === '/health') {
+        sendJson(res, 200, { status: 'ok' });
+        return true;
     }
 
+    if (req.method === 'GET' && path === '/readyz') {
+        try {
+            await pingDatabase();
+            sendJson(res, 200, {
+                status: 'ready',
+                checks: { database: 'ok' },
+            });
+        } catch (_e) {
+            sendJson(res, 503, {
+                status: 'not_ready',
+                checks: { database: 'unreachable' },
+                error_code: 'SERVICE_UNAVAILABLE',
+            });
+        }
+        return true;
+    }
+
+    return false;
+}
+
+const server = http.createServer(async (req, res) => {
+    const path = pathname(req.url);
+
     try {
+        if (await handleOps(req, res, path)) {
+            return;
+        }
+
+        const sub = apiSubPath(req.url);
+        if (sub === null) {
+            sendJson(res, 404, { error_code: 'NOT_FOUND', message: 'Not found' });
+            return;
+        }
+
         if (req.method === 'POST' && sub === '/auth/login') {
             const body = await readBody(req);
             if (!body || body.email !== DEMO_EMAIL || body.password !== DEMO_PASSWORD) {
@@ -127,5 +179,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-    process.stdout.write(`reference_api_server listening on http://${HOST}:${PORT}${PREFIX}\n`);
+    process.stdout.write(`reference_api_server listening on http://${HOST}:${PORT} (/health, /readyz, ${PREFIX})\n`);
 });

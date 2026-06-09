@@ -11,6 +11,7 @@ This folder holds **reference contracts** for a future taskTimer HTTP backend. T
 | [`pagination-contract.md`](pagination-contract.md) | List endpoint pagination request/response shape |
 | [`collection-get-endpoints.md`](collection-get-endpoints.md) | Endpoint inventory (N/A until backend exists) |
 | [`examples.md`](examples.md) | **curl + Node** login → list tasks (Task 79); `bin/verify-api-examples.sh` |
+| [`health-probes.md`](health-probes.md) | **`GET /health`** liveness, **`GET /readyz`** readiness + DB (Task 80) |
 
 ## Viewing the spec
 

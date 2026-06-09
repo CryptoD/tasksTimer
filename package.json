@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:e2e": "playwright test --config=e2e/playwright.config.mjs",
     "verify:api-examples": "bash bin/verify-api-examples.sh",
+    "verify:health-probes": "bash bin/verify-health-probes.sh",
     "sbom": "bash bin/generate-sbom.sh"
   },
   "devDependencies": {

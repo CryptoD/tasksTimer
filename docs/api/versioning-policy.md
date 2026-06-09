@@ -62,8 +62,7 @@ When a Go (or other) server is added:
 
 - Mount all public handlers under **`/api/v1`** (or strip `/api/v1` at the reverse proxy and
   mount internally — but external contract stays `/api/v1/...`).
-- Health/readiness probes may live at **`/health`** (unversioned, ops-only) — not part of the
-  public product API.
+- Health/readiness probes may live at **`/health`** (liveness, no DB) and **`/readyz`** (readiness, pings DB → **503** if down) — ops-only; see [`health-probes.md`](health-probes.md) and [deployment.md](../dev/deployment.md) Task 80.
 
 ## Breaking changes
 

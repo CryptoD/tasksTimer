@@ -407,6 +407,107 @@ When login is implemented, add **rate-limit tests**; lockout tests are **not** r
 
 Each stance includes an **accepted risk** statement to copy into your runbook so operators know what is (and is not) covered.
 
-## Server / Kubernetes
+## Load balancer and probes (Task 80)
 
-There is **nothing to deploy** as a scalable HTTP API today. When a web UI is added, terminate TLS at nginx or Caddy and apply the Task 66/67 snippets so proxy behavior **matches** [`tooling/security_headers_middleware.mjs`](../../tooling/security_headers_middleware.mjs), [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs), and [`Dockerfile.caddy`](../../Dockerfile.caddy).
+When a **future HTTP API** sits behind nginx, Caddy, or a cloud load balancer, configure **two probe paths** on the **backend upstream** (not the static SPA):
+
+| Probe | Path | Expect | Use |
+|-------|------|--------|-----|
+| **Liveness** | `GET /health` | **200** JSON `{"status":"ok"}` | Restart/unhealthy only if process dead |
+| **Readiness** | `GET /readyz` | **200** when DB reachable; **503** when not | LB pool membership, Kubernetes `readinessProbe` |
+
+Contract: [`docs/api/health-probes.md`](../api/health-probes.md). Reference server: [`tooling/reference_api_server.mjs`](../../tooling/reference_api_server.mjs).
+
+**Verify locally:**
+
+```bash
+bin/verify-health-probes.sh
+```
+
+Simulate DB failure on reference server: `REFERENCE_API_DB_OK=0 node tooling/reference_api_server.mjs` → `/readyz` returns **503**, `/health` still **200**.
+
+### nginx (upstream health)
+
+```nginx
+upstream tasktimer_api {
+    server 127.0.0.1:3000;
+    # Optional active check (nginx Plus / commercial) — path must be /readyz
+    # health_check uri=/readyz passes=2 fails=3 interval=5s;
+}
+
+server {
+    listen 443 ssl;
+    server_name app.example.com;
+
+    location /health {
+        proxy_pass http://tasktimer_api/health;
+        proxy_http_version 1.1;
+        access_log off;
+    }
+
+    location /readyz {
+        proxy_pass http://tasktimer_api/readyz;
+        proxy_http_version 1.1;
+        access_log off;
+    }
+
+    location /api/ {
+        proxy_pass http://tasktimer_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        root /var/www/tasktimer/frontend/dist;
+        try_files $uri /index.html;
+    }
+}
+```
+
+**LB rule:** point **health checks** at **`/readyz`**, not `/health`. Use `/health` only for process liveness (e.g. systemd `Restart=`, k8s `livenessProbe` with low cost).
+
+### Caddy (reference)
+
+Extend [`packaging/caddy/Caddyfile`](../../packaging/caddy/Caddyfile) when the API process serves probes on the upstream:
+
+```caddyfile
+:8080 {
+    handle /health {
+        reverse_proxy {$API_UPSTREAM:127.0.0.1:3000}
+    }
+    handle /readyz {
+        reverse_proxy {$API_UPSTREAM:127.0.0.1:3000}
+    }
+    handle /api/* {
+        reverse_proxy {$API_UPSTREAM:127.0.0.1:3000}
+    }
+    # … SPA static handlers …
+}
+```
+
+Cloud load balancers (AWS ALB, GCP HTTP(S) LB, etc.): set **health check path** to **`/readyz`**, success codes **200** only; treat **503** as unhealthy.
+
+### Kubernetes
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  periodSeconds: 10
+  timeoutSeconds: 2
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 3000
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 2
+```
+
+Do **not** use `/health` for readiness — a live process with a down database must stop receiving traffic (**503** on `/readyz`).
+
+## Server / Kubernetes (summary)
+
+There is **nothing to deploy** as a scalable HTTP API today. When a web UI is added, terminate TLS at nginx or Caddy and apply the Task 66/67 snippets so proxy behavior **matches** [`tooling/security_headers_middleware.mjs`](../../tooling/security_headers_middleware.mjs), [`tooling/cors_cookie_policy.mjs`](../../tooling/cors_cookie_policy.mjs), and [`Dockerfile.caddy`](../../Dockerfile.caddy). Use **Task 80** probe paths above for load balancers and orchestrators.
